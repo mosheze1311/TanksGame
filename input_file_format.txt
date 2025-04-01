@@ -1,0 +1,6 @@
+height width tanks_per_player walls mines
+1 x y direction
+2 x y direction
+
+# x y
+@ x y
