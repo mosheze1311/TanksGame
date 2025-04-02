@@ -3,12 +3,18 @@
 #include <vector>
 #include <map>
 
-// #include "BoardDetails.cpp"
 #include "GameObjects.h"
-
-#define CELL pair<int, int>
-
 using namespace std;
+
+class BoardCell
+    {
+    public:
+        int x;
+        int y;
+    
+    BoardCell(int x, int y): x(x), y(y){};
+};
+
 
 class GameBoard
 {
@@ -24,9 +30,8 @@ private:
         int p1_tanks;
         int p2_tanks;
     };
-    
     BoardDetails board_details;
-    map<game_object, vector<CELL>> objects_locations;
+    map<game_object, vector<BoardCell>> objects_locations;
     map<int, map<int, game_object>> board;
 
 
@@ -65,20 +70,21 @@ public:
         return this->board_details.height;
     }
 
-    bool is_occupied_cell(CELL c)
+    bool is_occupied_cell(BoardCell c)
     {
-        if (board.find(c.first) == board.end())
+        if (board.find(c.x) == board.end())
         {
             return false;
         }
-        if (board[c.first].find(c.second) == board[c.first].end())
+        if (board[c.x].find(c.y) == board[c.x].end())
         {
             return false;
         }
         return true;
     }
 
-    game_object object_on_cell(CELL c){
-        return this->board[c.first][c.second];
+    game_object object_on_cell(BoardCell c)
+    {
+        return this->board[c.x][c.y];
     }
 };

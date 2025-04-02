@@ -6,10 +6,7 @@ class GameDrawer
 private:
     GameBoard board;
 
-public:
-    GameDrawer(GameBoard board) : board(board) {};
-
-    void draw()
+    char decideCellImage(BoardCell c)
     {
         map<game_object, string> draw_map = {
             {game_object::mine, "💥"},
@@ -17,6 +14,22 @@ public:
             {game_object::tank1, "🚙"},
             {game_object::tank2, "🚜"}};
         vector<string> empty_blocks({"⬜", "⬜"});
+
+        if (this->board.is_occupied_cell(c))
+        {
+            cout << draw_map[this->board.object_on_cell(c)];
+        }
+        else
+        {
+            cout << empty_blocks[(c.x + c.y) % 2];
+        }
+    }
+    
+public:
+    GameDrawer(GameBoard board) : board(board) {};
+
+    void draw()
+    {
         string game_border_portal = "🌀";
         
         for (int i = 0; i < this->board.getWidth() + 2; i++)
@@ -30,14 +43,8 @@ public:
             cout << game_border_portal;
             for (int j = 0; j < this->board.getWidth(); j++)
             {
-                if (this->board.is_occupied_cell({j, i}))
-                {
-                    cout << draw_map[this->board.object_on_cell({j, i})];
-                }
-                else
-                {
-                    cout << empty_blocks[(i + j) % 2];
-                }
+                BoardCell c(j,i);
+                cout << this->decideCellImage(c);
             }
             cout << game_border_portal << endl;
         }
