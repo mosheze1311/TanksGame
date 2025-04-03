@@ -4,6 +4,7 @@
 class Tank : public MovableObject {
     private:
         int shells = 10;
+        
     
     public:
         // Constructor with default values
@@ -30,6 +31,11 @@ class Tank : public MovableObject {
             } else {
                 std::cout << "Out of shells!" << std::endl;
             }
+        }
+
+
+        void destroyed(){
+
         }
     
         int getShells() const { return shells; }

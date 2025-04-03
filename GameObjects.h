@@ -1,6 +1,9 @@
 #pragma once
 #include <iostream>
 
+// ===========================
+// Enums
+// ===========================
 enum class game_object {
     tank1 = '1',
     tank2 = '2',
@@ -22,14 +25,14 @@ protected:
     int hp;
 
 public:
-    GameObject(game_object t) : type(t), hp(1) {}
-    GameObject(game_object t, int hp) : type(t), hp(hp) {}
+    GameObject(game_object t) : type(t), hp(1) {}               // default hp = 1
+    GameObject(game_object t, int hp) : type(t), hp(hp) {}      // custom hp
     virtual ~GameObject() {}
 
     virtual void printType() const = 0;
+    virtual void destroyed() {}  // overrideable
 
     game_object getType() const { return type; }
-
     void setHP(int new_hp) { hp = new_hp; }
     void gotHit(int dmg = 1) { hp -= dmg; }
     int getHp() const { return hp; }
@@ -45,7 +48,7 @@ public:
 };
 
 // ===========================
-// MovableObject (has speed & direction)
+// MovableObject (with speed & direction)
 // ===========================
 class MovableObject : public GameObject {
 protected:
@@ -73,11 +76,13 @@ public:
 // ===========================
 class Mine : public StaticObject {
 public:
-    Mine() : StaticObject(game_object::mine) {}
+    Mine() : StaticObject(game_object::mine, 1) {}
 
     void printType() const override {
-        std::cout << "Mine" << std::endl;
+        std::cout << "Mine (HP: " << getHp() << ")" << std::endl;
     }
+
+    void destroyed() override {}
 };
 
 class Wall : public StaticObject {
@@ -87,6 +92,8 @@ public:
     void printType() const override {
         std::cout << "Wall (HP: " << getHp() << ")" << std::endl;
     }
+
+    void destroyed() override {}
 };
 
 // ===========================
@@ -97,17 +104,21 @@ private:
     int shells = 10;
 
 public:
-    Tank(game_object t = game_object::tank1, Direction dir = Direction::UP, int spd = 1, int hp = 1)
+    Tank(game_object t = game_object::tank1,
+         Direction dir = Direction::UP,
+         int spd = 1,
+         int hp = 1)
         : MovableObject(t, dir, spd, hp) {}
 
     void printType() const override {
-        std::cout << "Tank (" << static_cast<char>(type) << ") with " << shells
+        std::cout << "Tank (" << static_cast<char>(type)
+                  << ") with " << shells
                   << " shells, HP: " << getHp() << std::endl;
     }
 
     void move() override {
-        std::cout << "Tank moves " << getSpeed() << " units in direction "
-                  << static_cast<int>(getDirection()) << std::endl;
+        std::cout << "Tank moves " << getSpeed()
+                  << " units in direction " << static_cast<int>(getDirection()) << std::endl;
     }
 
     void shoot() {
@@ -116,19 +127,23 @@ public:
             std::cout << "Bang!" << std::endl;
         }
     }
+
+    void destroyed() override {}
 };
 
 class Shell : public MovableObject {
 public:
     Shell(Direction dir, int spd = 2)
-        : MovableObject(game_object::shell, dir, spd) {}
+        : MovableObject(game_object::shell, dir, spd, 1) {}
 
     void printType() const override {
-        std::cout << "Shell" << std::endl;
+        std::cout << "Shell (HP: " << getHp() << ")" << std::endl;
     }
 
     void move() override {
-        std::cout << "Shell moves " << getSpeed() << " units in direction "
-                  << static_cast<int>(getDirection()) << std::endl;
+        std::cout << "Shell moves " << getSpeed()
+                  << " units in direction " << static_cast<int>(getDirection()) << std::endl;
     }
+
+    void destroyed() override {}
 };
