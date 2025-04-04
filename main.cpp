@@ -1,11 +1,12 @@
 #include "GameBoard/GameBoard.h"
 #include "GameManager/GameManager.h"
 #include "GamePlayer/GamePlayer.h"
+#include "Logger/Logger.h"
 
 int main(int argc, char *argv[])
 {
     if (argc != 2){
-        //todo: add error looging.
+        Logger::getInstance().logError(std::format("Arguments do not match to programm - expecting 1, got {}", argc-1));
         return 0;
     }
     const string file_path = argv[1];
@@ -13,6 +14,6 @@ int main(int argc, char *argv[])
     Player p1;
     Player p2;
 
-    GameManager gm(b, p1, p2, "");
+    GameManager gm(b, p1, p2,(string) "");
     gm.play();
 }
