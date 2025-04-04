@@ -1,5 +1,5 @@
 #include <iostream>
-#include "GameBoard.cpp"
+#include "GameBoard/GameBoard.h"
 
 class GameDrawer
 {
@@ -15,9 +15,9 @@ private:
             {game_object::tank2, "🚜"}};
         vector<string> empty_blocks({"⬜", "⬜"});
 
-        if (this->board.is_occupied_cell(c))
+        if (this->board.isOccupiedCell(c))
         {
-            cout << draw_map[this->board.object_on_cell(c)];
+            cout << draw_map[this->board.objectOnCell(c)->getType()];
         }
         else
         {
