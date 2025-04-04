@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 #include <map>
 #include "../GameObjects/GameObjects.h"
 using namespace std;
@@ -36,8 +37,8 @@ private:
 
     BoardDetails board_details;
 
-    map<GameObject, BoardCell> objects_locations;
-    map<BoardCell, GameObject> board;
+    unordered_map<GameObject*, BoardCell> objects_locations;
+    map<BoardCell, GameObject*> board;
 
 public:
     // Constructor

@@ -3,7 +3,7 @@
 Mine::Mine()
     : StaticObject(game_object::mine, 1) {}
 
-void Mine::printType() const {
+void Mine::printType() {
     std::cout << "Mine (HP: " << getHP() << ")" << std::endl;
 }
 

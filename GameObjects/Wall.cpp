@@ -2,7 +2,7 @@
 
 Wall::Wall() : StaticObject(game_object::wall, 2) {}
 
-void Wall::printType() const {
+void Wall::printType() {
     std::cout << "Wall (HP: " << getHP() << ")" << std::endl;
 }
 

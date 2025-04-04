@@ -4,7 +4,7 @@
 Shell::Shell(Direction dir, int spd)
     : MovableObject(game_object::shell, dir, spd, 1) {}  
 
-void Shell::printType() const {
+void Shell::printType() {
     std::cout << "Shell (HP: " << getHP() << ")" << std::endl;
 }
 

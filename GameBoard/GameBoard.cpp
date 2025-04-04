@@ -1,3 +1,4 @@
+#include "../Logger/Logger.h"
 #include "GameBoard.h"
 
 // Constructor Implementation
@@ -15,7 +16,7 @@ GameBoard::GameBoard(const string &file_path)
     ifstream file(file_path);
     if (!file)
     {
-        cerr << "Error: Could not open file " << file_path << endl;
+        Logger::getInstance().logError("Cant open the input file");
         return; // Handle file open failure
     }
 
@@ -25,7 +26,7 @@ GameBoard::GameBoard(const string &file_path)
     int n = board_details.p1_tanks;
     for (int i = 0; i < n; i++)
     {
-        // Implementation for reading tank positions
+        // TODO: Implementation for reading positions
     }
 
     file.close();
@@ -53,7 +54,7 @@ GameObject *GameBoard::objectOnCell(const BoardCell &c)
 {
     if (isOccupiedCell(c))
     {
-        return &(board[c]);
+        return (board[c]);
     }
     return nullptr;
 }

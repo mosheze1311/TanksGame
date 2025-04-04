@@ -3,7 +3,7 @@
 Tank::Tank(game_object t, Direction dir, int spd, int hp)
     : MovableObject(t, dir, spd, hp) {}
 
-void Tank::printType() const {
+void Tank::printType() {
     std::cout << "Tank (" << static_cast<char>(type)
               << ") with " << shells
               << " shells, HP: " << getHP() << std::endl;

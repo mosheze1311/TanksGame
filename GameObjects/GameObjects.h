@@ -29,7 +29,7 @@ public:
     GameObject(game_object t, int hp);
     virtual ~GameObject();
 
-    virtual void printType() const = 0;
+    virtual void printType() = 0;
     virtual void destroyed();
 
     game_object getType() const;
@@ -74,14 +74,14 @@ public:
 class Mine : public StaticObject {
 public:
     Mine();
-    void printType() const override;
+    void printType() override;
     void destroyed() override;
 };
 
 class Wall : public StaticObject {
 public:
     Wall();
-    void printType() const override;
+    void printType() override;
     void destroyed() override;
 };
 
@@ -98,7 +98,7 @@ public:
          int spd = 1,
          int hp = 1);
 
-    void printType() const override;
+    void printType() override;
     void move() override;
     void shoot();
     void destroyed() override;
@@ -112,7 +112,7 @@ class Shell : public MovableObject {
 public:
     Shell(Direction dir, int spd = 2);
 
-    void printType() const override;
+    void printType() override;
     void move() override;
     void destroyed() override;
 };
