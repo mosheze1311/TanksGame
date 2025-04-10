@@ -4,55 +4,58 @@
 class GameDrawer
 {
 private:
-    GameBoard board;
+    const GameBoard& board;
 
-    char decideCellImage(BoardCell c)
+    string decideCellImage(BoardCell c)
     {
-        map<game_object, string> draw_map = {
-            {game_object::mine, "💥"},
-            {game_object::wall, "⬛"},
-            {game_object::tank1, "🚙"},
-            {game_object::tank2, "🚜"}};
+        map<GameObjectType, string> draw_map = {
+            {GameObjectType::mine, "💥"},
+            {GameObjectType::wall, "⬛"},
+            {GameObjectType::tank1, "🚙"},
+            {GameObjectType::tank2, "🚜"},
+            {GameObjectType::shell, "🟠"}
+        };
         vector<string> empty_blocks({"⬜", "⬜"});
 
         if (this->board.isOccupiedCell(c))
         {
-            cout << draw_map[this->board.objectOnCell(c)->getType()];
+            return draw_map[this->board.objectOnCell(c)->getObjectType()];
         }
-        else
-        {
-            cout << empty_blocks[(c.x + c.y) % 2];
-        }
+        return empty_blocks[(c.x + c.y) % 2];
     }
     
 public:
-    GameDrawer(GameBoard board) : board(board) {};
+    GameDrawer(const GameBoard& board) : board(board) {};
 
     void draw()
     {
-        string game_border_portal = "🌀";
-        
-        for (int i = 0; i < this->board.getWidth() + 2; i++)
-        {
-            cout << game_border_portal;
-        }
-        cout << endl;
+        string board_drawing=""; // board drawing result 
+        static const string game_border_portal = "🌀";
+        int border_width = this->board.getWidth() + 2;
 
-        for (int i = 0; i < this->board.getHeight(); i++)
+        // upper border border
+        for (int i = 0; i < border_width; i++)
         {
-            cout << game_border_portal;
-            for (int j = 0; j < this->board.getWidth(); j++)
+            board_drawing += game_border_portal;
+        }
+        board_drawing += "\n";
+
+        // board
+        for (int y = 0; y < this->board.getHeight(); y++)
+        {
+            board_drawing += game_border_portal;
+            for (int x = 0; x < this->board.getWidth(); x++)
             {
-                BoardCell c(j,i);
-                cout << this->decideCellImage(c);
+                BoardCell c(x,y);
+                board_drawing += this->decideCellImage(c);
             }
-            cout << game_border_portal << endl;
+            board_drawing += game_border_portal + "\n";
         }
 
-        for (int i = 0; i < this->board.getWidth() + 2; i++)
+        for (int i = 0; i < border_width; i++)
         {
-            cout << game_border_portal;
+            board_drawing += game_border_portal;
         }
-        cout << endl;
+        cout << board_drawing << endl;
     };
 };

@@ -1,10 +1,10 @@
 #pragma once
-#include <iostream>
 
 // ===========================
 // Enums
 // ===========================
-enum class game_object {
+enum class GameObjectType
+{
     tank1 = '1',
     tank2 = '2',
     wall = '#',
@@ -21,18 +21,17 @@ enum class Direction {
 // ===========================
 class GameObject {
 protected:
-    game_object type;
     int hp;
 
 public:
-    GameObject(game_object t);
-    GameObject(game_object t, int hp);
+    GameObject();
+    GameObject(int hp);
     virtual ~GameObject();
 
-    virtual void printType() = 0;
+    virtual void printType() const = 0;
     virtual void destroyed();
 
-    game_object getType() const;
+    virtual GameObjectType getObjectType() const = 0;
     void setHP(int new_hp);
     void gotHit(int dmg = 1);
     int getHP() const;
@@ -43,8 +42,7 @@ public:
 // ===========================
 class StaticObject : public GameObject {
 public:
-    StaticObject(game_object t);
-    StaticObject(game_object t, int hp);
+    StaticObject(int hp);
 };
 
 // ===========================
@@ -56,8 +54,8 @@ protected:
     int speed;
 
 public:
-    MovableObject(game_object t, Direction dir, int spd);
-    MovableObject(game_object t, Direction dir, int spd, int hp);
+    MovableObject(Direction dir, int spd);
+    MovableObject(Direction dir, int spd, int hp);
 
     virtual void move() = 0;
 
@@ -74,14 +72,18 @@ public:
 class Mine : public StaticObject {
 public:
     Mine();
-    void printType() override;
+    
+    void printType() const override;
+    GameObjectType getObjectType() const override;
     void destroyed() override;
 };
 
 class Wall : public StaticObject {
 public:
     Wall();
-    void printType() override;
+    void printType() const override;
+    GameObjectType getObjectType() const override;
+
     void destroyed() override;
 };
 
@@ -90,15 +92,17 @@ public:
 // ===========================
 class Tank : public MovableObject {
 private:
-    int shells = 10;
+    const GameObjectType type;
+    int shells = 16;
 
 public:
-    Tank(game_object t = game_object::tank1,
+    Tank(GameObjectType t = GameObjectType::tank1,
          Direction dir = Direction::UP,
          int spd = 1,
          int hp = 1);
 
-    void printType() override;
+    void printType() const override;
+    GameObjectType getObjectType() const override;
     void move() override;
     void shoot();
     void destroyed() override;
@@ -112,7 +116,8 @@ class Shell : public MovableObject {
 public:
     Shell(Direction dir, int spd = 2);
 
-    void printType() override;
+    void printType() const override;
+    GameObjectType getObjectType() const override;
     void move() override;
     void destroyed() override;
 };

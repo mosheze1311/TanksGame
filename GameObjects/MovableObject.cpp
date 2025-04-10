@@ -1,11 +1,10 @@
 #include "GameObjects.h"
 
+MovableObject::MovableObject(Direction dir, int spd)
+    : GameObject(), direction(dir), speed(spd) {}
 
-MovableObject::MovableObject(game_object t, Direction dir, int spd)
-    : GameObject(t), direction(dir), speed(spd) {}
-
-MovableObject::MovableObject(game_object t, Direction dir, int spd, int hp)
-    : GameObject(t, hp), direction(dir), speed(spd) {}
+MovableObject::MovableObject(Direction dir, int spd, int hp)
+    : GameObject(hp), direction(dir), speed(spd) {}
 
 
 Direction MovableObject::getDirection() const {

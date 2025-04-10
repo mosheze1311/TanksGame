@@ -1,12 +1,11 @@
 #include "GameObjects.h"
 
-Wall::Wall() : StaticObject(game_object::wall, 2) {}
+Wall::Wall() : StaticObject(2) {}
 
-void Wall::printType() {
-    std::cout << "Wall (HP: " << getHP() << ")" << std::endl;
+void Wall::printType() const {
 }
+GameObjectType Wall::getObjectType() const { return GameObjectType::wall; }
 
 void Wall::destroyed() {
     setHP(0);
-    std::cout << "Wall has been destroyed." << std::endl;
 }

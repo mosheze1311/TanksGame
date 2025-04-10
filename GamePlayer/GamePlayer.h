@@ -2,15 +2,9 @@
 #include <vector>
 #include "../GameObjects/GameObjects.h"
 #include "../GameBoard/GameBoard.h"
-using namespace std;
+#include "../Action.h"
 
-enum class Action{
-    FORWARD,
-    BACKWARD,
-    TURN45,
-    TURN90,
-    FIRE
-};
+using namespace std;
 
 class Player{
 public:
