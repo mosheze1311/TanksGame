@@ -12,7 +12,11 @@ bool BoardCell::operator<(const BoardCell &other) const
 {
     return (x < other.x) || (x == other.x && y < other.y);
 }
-
+BoardCell BoardCell::operator+(Direction dir) const
+{
+    auto [dx, dy] = offset(dir);
+    return BoardCell(x + dx, y + dy);
+}
 // TODO: Constructor: Reads game board details from a file
 GameBoard::GameBoard(int height, int width){
     this->board_details.height = height;
@@ -36,28 +40,51 @@ bool GameBoard::isOccupiedCell(const BoardCell &c) const
     return board.find(c) != board.end();
 }
 // Get the object at a cell (returns pointer or NULL)
-GameObject *GameBoard::objectOnCell(const BoardCell &c) const
-{
-    if (isOccupiedCell(c))
-    {
-        return (board.find(c))->second;
+std::vector<GameObject*> GameBoard::objectOnCell(const BoardCell& c) const {
+    auto it = board.find(c);
+    if (it != board.end()) {
+        return it->second;
     }
-    return nullptr;
+    return {}; // Return an empty vector
 }
+
 
 void GameBoard::addObject(GameObject* obj, BoardCell c)
 {
-    board[c] = obj;
+    board[c].push_back(obj);
     objects_locations[obj] = c;
+
+    switch (obj->getObjectType()){
+        case GameObjectType::tank1:
+            this->board_details.p1_tanks++;
+            break;
+        
+        case GameObjectType::tank2:
+            this->board_details.p2_tanks++;
+            break;
+        
+        case GameObjectType::mine:
+            this->board_details.mines++;
+            break;
+
+        case GameObjectType::wall:
+            this->board_details.walls++;
+            break;
+        
+        default:
+        break;
+    }
 }
 
 vector<GameObject*> GameBoard::getGameObjects(GameObjectType t) const {
     vector<GameObject*> res;
-    for (pair<GameObject*, BoardCell> iter: this->objects_locations){
-        if(iter.first->getObjectType() == t){
-            res.push_back(iter.first);
-        }
-    }
+    for (pair<GameObject*, BoardCell> iter: this->objects_locations)
+            {
+                if (iter.first->getObjectType() == t)
+                {
+                    res.push_back(iter.first);
+                }
+            }
     return res;
 }
 

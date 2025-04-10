@@ -4,6 +4,7 @@
 #include "../GameObjects/GameObjects.h"
 #include <cstdlib> // for rand()
 #include <ctime>   // for time()
+#include <vector>
 
 using namespace std;
 
@@ -17,6 +18,9 @@ public:
     BoardCell(int x, int y);
     // Overload < operator for using BoardCell as a key in a map
     bool operator<(const BoardCell &other) const;
+
+    // Overload + to add a Direction
+    BoardCell operator+(const Direction dir) const;
 };
 
 class GameBoard
@@ -64,13 +68,14 @@ public:
 
     // Board cell checks
     bool isOccupiedCell(const BoardCell &c) const;
-    GameObject *objectOnCell(const BoardCell &c) const;
+    std::vector<GameObject*> objectOnCell(const BoardCell& c) const;
 
     // Engage with objects on board
     void addObject(GameObject* obj_type, BoardCell c);
     void moveGameObject(GameObject *obj, BoardCell new_position);
+    void removeObject(GameObject *obj, BoardCell position);
     vector<GameObject *> getGameObjects(GameObjectType t) const;
-    BoardCell objectLocation(GameObject* go) const;
+    BoardCell getobjectLocation(GameObject* go) const;
 
     // temporary function for testing
     void moveTanksRandomly()

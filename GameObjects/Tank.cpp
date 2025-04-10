@@ -1,14 +1,14 @@
 #include "GameObjects.h"
 
-Tank::Tank(GameBoard& b, GameObjectType t, Direction dir, int spd, int hp)
+Tank::Tank(GameBoard& b, GameObjectType t, Direction dir, int spd=1, int hp=1)
     : MovableObject(b, dir, spd, hp), type(t) {}
 
 void Tank::printType() const {
 }
 GameObjectType Tank::getObjectType() const {return type;}
 
-void Tank::move() {
-}
+// void Tank::move() {
+// }
 void Tank::shoot() {
 }
 void Tank::destroyed() {

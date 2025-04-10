@@ -12,37 +12,9 @@ void Shell::destroyed() {
     setHP(0);
 }
 
-void Shell::action(ShellAction command, Direction dir){
+void Shell::action(){
     
-    switch (dir)
-    {
-    case Direction::UP:
-        /* code */
-        break;
-    
-    case Direction::UPR:
-        /* code */
-        break;
-    case Direction::UPL:
-        /* code */
-        break;
-    case Direction::RIGHT:
-        /* code */
-        break;
-    case Direction::LEFT:
-        /* code */
-        break;
-    case Direction::DOWN:
-        /* code */
-        break;
-    case Direction::DOWNR:
-        /* code */
-        break;
-    case Direction::DOWNL:
-        /* code */
-        break;
-
-    default:
-        break;
-    }
+    board = this->board;
+    BoardCell curr_location = board.getobjectLocation(this);
+    board.moveGameObject(this, curr_location + this->direction);
 }
