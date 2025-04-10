@@ -22,10 +22,11 @@ enum class Direction {
 class GameObject {
 protected:
     int hp;
+    GameBoard& board;
 
 public:
-    GameObject();
-    GameObject(int hp);
+    GameObject(GameBoard& b);
+    GameObject(GameBoard& b, int hp);
     virtual ~GameObject();
 
     virtual void printType() const = 0;
@@ -42,7 +43,7 @@ public:
 // ===========================
 class StaticObject : public GameObject {
 public:
-    StaticObject(int hp);
+    StaticObject(GameBoard& b, int hp);
 };
 
 // ===========================
@@ -54,10 +55,10 @@ protected:
     int speed;
 
 public:
-    MovableObject(Direction dir, int spd);
-    MovableObject(Direction dir, int spd, int hp);
+    MovableObject(GameBoard& b, Direction dir, int spd);
+    MovableObject(GameBoard& b, Direction dir, int spd, int hp);
 
-    virtual void move() = 0;
+    virtual void action();
 
     Direction getDirection() const;
     int getSpeed() const;
@@ -71,7 +72,7 @@ public:
 // ===========================
 class Mine : public StaticObject {
 public:
-    Mine();
+    Mine(GameBoard& b);
     
     void printType() const override;
     GameObjectType getObjectType() const override;
@@ -80,7 +81,7 @@ public:
 
 class Wall : public StaticObject {
 public:
-    Wall();
+    Wall(GameBoard& b);
     void printType() const override;
     GameObjectType getObjectType() const override;
 
@@ -96,14 +97,15 @@ private:
     int shells = 16;
 
 public:
-    Tank(GameObjectType t = GameObjectType::tank1,
-         Direction dir = Direction::UP,
-         int spd = 1,
-         int hp = 1);
+    Tank(GameBoard& b,
+        GameObjectType t = GameObjectType::tank1,
+        Direction dir = Direction::UP,
+        int spd = 1,
+        int hp = 1);
 
     void printType() const override;
     GameObjectType getObjectType() const override;
-    void move() override;
+    void action() override;
     void shoot();
     void destroyed() override;
 
@@ -114,10 +116,10 @@ public:
 
 class Shell : public MovableObject {
 public:
-    Shell(Direction dir, int spd = 2);
+    Shell(GameBoard& b, Direction dir, int spd = 2);
 
     void printType() const override;
     GameObjectType getObjectType() const override;
-    void move() override;
+    void action() override;
     void destroyed() override;
 };

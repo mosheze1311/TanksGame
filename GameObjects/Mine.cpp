@@ -1,7 +1,7 @@
 #include "GameObjects.h"
 
-Mine::Mine()
-    : StaticObject(1) {}
+Mine::Mine(GameBoard& b)
+    : StaticObject(b, 1) {}
 
 void Mine::printType() const {
 }

@@ -2,8 +2,8 @@
 
 
 // Constructor implementations
-GameObject::GameObject() : GameObject(1) {}
-GameObject::GameObject(int hp) : hp(hp) {}
+GameObject::GameObject(GameBoard& b) : board(b), hp(1) {}
+GameObject::GameObject(GameBoard& b, int hp) : board(b), hp(hp) {}
 
 // Virtual destructor
 GameObject::~GameObject() {}

@@ -1,6 +1,7 @@
 #include "GameObjects.h"
 
-Wall::Wall() : StaticObject(2) {}
+Wall::Wall(GameBoard& b)
+    : StaticObject(b, 2) {}
 
 void Wall::printType() const {
 }

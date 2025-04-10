@@ -1,6 +1,4 @@
 #pragma once
-#include <iostream>
-#include <fstream>
 #include <unordered_map>
 #include <map>
 #include "../GameObjects/GameObjects.h"
@@ -41,7 +39,7 @@ private:
     BoardDetails board_details;
 
     unordered_map<GameObject *, BoardCell> objects_locations;
-    map<BoardCell, GameObject *> board;
+    map<BoardCell, vector<GameObject *>> board;
 
     // create a board cell that fits the board without overflowing
     BoardCell createBoardCell(int x, int y)
@@ -58,7 +56,7 @@ private:
 
 public:
     // Constructor
-    GameBoard(const string &file_path);
+    GameBoard(int height, int width);
 
     // Getters
     int getWidth() const;

@@ -1,4 +1,5 @@
-enum class Action
+# pragma once
+enum class TankAction
 {
     NOTHING,
     FORWARD,
@@ -8,4 +9,8 @@ enum class Action
     TURN90LEFT,
     TURN90RIGHT,
     FIRE
+};
+
+enum class ShellAction{
+    FORWARD,
 };

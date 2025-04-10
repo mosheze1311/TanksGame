@@ -1,2 +1,3 @@
 #include "GameObjects.h"  
-StaticObject::StaticObject(int hp): GameObject(hp) {}
+StaticObject::StaticObject(GameBoard& b, int hp)
+    : GameObject(b, hp) {}
