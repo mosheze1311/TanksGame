@@ -2,9 +2,9 @@
 #include <iostream>
 #include <ctime>
 
-Logger::Logger()
+Logger::Logger(const string &filename)
 {
-    logFile.open("error.log", std::ios::app); // Append mode
+    logFile.open(filename, std::ios::app);
 }
 
 Logger::~Logger()
@@ -15,9 +15,21 @@ Logger::~Logger()
     }
 }
 
-Logger &Logger::getInstance()
+Logger &Logger::input()
 {
-    static Logger instance;
+    static Logger instance("input_errors.log");
+    return instance;
+}
+
+Logger &Logger::runtime()
+{
+    static Logger instance("runtime_errors.log");
+    return instance;
+}
+
+Logger &Logger::output()
+{
+    static Logger instance("output_errors.log");
     return instance;
 }
 
@@ -31,7 +43,7 @@ void Logger::log(const std::string &level, const std::string &message)
 
     std::string logEntry = "[" + std::string(timeStr) + "] [" + level + "] " + message;
 
-    std::cerr << logEntry << std::endl; // Console output
+    std::cerr << logEntry << std::endl;
     if (logFile.is_open())
     {
         logFile << logEntry << std::endl;

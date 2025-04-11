@@ -21,6 +21,9 @@ public:
 
     // Overload + to add a Direction
     BoardCell operator+(const Direction dir) const;
+
+    // Overload - to subtract a Direction
+    BoardCell operator-(const Direction dir) const;
 };
 
 class GameBoard

@@ -1,16 +1,18 @@
 #include "GameBoard/GameBoard.h"
 #include "GameManager/GameManager.h"
+#include "GameFactory/GameFactory.h"
 #include "GamePlayer/GamePlayer.h"
 #include "Logger/Logger.h"
 
 int main(int argc, char *argv[])
 {
     if (argc != 2){
-        Logger::getInstance().logError(std::format("Arguments do not match to programm - expecting 1, got {}", argc-1));
+        Logger::runtime().logError(std::format("Arguments do not match to programm - expecting 1, got {}", argc-1));
         return 0;
     }
     const string file_path = argv[1];
-    GameBoard b(file_path);
+    BoardFactory factory;
+    GameBoard b = factory.createGameBoard(file_path);
     Player p1;
     Player p2;
 

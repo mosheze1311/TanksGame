@@ -18,6 +18,14 @@ BoardCell BoardCell::operator+(Direction dir) const
     return BoardCell(x + dx, y + dy);
 }
 // TODO: Constructor: Reads game board details from a file
+
+BoardCell BoardCell::operator-(Direction dir) const
+{
+    auto [dx, dy] = offset(dir);
+    return BoardCell(x - dx, y - dy);
+}
+
+
 GameBoard::GameBoard(int height, int width){
     this->board_details.height = height;
     this->board_details.width = width;
@@ -51,29 +59,40 @@ std::vector<GameObject*> GameBoard::objectOnCell(const BoardCell& c) const {
 
 void GameBoard::addObject(GameObject* obj, BoardCell c)
 {
-    board[c].push_back(obj);
-    objects_locations[obj] = c;
+    GameObject* game_object;
+    switch (obj->getObjectType())
+    {
+    case GameObjectType::tank1:
+        this->board_details.p1_tanks++;
+        game_object = static_cast<Tank *>(obj);
+        break;
 
-    switch (obj->getObjectType()){
-        case GameObjectType::tank1:
-            this->board_details.p1_tanks++;
-            break;
-        
-        case GameObjectType::tank2:
-            this->board_details.p2_tanks++;
-            break;
-        
-        case GameObjectType::mine:
-            this->board_details.mines++;
-            break;
+    case GameObjectType::tank2:
+        this->board_details.p2_tanks++;
+        game_object = static_cast<Tank *>(obj);
 
-        case GameObjectType::wall:
-            this->board_details.walls++;
-            break;
-        
-        default:
+        break;
+
+    case GameObjectType::mine:
+        this->board_details.mines++;
+        game_object = static_cast<Mine *>(obj);
+
+        break;
+
+    case GameObjectType::wall:
+        this->board_details.walls++;
+        game_object = static_cast<Wall *>(obj);
+        break;
+
+    case GameObjectType::shell:
+        game_object = static_cast<Shell *>(obj);
+        break;
+    default:
         break;
     }
+
+    board[c].push_back(game_object);
+    objects_locations[game_object] = c;
 }
 
 vector<GameObject*> GameBoard::getGameObjects(GameObjectType t) const {
@@ -88,18 +107,18 @@ vector<GameObject*> GameBoard::getGameObjects(GameObjectType t) const {
     return res;
 }
 
-// void GameBoard::moveGameObject(GameObject* obj, BoardCell new_pos){
+void GameBoard::moveGameObject(GameObject* obj, BoardCell new_pos){
     
-//     // object not exist
-//     if (objects_locations.find(obj) == objects_locations.end())
-//     {
-//         return;
-//     }
-//     new_pos = this->createBoardCell(new_pos);
+    // object not exist
+    if (objects_locations.find(obj) == objects_locations.end())
+    {
+        return;
+    }
+    new_pos = this->createBoardCell(new_pos);
     
-//     BoardCell old_pos = objects_locations[obj];
-//     board.erase(old_pos);
+    BoardCell old_pos = objects_locations[obj];
+    board.erase(old_pos);
 
-//     objects_locations[obj] = new_pos;
-//     board[new_pos] = obj;
-// }
+    objects_locations[obj] = new_pos;
+    board[new_pos] = obj;
+}

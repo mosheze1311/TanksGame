@@ -25,6 +25,21 @@ enum class Direction
     UPL = 7
 };
 
+inline Direction operator+(Direction dir, int change){
+    // Allows addition of direction and int
+    int curr_dir = static_cast<int>(dir);
+    int new_dir = (curr_dir + change) % 8;
+    return static_cast<Direction>(new_dir);
+};
+
+inline Direction operator-(Direction dir, int change){
+    // Allows subtraction of direction and int
+    int curr_dir = static_cast<int>(dir);
+    int new_dir = (curr_dir - change + 8) % 8;
+    return static_cast<Direction>(new_dir);
+};
+
+
 constexpr std::pair<int, int> offset(Direction dir)
 {
     switch (dir)
@@ -128,6 +143,12 @@ class Tank : public MovableObject {
 private:
     const GameObjectType type;
     int shells = 16;
+    int turns_to_wait_for_backward = -2;
+    int shoot_cooldown = 0;
+    bool canShoot() const;    // returns true if not waiting
+    bool canMoveOrRotate() const;
+    void tickWait();        // decreases wait counter if needed
+    void tickShootCooldown();
 
 public:
     Tank(GameBoard& b,

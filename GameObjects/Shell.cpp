@@ -15,6 +15,6 @@ void Shell::destroyed() {
 void Shell::action(){
     
     board = this->board;
-    BoardCell curr_location = board.getobjectLocation(this);
-    board.moveGameObject(this, curr_location + this->direction);
+    BoardCell curr_cell = board.getobjectLocation(this);
+    board.moveGameObject(this, curr_cell + this->direction);
 }

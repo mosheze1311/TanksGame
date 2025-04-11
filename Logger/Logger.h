@@ -1,21 +1,23 @@
 #pragma once
+#include <cstring>
 #include <string>
 #include <fstream>
 #include <mutex>
+using namespace std;
 
 class Logger
 {
 public:
-    static Logger &getInstance();
+    static Logger &input();
+    static Logger &runtime();
+    static Logger &output();
 
     void logError(const std::string &message);
     void logInfo(const std::string &message);
 
 private:
-    Logger();
+    Logger(const std::string &filename);
     ~Logger();
-    Logger(const Logger &) = delete;
-    Logger &operator=(const Logger &) = delete;
 
     std::ofstream logFile;
     std::mutex logMutex;
