@@ -106,8 +106,6 @@ public:
     MovableObject(GameBoard& b, Direction dir, int spd);
     MovableObject(GameBoard& b, Direction dir, int spd, int hp);
 
-    virtual void action();
-
     Direction getDirection() const;
     int getSpeed() const;
 

@@ -23,5 +23,3 @@ void MovableObject::setDirection(Direction new_dir) {
 void MovableObject::setSpeed(int new_speed) {
     speed = new_speed;
 }
-
-virtual void move()
