@@ -4,7 +4,7 @@
 #include "../GameObjects/GameObjects.h"
 #include <cstdlib> // for rand()
 #include <ctime>   // for time()
-#include <vector>
+#include <unordered_set>
 
 using namespace std;
 
@@ -46,7 +46,7 @@ private:
     BoardDetails board_details;
 
     unordered_map<GameObject *, BoardCell> objects_locations;
-    map<BoardCell, vector<GameObject *>> board;
+    map<BoardCell, unordered_set<GameObject *>> board;
 
     // create a board cell that fits the board without overflowing
     BoardCell createBoardCell(int x, int y)
@@ -56,12 +56,15 @@ private:
     }
 
     // create a board cell that fits the board without overflowing
-    BoardCell createBoardCell(BoardCell& c)
+    BoardCell createAdjustedBoardCell(BoardCell& c)
     {
         return this->createBoardCell(c.x, c.y);
     }
 
-public:
+    void addObjectInternal(GameObject *obj_type, BoardCell c);
+    void removeObjectInternal(GameObject *obj);
+
+public :
     // Constructor
     GameBoard(int height, int width);
 
@@ -71,7 +74,7 @@ public:
 
     // Board cell checks
     bool isOccupiedCell(const BoardCell &c) const;
-    std::vector<GameObject*> objectOnCell(const BoardCell& c) const;
+    std::unordered_set<GameObject *> objectOnCell(const BoardCell &c) const;
 
     // Engage with objects on board
     void addObject(GameObject* obj_type, BoardCell c);

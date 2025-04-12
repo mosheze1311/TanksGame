@@ -48,51 +48,67 @@ bool GameBoard::isOccupiedCell(const BoardCell &c) const
     return board.find(c) != board.end();
 }
 // Get the object at a cell (returns pointer or NULL)
-std::vector<GameObject*> GameBoard::objectOnCell(const BoardCell& c) const {
+std::unordered_set<GameObject*> GameBoard::objectOnCell(const BoardCell& c) const {
     auto it = board.find(c);
     if (it != board.end()) {
         return it->second;
     }
-    return {}; // Return an empty vector
+    return {}; // Return an empty set
 }
 
 
 void GameBoard::addObject(GameObject* obj, BoardCell c)
 {
-    GameObject* game_object;
+    GameObject *game_object = nullptr;
+
     switch (obj->getObjectType())
     {
     case GameObjectType::tank1:
-        this->board_details.p1_tanks++;
-        game_object = static_cast<Tank *>(obj);
+        if (auto tank = dynamic_cast<Tank *>(obj))
+        {
+            this->board_details.p1_tanks++;
+            game_object = new Tank(*tank);
+        }
         break;
 
     case GameObjectType::tank2:
-        this->board_details.p2_tanks++;
-        game_object = static_cast<Tank *>(obj);
-
+        if (auto tank = dynamic_cast<Tank *>(obj))
+        {
+            this->board_details.p2_tanks++;
+            game_object = new Tank(*tank);
+        }
         break;
 
     case GameObjectType::mine:
-        this->board_details.mines++;
-        game_object = static_cast<Mine *>(obj);
-
+        if (auto mine = dynamic_cast<Mine *>(obj))
+        {
+            this->board_details.mines++;
+            game_object = new Mine(*mine);
+        }
         break;
 
     case GameObjectType::wall:
-        this->board_details.walls++;
-        game_object = static_cast<Wall *>(obj);
+        if (auto wall = dynamic_cast<Wall *>(obj))
+        {
+            this->board_details.walls++;
+            game_object = new Wall(*wall);
+        }
         break;
 
     case GameObjectType::shell:
-        game_object = static_cast<Shell *>(obj);
+        if (auto shell = dynamic_cast<Shell *>(obj))
+        {
+            game_object = new Shell(*shell);
+        }
         break;
+
     default:
+        // Optional: handle unknown object types
         break;
     }
 
-    board[c].push_back(game_object);
-    objects_locations[game_object] = c;
+    c = this->createAdjustedBoardCell(c);
+    this->addObjectInternal(game_object, c);
 }
 
 vector<GameObject*> GameBoard::getGameObjects(GameObjectType t) const {
@@ -114,11 +130,24 @@ void GameBoard::moveGameObject(GameObject* obj, BoardCell new_pos){
     {
         return;
     }
-    new_pos = this->createBoardCell(new_pos);
+    this->removeObjectInternal(obj);
     
-    BoardCell old_pos = objects_locations[obj];
-    board.erase(old_pos);
+    new_pos = this->createAdjustedBoardCell(new_pos);
+    this->addObjectInternal(obj, new_pos);
+}
 
-    objects_locations[obj] = new_pos;
-    board[new_pos] = obj;
+void GameBoard::removeObjectInternal(GameObject *obj)
+{
+    BoardCell c = objects_locations[obj];
+    this->objects_locations.erase(obj);
+    this->board[c].erase(obj);
+    
+    if(board[c].empty()){
+        board.erase(c);
+    }
+}
+
+void GameBoard::addObjectInternal(GameObject *obj, BoardCell c){
+    this->objects_locations[obj] = c;
+    this->board[c].insert(obj);
 }
