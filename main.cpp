@@ -1,6 +1,6 @@
 #include "GameBoard/GameBoard.h"
 #include "GameManager/GameManager.h"
-#include "GameFactory/GameFactory.h"
+#include "BoardFactory/BoardFactory.h"
 #include "GamePlayer/GamePlayer.h"
 #include "Logger/Logger.h"
 
