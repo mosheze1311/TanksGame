@@ -210,17 +210,18 @@ void GameBoard::moveTanksRandomly()
 }
 
 void GameBoard::updateObjectCount(GameObject* obj, int incremental = 1){
+    // incremental can only be 1 or -1.
     switch (obj->getObjectType())
     {
     case GameObjectType::tank1:
             this->board_details.p1_tanks += incremental;
-            this->board_details.remaining_shells-=((Tank*) obj)->getShells();
-            
-        break;
+            this->board_details.remaining_shells += incremental * ((Tank *)obj)->getShells();
+
+            break;
 
     case GameObjectType::tank2:
             this->board_details.p2_tanks += incremental;
-            this->board_details.remaining_shells -= ((Tank *)obj)->getShells();
+            this->board_details.remaining_shells += incremental * ((Tank *)obj)->getShells();
 
             break;
 
@@ -233,10 +234,7 @@ void GameBoard::updateObjectCount(GameObject* obj, int incremental = 1){
         break;
 
     case GameObjectType::shell:
-        if (auto shell = dynamic_cast<Shell *>(obj))
-        {
             this->board_details.shells += incremental;
-        }
         break;
 
     default:
