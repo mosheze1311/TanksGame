@@ -1,11 +1,14 @@
 #include "BoardFactory.h"
 
-BoardFactory::BoardFactory(/* args */)
-{
-}
+#include <fstream>
+#include <sstream>
+#include "../Logger/Logger.h"
 
-BoardFactory::~BoardFactory()
+using namespace std;
+
+void BoardFactory::logInputError(const string error_message)
 {
+    Logger::input().logError(error_message);
 }
 
 GameObject *BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectType type)
@@ -25,7 +28,7 @@ GameObject *BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectTyp
     }
 }
 
-GameBoard BoardFactory::createGameBoard(const string file_path)
+optional<GameBoard> BoardFactory::createGameBoard(const string file_path)
 {
     /*
     input file expected format:
@@ -60,15 +63,15 @@ GameBoard BoardFactory::createGameBoard(const string file_path)
     ifstream file(file_path);
     if (!file)
     {
-        this->logInputError("Cant open the input file");
-        return; // Handle file open failure
+        BoardFactory::logInputError("Cant open the input file");
+        return nullopt; // Handle file open failure
     }
 
     string line;
     if (!(std::getline(file, line)))
     {
-        this->logInputError("File does not contain the first mandatory line");
-        return;
+        BoardFactory::logInputError("File does not contain the first mandatory line");
+        return nullopt;
     };
 
     std::istringstream first_line_iss(line);
@@ -76,8 +79,8 @@ GameBoard BoardFactory::createGameBoard(const string file_path)
     int p1_tanks, p2_tanks, walls, mines;
     if (!(first_line_iss >> height >> width >> p1_tanks >> p2_tanks >> walls >> mines))
     {
-        this->logInputError("Invalid first row format: '" + line + "'");
-        return;
+        BoardFactory::logInputError("Invalid first row format: '" + line + "'");
+        return nullopt;
     }
 
     GameBoard board(height, width);
@@ -94,36 +97,42 @@ GameBoard BoardFactory::createGameBoard(const string file_path)
         if (line.empty())
             continue;
 
-        char obj_type = line[0];
+        obj_type = line[0];
         if (counters.find(obj_type) == counters.end())
         {
-            this->logInputError("Object type " + std::string(1, static_cast<char>(obj_type)) + " is invalid");
+            BoardFactory::logInputError("Object type " + std::string(1, static_cast<char>(obj_type)) + " is invalid");
             continue;
         }
         if (counters[obj_type] == 0)
         {
-            this->logInputError("Can't add another object of type '" + std::string(1, static_cast<char>(obj_type)) + "'");
+            BoardFactory::logInputError("Can't add another object of type '" + std::string(1, obj_type) + "'");
             continue;
         }
 
         std::istringstream iss(line.substr(1)); // skip the first char (obj_type)
-        int x, y;
         if (!(iss >> x >> y))
         {
-            this->logInputError("Invalid row format: '" + line + "'");
+            BoardFactory::logInputError("Invalid row format: '" + line + "'");
+            continue;
+        }
+
+        if (x < 0 || y < 0 || x >= width || y >= height)
+        {
+            logInputError("Object position (" + to_string(x) + ", " + to_string(y) + ") is out of board bounds");
             continue;
         }
 
         BoardCell c(x, y);
         GameObject *go = createGameObjectOfType(board, (GameObjectType)obj_type);
+        if (!go)
+        {
+            logInputError("Failed to create object for type '" + string(1, obj_type) + "'");
+            continue;
+        }
+
         board.addObject(go, c);
         counters[obj_type]--;
     }
     file.close();
     return board;
-}
-
-void BoardFactory::logInputError(const string error_message) const
-{
-    Logger::input().logError("obj type is inncorrect");
 }

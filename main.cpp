@@ -11,11 +11,15 @@ int main(int argc, char *argv[])
         return 0;
     }
     const string file_path = argv[1];
-    BoardFactory factory;
-    GameBoard b = factory.createGameBoard(file_path);
+    std::optional<GameBoard> b = BoardFactory::createGameBoard(file_path);
+    if(!b){
+        Logger::runtime().logError(std::format("Can't create board"));
+        return 0;
+    }
     Player p1;
     Player p2;
 
-    GameManager gm(b, p1, p2,(string) "");
+    GameManager gm(*b, p1, p2,(string) "");
     gm.play();
+    return 0;
 }
