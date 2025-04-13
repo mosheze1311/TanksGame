@@ -8,20 +8,13 @@ private:
     const GameBoard& board;
     string decideCellImage(BoardCell c)
     {
-        map<GameObjectType, string> draw_map = {
-            {GameObjectType::mine, "💥"},
-            {GameObjectType::wall, "⬛"},
-            {GameObjectType::tank1, "🚙"},
-            {GameObjectType::tank2, "🚜"},
-            {GameObjectType::shell, "🟠"}
-        };
         vector<string> empty_blocks({"⬜", "⬜"});
 
         if (this->board.isOccupiedCell(c))
         {
             unordered_set<GameObject *> objects = this->board.getObjectsOnCell(c);
-            GameObjectType t = (*(objects.begin()))->getObjectType();
-            return draw_map[t];
+            GameObject *first = *(objects.begin());
+            return first->getDrawing();
         }
         return empty_blocks[(c.getX() + c.getY()) % 2];
     }

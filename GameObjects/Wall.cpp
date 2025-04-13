@@ -11,3 +11,8 @@ GameObjectType Wall::getObjectType() const { return GameObjectType::wall; }
 void Wall::destroyed() {
     setHP(0);
 }
+
+string Wall::getDrawing() const
+{
+    return this->getHP() == 2 ? "⬛" : "🟫";
+}

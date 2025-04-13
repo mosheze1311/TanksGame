@@ -23,3 +23,8 @@ void Shell::action()
         board.moveGameObject(this, curr_cell + this->direction);
     }
 }
+
+string Shell::getDrawing() const
+{
+    return "🟠";
+}

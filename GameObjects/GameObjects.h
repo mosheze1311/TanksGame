@@ -14,7 +14,12 @@ class BoardCell;
 // ===========================
 // Base Class
 // ===========================
-class GameObject {
+class DrawableObject{
+public:
+    virtual string getDrawing() const = 0;
+};
+
+class GameObject : public DrawableObject{
 protected:
     int hp;
     GameBoard& board;
@@ -70,6 +75,7 @@ public:
     void printType() const override;
     GameObjectType getObjectType() const override;
     void destroyed() override;
+    string getDrawing() const override;
 };
 
 class Wall : public StaticObject {
@@ -79,6 +85,7 @@ public:
     GameObjectType getObjectType() const override;
 
     void destroyed() override;
+    string getDrawing() const override;
 };
 
 // ===========================
@@ -114,6 +121,7 @@ public:
     void reload(int amount);
     int getShootCooldown() const;
     int getBackwardWait() const;
+    string getDrawing() const override;
 };
 
 class Shell : public MovableObject {
@@ -124,4 +132,5 @@ public:
     GameObjectType getObjectType() const override;
     void action();
     void destroyed() override;
+    string getDrawing() const override;
 };

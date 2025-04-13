@@ -13,3 +13,6 @@ void Mine::destroyed() {
     setHP(0);    
 }
 
+string Mine::getDrawing() const{
+    return "💥";
+}

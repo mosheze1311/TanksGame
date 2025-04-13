@@ -40,7 +40,7 @@ void Tank::reload(int amount)
 
 bool Tank::canShoot() const
 {
-    return shoot_cooldown == 0;
+    return shells > 0 && shoot_cooldown == 0;
 }
 
 bool Tank::onBackwardCooldown() const
@@ -196,7 +196,10 @@ bool Tank::action(TankAction command)
         {
             Shell *new_shell = new Shell(board, dir);
             board.addObject(new_shell, curr_cell + dir);
+            board.useTankShell();
             shoot_cooldown = 5;
+            shells--;
+
             return true; // Can preform shooting act.
         }
 
@@ -207,5 +210,15 @@ bool Tank::action(TankAction command)
     default:
     return false; // Should never get here.  
         break;
+    }
+}
+
+string Tank::getDrawing() const
+{
+    if (this->getObjectType() == GameObjectType::tank1){
+        return "🚙";
+    }
+    else{
+        return "🚜";
     }
 }
