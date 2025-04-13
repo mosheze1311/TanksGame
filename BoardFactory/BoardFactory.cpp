@@ -28,7 +28,7 @@ GameObject *BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectTyp
     }
 }
 
-optional<GameBoard> BoardFactory::createGameBoard(const string file_path)
+GameBoard* BoardFactory::createGameBoard(const string file_path)
 {
     /*
     input file expected format:
@@ -64,14 +64,14 @@ optional<GameBoard> BoardFactory::createGameBoard(const string file_path)
     if (!file)
     {
         BoardFactory::logInputError("Cant open the input file");
-        return nullopt; // Handle file open failure
+        return NULL; // Handle file open failure
     }
 
     string line;
     if (!(std::getline(file, line)))
     {
         BoardFactory::logInputError("File does not contain the first mandatory line");
-        return nullopt;
+        return NULL;
     };
 
     std::istringstream first_line_iss(line);
@@ -80,10 +80,10 @@ optional<GameBoard> BoardFactory::createGameBoard(const string file_path)
     if (!(first_line_iss >> height >> width >> p1_tanks >> p2_tanks >> walls >> mines))
     {
         BoardFactory::logInputError("Invalid first row format: '" + line + "'");
-        return nullopt;
+        return NULL;
     }
 
-    GameBoard board(height, width);
+    GameBoard* board = new GameBoard(height, width);
     map<char, int> counters;
     counters[(char)GameObjectType::tank1] = p1_tanks;
     counters[(char)GameObjectType::tank2] = p2_tanks;
@@ -123,14 +123,14 @@ optional<GameBoard> BoardFactory::createGameBoard(const string file_path)
         }
 
         BoardCell c(x, y);
-        GameObject *go = createGameObjectOfType(board, (GameObjectType)obj_type);
+        GameObject *go = createGameObjectOfType(*board, (GameObjectType)obj_type);
         if (!go)
         {
             logInputError("Failed to create object for type '" + string(1, obj_type) + "'");
             continue;
         }
 
-        board.addObject(go, c);
+        board->addObject(go, c);
         counters[obj_type]--;
     }
     file.close();

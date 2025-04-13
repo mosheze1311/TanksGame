@@ -80,7 +80,7 @@ private:
     BoardCell createAdjustedBoardCell(const BoardCell &c);
 
     // Adds an object to the board - internal use, arguments are treated as valid
-    void addObjectInternal(GameObject *obj_type, BoardCell c);
+    void addObjectInternal(GameObject *obj, BoardCell c);
 
     // Removes an object from the board - internal use, arguments are treated as valid
     void removeObjectInternal(GameObject *obj);

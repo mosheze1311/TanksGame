@@ -20,7 +20,7 @@ protected:
     GameBoard& board;
 
 public:
-    GameObject(GameBoard& b);
+    explicit GameObject(GameBoard& b);
     GameObject(GameBoard& b, int hp);
     virtual ~GameObject();
 
@@ -65,7 +65,7 @@ public:
 // ===========================
 class Mine : public StaticObject {
 public:
-    Mine(GameBoard& b);
+    explicit Mine(GameBoard& b);
     
     void printType() const override;
     GameObjectType getObjectType() const override;
@@ -74,7 +74,7 @@ public:
 
 class Wall : public StaticObject {
 public:
-    Wall(GameBoard& b);
+    explicit Wall(GameBoard& b);
     void printType() const override;
     GameObjectType getObjectType() const override;
 

@@ -12,5 +12,5 @@ private:
     static void logInputError(const string error_message);
     static GameObject *createGameObjectOfType(GameBoard &board, GameObjectType type);
 public:
-    static std::optional<GameBoard> createGameBoard(const string file_path);
+    static GameBoard* createGameBoard(const string file_path);
 };

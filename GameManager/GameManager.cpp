@@ -5,7 +5,7 @@
 #include "../Logger/Logger.h"
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 
-GameManager::GameManager(GameBoard board, Player p1, Player p2, string output_file): board(board) {};
+GameManager::GameManager(GameBoard& board, Player p1, Player p2, string output_file): board(board) {};
 
 // bool GameManager::isUserActionValid(std::pair<Tank*, TankAction> action_pair) const {
 //     Tank* tank = action_pair.first;
@@ -62,6 +62,7 @@ void GameManager::logAction(Tank* tank, TankAction action, bool is_valid) {
 
 void GameManager::play(){
     GameDrawer d(board);
+    d.draw();
     GameCollisionHandler c_handler(board);
     while (true)
     {

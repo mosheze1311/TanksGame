@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     const string file_path = argv[1];
-    std::optional<GameBoard> b = BoardFactory::createGameBoard(file_path);
+    GameBoard* b = BoardFactory::createGameBoard(file_path);
     if(!b){
         Logger::runtime().logError(std::format("Can't create board"));
         return 0;
