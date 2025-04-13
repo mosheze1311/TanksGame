@@ -6,7 +6,7 @@ CXXFLAGS = -std=c++20 -Wall # Add any flags you need
 TARGET = tanks_game
 
 # List of source files
-SRCS = GameBoard/GameBoard.cpp GameManager/GameManager.cpp GameObjects/GameObject.cpp GameObjects/MovableObject.cpp GameObjects/StaticObject.cpp GameObjects/Mine.cpp GameObjects/Shell.cpp GameObjects/Tank.cpp GameObjects/Wall.cpp GamePlayer/GamePlayer.cpp Logger/Logger.cpp main.cpp
+SRCS = BoardFactory/BoardFactory.cpp GameBoard/BoardCell.cpp GameBoard/GameBoard.cpp GameManager/GameManager.cpp GameObjects/GameObject.cpp GameObjects/MovableObject.cpp GameObjects/StaticObject.cpp GameObjects/Mine.cpp GameObjects/Shell.cpp GameObjects/Tank.cpp GameObjects/Wall.cpp GamePlayer/GamePlayer.cpp Logger/Logger.cpp main.cpp
 
 # Object files (replace .cpp with .o)
 OBJS = $(SRCS:.cpp=.o)
@@ -22,7 +22,7 @@ $(TARGET): $(OBJS)
 # Clean rule to remove object files and the executable
 clean:
 	rm -f $(OBJS) $(TARGET)
-	rm -f error.log
+	rm -f *.log
 
 # Optional: automatic clean on make
 .PHONY: clean
