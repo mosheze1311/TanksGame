@@ -20,6 +20,7 @@ class BoardCell
 private:
     int x;
     int y;
+    
 
 public:
     // Empty constructor - do not delete
@@ -40,6 +41,9 @@ public:
     // Getters
     int getX() const;
     int getY() const;
+
+    // == operator
+    bool operator==(const BoardCell& other) const;
 };
 
 class GameBoard

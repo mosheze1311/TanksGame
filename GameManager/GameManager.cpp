@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include "../Logger/Logger.h"
+#include "../GameCollisionHandler/GameCollisionHandler.h"
 
 GameManager::GameManager(GameBoard board, Player p1, Player p2, string output_file): board(board) {};
 
@@ -61,13 +62,15 @@ void GameManager::logAction(Tank* tank, TankAction action, bool is_valid) {
 
 void GameManager::play(){
     GameDrawer d(board);
+    GameCollisionHandler c_handler(board);
     while (true)
     {
         vector<TankAction> t1_actions = p1.getActions();
         vector<TankAction> t2_actions = p2.getActions();
         board.moveTanksRandomly();
+        c_handler.handleCollisions(board);
         d.draw();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     
 };

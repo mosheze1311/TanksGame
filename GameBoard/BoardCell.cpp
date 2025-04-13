@@ -28,4 +28,6 @@ int BoardCell::getY() const
     return this->y;
 }
 
-bool operator==(const BoardCell && other)
+bool BoardCell::operator==(const BoardCell& other) const {
+    return x == other.x && y == other.y;
+}
