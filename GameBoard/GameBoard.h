@@ -20,7 +20,6 @@ class BoardCell
 private:
     int x;
     int y;
-    
 
 public:
     // Empty constructor - do not delete
@@ -43,7 +42,7 @@ public:
     int getY() const;
 
     // == operator
-    bool operator==(const BoardCell& other) const;
+    bool operator==(const BoardCell &other) const;
 };
 
 class GameBoard
@@ -63,8 +62,10 @@ private:
         int p1_tanks;
         int p2_tanks;
 
+        int shells;
+        int remaining_shells;
         // === Constructor ===
-        BoardDetails(int height, int width):height(height), width(width), walls(0), mines(0), p1_tanks(0), p2_tanks(0){};
+        BoardDetails(int height, int width) : height(height), width(width), walls(0), mines(0), p1_tanks(0), p2_tanks(0), shells(0), remaining_shells(0) {};
     };
 
     // === Attributes ===
@@ -85,27 +86,34 @@ private:
     // Removes an object from the board - internal use, arguments are treated as valid
     void removeObjectInternal(GameObject *obj);
 
+    void updateObjectCount(GameObject* obj, int incremental = 1);
 public:
     // Constructor
     GameBoard(int height, int width);
 
     // Copy Constructor
-    GameBoard(GameBoard& board);
+    GameBoard(GameBoard &board);
 
     // get board width
     int getWidth() const;
-    
+
     // get board height
     int getHeight() const;
+
+    // get count of object type on board
+    int getGameObjectCount(GameObjectType type) const;
+
+    // get the total remaining shells count
+    int getTotalRemainingShells() const;
 
     // return all cells with objects on them.
     vector<BoardCell> getOccupiedCells() const;
 
     // Check if there is any object on the cell
     bool isOccupiedCell(const BoardCell &c) const;
-    
+
     // Check if the specific object exists on board
-    bool isObjectOnBoard(GameObject* obj) const;
+    bool isObjectOnBoard(GameObject *obj) const;
 
     // return a set of all objects on the cell
     std::unordered_set<GameObject *> getObjectsOnCell(const BoardCell &c) const;
@@ -121,12 +129,15 @@ public:
 
     // get all objects of a certain GameObjectType that exist on board
     vector<GameObject *> getGameObjects(GameObjectType t) const;
-    
+
     // get all objects on the board
-    vector<GameObject*> getAllGameObjects();
+    vector<GameObject *> getAllGameObjects();
 
     // get an optional cell location of an object on board. if object not on board, return nullopt.
     std::optional<BoardCell> getObjectLocation(GameObject *go) const;
+
+    // tank API to inform that a shell was shot and the board need to update it's remaining shell count
+    void useTankShell();
 
     // TODO: this is a temporary function for testing - delete later
     void moveTanksRandomly();

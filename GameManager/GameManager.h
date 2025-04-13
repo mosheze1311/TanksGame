@@ -10,12 +10,15 @@ private:
     Player p1;
     Player p2;
 
+    int remaining_turns = 40;
     ofstream output_file;
 
     void performPlayerActionsOnBoard(vector<pair<Tank*, TankAction>> actions);
     // bool isUserActionValid(pair<Tank *, TankAction> action_pair) const;
 
     void logAction(Tank* tank, TankAction action, bool is_valid);
+
+    
     
 public : GameManager(GameBoard& board, Player p1, Player p2, string output_file_name);
     void play();
@@ -23,5 +26,8 @@ public : GameManager(GameBoard& board, Player p1, Player p2, string output_file_
     //     // should call p1, p2 .getActions() and perform actions on the board until someone wins or there is a tie
     //     // output actions to the output file in some format    
 
-
+    bool concludeGame();
+    int getRemainingTurns() const;
+    void logWin(bool is_player1_winner);
+    void logTie();
 };

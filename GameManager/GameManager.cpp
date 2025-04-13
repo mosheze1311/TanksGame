@@ -7,38 +7,18 @@
 
 GameManager::GameManager(GameBoard& board, Player p1, Player p2, string output_file): board(board) {};
 
-// bool GameManager::isUserActionValid(std::pair<Tank*, TankAction> action_pair) const {
-//     Tank* tank = action_pair.first;
-//     TankAction action = action_pair.second;
+int GameManager::getRemainingTurns() const{
+    return this->remaining_turns;
+}
 
-//     if (!tank) return false;
+void logWin(bool is_player1_winner) {
+    std::string winner = is_player1_winner ? "Player1 is the winner!" : "Player2 is the winner!";
+    Logger::runtime().logError("The winner is: " + winner);
+}
 
-//     int shootCooldown = tank->getShootCooldown();
-//     int backwardWait = tank->getBackwardWait();
-//     int shells = tank->getShells();
-
-//     switch (action) {
-//         case TankAction::NOTHING:
-//             return true;
-
-//         case TankAction::FORWARD:
-//         case TankAction::TURN45LEFT:
-//         case TankAction::TURN45RIGHT:
-//         case TankAction::TURN90LEFT:
-//         case TankAction::TURN90RIGHT:
-//             return backwardWait < 0;
-
-//         case TankAction::BACKWARD:
-//             return backwardWait <= 0; 
-
-//         case TankAction::FIRE:
-//             return backwardWait < 0 && shootCooldown == 0 && shells > 0;
-
-//         default:
-//             return false;
-//     }
-// }
-
+void GameManager::logTie(){
+    Logger::runtime().logError("The game is tied!");
+}
 
 void GameManager::logAction(Tank* tank, TankAction action, bool is_valid) {
     std::string status = is_valid ? "Valid" : "Invalid";
@@ -60,10 +40,26 @@ void GameManager::logAction(Tank* tank, TankAction action, bool is_valid) {
     }
 }
 
+bool GameManager::concludeGame(){
+
+        if (board.getTotalRemainingShells() <= 0 && this->getRemainingTurns() > 0){
+        if (board.getGameObjectCount(GameObjectType::tank1) == 0){
+            logWin(true);
+            return true;
+        }
+        else if (board.getGameObjectCount(GameObjectType::tank2) == 0)
+        {
+            logWin(false);
+            return true;
+        }
+    }
+    return false;
+}
+
 void GameManager::play(){
-    GameDrawer d(board);
+    GameDrawer d(this->board);
     d.draw();
-    GameCollisionHandler c_handler(board);
+    GameCollisionHandler c_handler(this->board);
     while (true)
     {
         vector<TankAction> t1_actions = p1.getActions();
@@ -71,7 +67,11 @@ void GameManager::play(){
         board.moveTanksRandomly();
         c_handler.handleCollisions(board);
         d.draw();
+        if (this->concludeGame()){
+            break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+    logTie();
     
 };

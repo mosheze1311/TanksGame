@@ -18,12 +18,36 @@ GameBoard::GameBoard(GameBoard &other) : board_details(other.board_details)
 // === Board Info Getters ===
 int GameBoard::getWidth() const
 {
-    return board_details.width;
+    return this->board_details.width;
 }
 
 int GameBoard::getHeight() const
 {
-    return board_details.height;
+    return this->board_details.height;
+}
+
+int GameBoard::getGameObjectCount(GameObjectType type) const
+{
+    switch (type)
+    {
+    case GameObjectType::tank1:
+        return this->board_details.p1_tanks;
+    case GameObjectType::tank2:
+        return this->board_details.p2_tanks;
+    case GameObjectType::wall:
+        return this->board_details.walls;
+    case GameObjectType::shell:
+        return this->board_details.shells;
+    case GameObjectType::mine:
+        return this->board_details.mines;
+
+    default: // should not get here
+        return 0;
+    }
+}
+
+int GameBoard::getTotalRemainingShells() const {
+    return this->board_details.remaining_shells;
 }
 
 // === Board State ===
@@ -81,61 +105,17 @@ bool GameBoard::isObjectOnBoard(GameObject* obj) const{
 
 void GameBoard::addObject(GameObject *obj, BoardCell c)
 {
-    GameObject *game_object = nullptr;
-
-    switch (obj->getObjectType())
-    {
-    case GameObjectType::tank1:
-        if (auto tank = dynamic_cast<Tank *>(obj))
-        {
-            this->board_details.p1_tanks++;
-            game_object = new Tank(*tank);
-        }
-        break;
-
-    case GameObjectType::tank2:
-        if (auto tank = dynamic_cast<Tank *>(obj))
-        {
-            this->board_details.p2_tanks++;
-            game_object = new Tank(*tank);
-        }
-        break;
-
-    case GameObjectType::mine:
-        if (auto mine = dynamic_cast<Mine *>(obj))
-        {
-            this->board_details.mines++;
-            game_object = new Mine(*mine);
-        }
-        break;
-
-    case GameObjectType::wall:
-        if (auto wall = dynamic_cast<Wall *>(obj))
-        {
-            this->board_details.walls++;
-            game_object = new Wall(*wall);
-        }
-        break;
-
-    case GameObjectType::shell:
-        if (auto shell = dynamic_cast<Shell *>(obj))
-        {
-            game_object = new Shell(*shell);
-        }
-        break;
-
-    default:
-        break;
-    }
-
+    this->updateObjectCount(obj, 1);
     c = this->createAdjustedBoardCell(c);
-    this->addObjectInternal(game_object, c);
+    this->addObjectInternal(obj, c);
 }
 
 void GameBoard:: removeObject(GameObject* obj){
     if(!isObjectOnBoard(obj)){
         return;
     }
+
+    this->updateObjectCount(obj, -1);
     this->removeObjectInternal(obj);
 }
 
@@ -227,4 +207,43 @@ void GameBoard::moveTanksRandomly()
         BoardCell new_cell = this->createBoardCell(newX, newY);
         moveGameObject(tank, new_cell);
     }
+}
+
+void GameBoard::updateObjectCount(GameObject* obj, int incremental = 1){
+    switch (obj->getObjectType())
+    {
+    case GameObjectType::tank1:
+            this->board_details.p1_tanks += incremental;
+            this->board_details.remaining_shells-=((Tank*) obj)->getShells();
+            
+        break;
+
+    case GameObjectType::tank2:
+            this->board_details.p2_tanks += incremental;
+            this->board_details.remaining_shells -= ((Tank *)obj)->getShells();
+
+            break;
+
+    case GameObjectType::mine:
+        this->board_details.mines += incremental;
+        break;
+
+    case GameObjectType::wall:
+            this->board_details.walls+=incremental;
+        break;
+
+    case GameObjectType::shell:
+        if (auto shell = dynamic_cast<Shell *>(obj))
+        {
+            this->board_details.shells += incremental;
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+void GameBoard::useTankShell(){
+    this->board_details.remaining_shells--;
 }
