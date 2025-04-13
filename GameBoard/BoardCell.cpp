@@ -27,3 +27,5 @@ int BoardCell::getY() const
 {
     return this->y;
 }
+
+bool operator==(const BoardCell && other)

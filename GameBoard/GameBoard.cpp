@@ -8,7 +8,13 @@ using namespace std;
 
 // === Constructor ===
 GameBoard::GameBoard(int height, int width): board_details(height, width){}
-
+GameBoard::GameBoard(GameBoard &other) : board_details(other.board_details)
+{
+    for (auto iter : other.objects_locations)
+    {
+        this->addObjectInternal(iter.first,iter.second);
+    }
+}
 // === Board Info Getters ===
 int GameBoard::getWidth() const
 {
@@ -24,6 +30,16 @@ int GameBoard::getHeight() const
 bool GameBoard::isOccupiedCell(const BoardCell &c) const
 {
     return board.find(c) != board.end();
+}
+
+vector<BoardCell> GameBoard::getOccupiedCells() const{
+    vector<BoardCell> occupied_cells;
+    for (auto iter : this->board)
+    {
+        occupied_cells.push_back(iter.first);
+    }
+
+    return occupied_cells;
 }
 
 BoardCell GameBoard::createBoardCell(int x, int y)
@@ -132,6 +148,15 @@ vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
         {
             res.push_back(iter.first);
         }
+    }
+    return res;
+}
+
+vector<GameObject *> GameBoard::getAllGameObjects(){
+    vector<GameObject *> res;
+    for (const pair<GameObject *, BoardCell> iter : this->objects_locations)
+    {
+        res.push_back(iter.first);
     }
     return res;
 }

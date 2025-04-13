@@ -91,10 +91,10 @@ private:
     int turns_to_wait_for_backward = -2;
     int shoot_cooldown = 0;
     bool canShoot() const;    // returns true if not waiting
-    bool canMoveOrRotate() const;
+    bool onBackwardCooldown() const;
     void tickWait();        // decreases wait counter if needed
     void tickShootCooldown();
-    void canTankMove(BoardCell target);
+    bool canTankMove(BoardCell target);
 
 public:
     Tank(GameBoard& b,
@@ -105,7 +105,7 @@ public:
 
     void printType() const override;
     GameObjectType getObjectType() const override;
-    void action(TankAction command);
+    bool action(TankAction command);
     void shoot();
     void destroyed() override;
 

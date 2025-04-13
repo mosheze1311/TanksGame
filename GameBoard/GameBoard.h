@@ -6,6 +6,7 @@
 #include <cstdlib> // for rand()
 #include <ctime>   // for time()
 #include <vector>
+#include <optional>
 
 using namespace std;
 // Forward declarations
@@ -84,11 +85,17 @@ public:
     // Constructor
     GameBoard(int height, int width);
 
+    // Copy Constructor
+    GameBoard(GameBoard& board);
+
     // get board width
     int getWidth() const;
     
     // get board height
     int getHeight() const;
+
+    // return all cells with objects on them.
+    vector<BoardCell> getOccupiedCells() const;
 
     // Check if there is any object on the cell
     bool isOccupiedCell(const BoardCell &c) const;
@@ -111,6 +118,9 @@ public:
     // get all objects of a certain GameObjectType that exist on board
     vector<GameObject *> getGameObjects(GameObjectType t) const;
     
+    // get all objects on the board
+    vector<GameObject*> getAllGameObjects();
+
     // get an optional cell location of an object on board. if object not on board, return nullopt.
     std::optional<BoardCell> getObjectLocation(GameObject *go) const;
 

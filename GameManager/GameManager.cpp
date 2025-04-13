@@ -6,58 +6,56 @@
 
 GameManager::GameManager(GameBoard board, Player p1, Player p2, string output_file): board(board) {};
 
-bool GameManager::isUserActionValid(std::pair<Tank*, TankAction> action_pair) const {
-    Tank* tank = action_pair.first;
-    TankAction action = action_pair.second;
+// bool GameManager::isUserActionValid(std::pair<Tank*, TankAction> action_pair) const {
+//     Tank* tank = action_pair.first;
+//     TankAction action = action_pair.second;
 
-    if (!tank) return false;
+//     if (!tank) return false;
 
-    int shootCooldown = tank->getShootCooldown();
-    int backwardWait = tank->getBackwardWait();
-    int shells = tank->getShells();
+//     int shootCooldown = tank->getShootCooldown();
+//     int backwardWait = tank->getBackwardWait();
+//     int shells = tank->getShells();
 
-    switch (action) {
-        case TankAction::NOTHING:
-            return true;
+//     switch (action) {
+//         case TankAction::NOTHING:
+//             return true;
 
-        case TankAction::FORWARD:
-        case TankAction::TURN45LEFT:
-        case TankAction::TURN45RIGHT:
-        case TankAction::TURN90LEFT:
-        case TankAction::TURN90RIGHT:
-            return backwardWait < 0;
+//         case TankAction::FORWARD:
+//         case TankAction::TURN45LEFT:
+//         case TankAction::TURN45RIGHT:
+//         case TankAction::TURN90LEFT:
+//         case TankAction::TURN90RIGHT:
+//             return backwardWait < 0;
 
-        case TankAction::BACKWARD:
-            return backwardWait <= 0; 
+//         case TankAction::BACKWARD:
+//             return backwardWait <= 0; 
 
-        case TankAction::FIRE:
-            return backwardWait < 0 && shootCooldown == 0 && shells > 0;
+//         case TankAction::FIRE:
+//             return backwardWait < 0 && shootCooldown == 0 && shells > 0;
 
-        default:
-            return false;
-    }
-}
+//         default:
+//             return false;
+//     }
+// }
 
 
-void GameManager::logInvalidAction(Tank* tank, TankAction action) {
+void GameManager::logAction(Tank* tank, TankAction action, bool is_valid) {
+    std::string status = is_valid ? "Valid" : "Invalid";
+
     Logger::runtime().logError(
-        "Invalid action: Tank type '" +
+        status + " action: Tank type '" +
         std::string(1, static_cast<char>(tank->getObjectType())) +
         "' tried action number '" + std::to_string(static_cast<int>(action)) + "'"
     );
 }
 
+
  void GameManager::performPlayerActionsOnBoard(vector<pair<Tank *, TankAction>> actions)
 {
     for (pair<Tank*, TankAction> action_pair : actions)
     {
-        // skip invalid actions
-        if (! this->isUserActionValid(action_pair)){
-            logInvalidAction(action_pair.first, action_pair.second);
-            continue;
-        }
-        
-        // TODO: perform the actions.
+        bool is_valid = action_pair.first->action(action_pair.second);
+        logAction(action_pair.first, action_pair.second, is_valid);
     }
 }
 
