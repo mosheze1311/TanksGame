@@ -30,7 +30,7 @@ class GameCollisionHandler
 private:
     //=== Attributes ===
     GameBoard previous_board;
-    static std::map<GameObjectType, std::unordered_set<GameObjectType>> explosion_map;
+    static std::map<GameObjectType, std::map<GameObjectType, int>> explosion_map;
 
     //=== Functions ===
     // check for collision mid step (went through each other)
@@ -40,7 +40,7 @@ private:
     void handleEndOfStepCollisions(GameBoard &updated_board);
 
     // explosion list
-    std::unordered_set<GameObjectType> getExplosionList(GameObjectType t);
+    std::map<GameObjectType, int> getExplosionList(GameObjectType t);
 
 public:
     GameCollisionHandler(GameBoard& board);

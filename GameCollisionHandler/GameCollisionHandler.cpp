@@ -1,15 +1,15 @@
 #include "GameCollisionHandler.h"
-// TODO: 
-// instead of removing items from board on collision, 
+// TODO:
+// instead of removing items from board on collision,
 // items should be 'hit' and handle their own board situation with according to their hp
 
 // Define the explosion_map with its initial values
-std::map<GameObjectType, std::unordered_set<GameObjectType>> GameCollisionHandler::explosion_map = {
-    {GameObjectType::mine, {GameObjectType::tank1, GameObjectType::tank2}},
-    {GameObjectType::tank1, {GameObjectType::mine, GameObjectType::tank1, GameObjectType::tank2, GameObjectType::shell}},
-    {GameObjectType::tank2, {GameObjectType::mine, GameObjectType::tank1, GameObjectType::tank2, GameObjectType::shell}},
-    {GameObjectType::shell, {GameObjectType::shell, GameObjectType::tank1, GameObjectType::tank2, GameObjectType::wall}},
-    {GameObjectType::wall, {GameObjectType::shell}}};
+std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::explosion_map = {
+    {GameObjectType::mine, {{GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}}},
+    {GameObjectType::tank1, {{GameObjectType::mine, 1}, {GameObjectType::tank1, 2}, {GameObjectType::tank2, 1}, {GameObjectType::shell, 1}}},
+    {GameObjectType::tank2, {{GameObjectType::mine, 1}, {GameObjectType::tank1, 1}, {GameObjectType::tank2, 2}, {GameObjectType::shell, 1}}},
+    {GameObjectType::shell, {{GameObjectType::shell, 2}, {GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}, {GameObjectType::wall, 1}}},
+    {GameObjectType::wall, {{GameObjectType::shell, 1}}}};
 
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
 
@@ -28,7 +28,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board)
     // a mid step collision occurs when two objects switch lcations between steps.
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
-        unordered_set<GameObjectType> should_expload = this->getExplosionList(obj->getObjectType());
+        map<GameObjectType, int> should_expload = this->getExplosionList(obj->getObjectType());
 
         optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
         optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
@@ -42,7 +42,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board)
         {
             if (obj == other)
                 continue;
-                
+
             if (should_expload.find(other->getObjectType()) == should_expload.end())
                 continue;
 
@@ -53,8 +53,8 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board)
             BoardCell other_current_loc = *opt_other_current_loc;
             if (other_current_loc == previous_location)
             {
-                updated_board.removeObject(obj);
-                updated_board.removeObject(other);
+                obj->gotHit(1);
+                other->gotHit(1);
             }
         }
     }
@@ -65,26 +65,32 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board)
     // an end of step collision occurs when two objects are on the same location at the end of the step.
     for (BoardCell &cell : updated_board.getOccupiedCells())
     {
-        unordered_set<GameObjectType> exploding_objects;
+        map<GameObjectType, int> exploding_objects;
         unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
 
         for (GameObject *obj : cell_objects)
         {
-            unordered_set<GameObjectType> should_expload = this->getExplosionList(obj->getObjectType());
+            map<GameObjectType,int> should_expload = this->getExplosionList(obj->getObjectType());
+            for (auto iter: should_expload){
+                int value = iter.second;
+                if(exploding_objects.find(iter.first) != exploding_objects.end())
+                    value = 1;
+                exploding_objects[iter.first] = value;
+            }
             exploding_objects.insert(should_expload.begin(), should_expload.end());
         }
 
         for (GameObject *obj : cell_objects)
         {
-            if (exploding_objects.find(obj->getObjectType()) != exploding_objects.end())
+            if (exploding_objects.find(obj->getObjectType()) != exploding_objects.end() && exploding_objects[obj->getObjectType()] == 1)
             {
-                updated_board.removeObject(obj);
+                obj->gotHit(1);
             }
         }
     }
 }
 
-std::unordered_set<GameObjectType> GameCollisionHandler::getExplosionList(GameObjectType objType)
+std::map<GameObjectType, int> GameCollisionHandler::getExplosionList(GameObjectType objType)
 {
 
     if (GameCollisionHandler::explosion_map.find(objType) != GameCollisionHandler::explosion_map.end())

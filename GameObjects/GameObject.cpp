@@ -27,4 +27,8 @@ void GameObject::setHP(int new_hp)
 void GameObject::gotHit(int dmg)
 {
     hp -= dmg;
+    if (this->getHP() <= 0)
+    {
+        this->board.removeObject(this);
+    }
 }
