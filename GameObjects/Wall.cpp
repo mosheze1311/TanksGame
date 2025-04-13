@@ -1,4 +1,5 @@
 #include "GameObjects.h"
+#include "../GameBoard/GameBoard.h"
 
 Wall::Wall(GameBoard& b)
     : StaticObject(b, 2) {}

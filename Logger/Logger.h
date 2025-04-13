@@ -1,9 +1,7 @@
 #pragma once
-#include <cstring>
 #include <string>
 #include <fstream>
 #include <mutex>
-using namespace std;
 
 class Logger
 {

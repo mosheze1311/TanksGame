@@ -1,4 +1,5 @@
 #include "GameObjects.h"
+#include "../GameBoard/GameBoard.h"
 
 MovableObject::MovableObject(GameBoard& b, Direction dir, int spd)
     : GameObject(b), direction(dir), speed(spd) {}

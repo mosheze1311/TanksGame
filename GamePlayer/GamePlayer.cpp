@@ -1,4 +1,4 @@
 #include "GamePlayer.h"
 
 Player::Player(){};
-vector<Action> Player::getActions(){return vector<Action>(1,Action::FORWARD);};
+vector<TankAction> Player::getActions(){return vector<TankAction>(1,TankAction::FORWARD);};

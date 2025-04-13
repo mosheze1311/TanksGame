@@ -1,21 +1,32 @@
 #pragma once
+
 #include <unordered_map>
+#include <unordered_set>
 #include <map>
-#include "../GameObjects/GameObjects.h"
 #include <cstdlib> // for rand()
 #include <ctime>   // for time()
-#include <unordered_set>
+#include <vector>
 
 using namespace std;
+// Forward declarations
+class GameObject;
+enum class GameObjectType;
+enum class Direction;
 
+// Classes declarations
 class BoardCell
 {
-public:
+private:
     int x;
     int y;
 
+public:
+    // Empty constructor - do not delete
     BoardCell();
+
+    // Constructor
     BoardCell(int x, int y);
+
     // Overload < operator for using BoardCell as a key in a map
     bool operator<(const BoardCell &other) const;
 
@@ -24,15 +35,20 @@ public:
 
     // Overload - to subtract a Direction
     BoardCell operator-(const Direction dir) const;
+
+    // Getters
+    int getX() const;
+    int getY() const;
 };
 
 class GameBoard
 {
 private:
-    // Nested class to store board details
+    // === Nested class to store board details ===
     class BoardDetails
     {
     public:
+        // === Attributes ===
         int height;
         int width;
 
@@ -41,76 +57,63 @@ private:
 
         int p1_tanks;
         int p2_tanks;
+
+        // === Constructor ===
+        BoardDetails(int height, int width):height(height), width(width), walls(0), mines(0), p1_tanks(0), p2_tanks(0){};
     };
 
+    // === Attributes ===
     BoardDetails board_details;
-
     unordered_map<GameObject *, BoardCell> objects_locations;
     map<BoardCell, unordered_set<GameObject *>> board;
 
+    // === Functions ===
     // create a board cell that fits the board without overflowing
-    BoardCell createBoardCell(int x, int y)
-    {
-        return BoardCell((x + this->board_details.width) % this->board_details.width,
-                         (y + this->board_details.height) % this->board_details.height);
-    }
+    BoardCell createBoardCell(int x, int y);
 
     // create a board cell that fits the board without overflowing
-    BoardCell createAdjustedBoardCell(BoardCell& c)
-    {
-        return this->createBoardCell(c.x, c.y);
-    }
+    BoardCell createAdjustedBoardCell(const BoardCell &c);
 
+    // Adds an object to the board - internal use, arguments are treated as valid
     void addObjectInternal(GameObject *obj_type, BoardCell c);
+
+    // Removes an object from the board - internal use, arguments are treated as valid
     void removeObjectInternal(GameObject *obj);
 
-public :
+public:
     // Constructor
     GameBoard(int height, int width);
 
-    // Getters
+    // get board width
     int getWidth() const;
+    
+    // get board height
     int getHeight() const;
 
-    // Board cell checks
+    // Check if there is any object on the cell
     bool isOccupiedCell(const BoardCell &c) const;
-    std::unordered_set<GameObject *> objectOnCell(const BoardCell &c) const;
+    
+    // Check if the specific object exists on board
+    bool isObjectOnBoard(GameObject* obj) const;
 
-    // Engage with objects on board
-    void addObject(GameObject* obj_type, BoardCell c);
+    // return a set of all objects on the cell
+    std::unordered_set<GameObject *> getObjectsOnCell(const BoardCell &c) const;
+
+    // Add an object to the board on the requested cell
+    void addObject(GameObject *obj_type, BoardCell c);
+
+    // moves an object on the board from its current cell to new position. ignores if object not on board
     void moveGameObject(GameObject *obj, BoardCell new_position);
-    void removeObject(GameObject *obj, BoardCell position);
+
+    // remove the object from the board
+    void removeObject(GameObject *obj);
+
+    // get all objects of a certain GameObjectType that exist on board
     vector<GameObject *> getGameObjects(GameObjectType t) const;
-    BoardCell getobjectLocation(GameObject* go) const;
+    
+    // get an optional cell location of an object on board. if object not on board, return nullopt.
+    std::optional<BoardCell> getObjectLocation(GameObject *go) const;
 
-    // temporary function for testing
-    void moveTanksRandomly()
-    {
-        for (pair<GameObject *, BoardCell> iter : objects_locations)
-        {
-            if (Tank *d = dynamic_cast<Tank *>(iter.first))
-            {
-                // Randomly choose whether to modify x or y
-                bool changeX = std::rand() % 2;
-
-                // Randomly choose to increment or decrement
-                int delta = (std::rand() % 2 == 0) ? -1 : 1;
-
-                int newX = iter.second.x;
-                int newY = iter.second.y;
-
-                if (changeX)
-                {
-                    newX += delta;
-                }
-                else
-                {
-                    newY += delta;
-                }
-
-                BoardCell new_cell = this->createBoardCell(newX, newY);
-                moveGameObject(iter.first, new_cell);
-            }
-        }
-    }
+    // TODO: this is a temporary function for testing - delete later
+    void moveTanksRandomly();
 };

@@ -1,5 +1,7 @@
 #include "GameObjects.h"
 
+#include "../GameBoard/GameBoard.h"
+
 Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, int spd, int hp)
     : MovableObject(b, dir, spd, hp), type(t) {}
 
@@ -46,11 +48,25 @@ bool Tank::canMoveOrRotate() const
     return turns_to_wait_for_backward < 0;
 }
 
+int Tank::getBackwardWait() const
+{
+    return turns_to_wait_for_backward;
+}
+
+int Tank::getShootCooldown() const
+{
+    return shoot_cooldown;
+}
+
 void Tank::tickWait()
 {
     turns_to_wait_for_backward = max(turns_to_wait_for_backward - 1, -2);
-    if (turns_to_wait_for_backward == 0){
-        board.moveGameObject(this, board.getobjectLocation(this) - this->direction);
+    if (turns_to_wait_for_backward == 0)
+    {
+        if (auto opt_cell = board.getObjectLocation(this))
+        {
+            board.moveGameObject(this, *opt_cell - this->direction);
+        }
     }
 }
 
@@ -62,10 +78,38 @@ void Tank::tickShootCooldown()
     }
 }
 
+void Tank::canTankMove(BoardCell target)
+{
+
+    auto objects = board.getObjectsOnCell(target);
+    bool is_wall = false;
+
+    for (GameObject *obj : objects)
+    {
+        if (obj->getObjectType() == GameObjectType::wall)
+        {
+            is_wall = true;
+        }
+    }
+
+    if (!is_wall)
+    {
+        board.moveGameObject(this, target);
+    }
+}
+
 void Tank::action(TankAction command)
 {
     GameBoard &board = this->board;
-    BoardCell curr_cell = board.getobjectLocation(this);
+    BoardCell curr_cell;
+     if (auto opt_cell = board.getObjectLocation(this))
+    {
+        curr_cell = *opt_cell;
+    }
+    else
+    {
+        return;
+    }
     Direction dir = this->direction;
 
     tickShootCooldown();
@@ -81,7 +125,7 @@ void Tank::action(TankAction command)
 
         if (canMoveOrRotate())
         {
-            board.moveGameObject(this, curr_cell + dir);
+            this->canTankMove(curr_cell + dir);
         }
         turns_to_wait_for_backward = -2;
         break;
@@ -97,7 +141,7 @@ void Tank::action(TankAction command)
         else if (turns_to_wait_for_backward == -1)
         {
             // Perform the move
-            board.moveGameObject(this, curr_cell - dir);
+            this->canTankMove(curr_cell + dir);
             turns_to_wait_for_backward = 0; // Stay in ready state for chained backwards
         }
         break;
@@ -113,11 +157,11 @@ void Tank::action(TankAction command)
             int step = (command == TankAction::TURN45LEFT || command == TankAction::TURN45RIGHT) ? 1 : 2;
             if (command == TankAction::TURN45LEFT || command == TankAction::TURN90LEFT)
             {
-                this->setDirection(dir - step);
+                this->setDirection(DirectionUtils::rotateRight(dir, step));
             }
             else
             {
-                this->setDirection(dir + step);
+                this->setDirection(DirectionUtils::rotateLeft(dir, step));
             }
         }
         break;

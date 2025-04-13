@@ -1,68 +1,15 @@
 #pragma once
-#include "../GameBoard/GameBoard.h"
-#include "../Action.h"
-// ===========================
-// Enums
-// ===========================
-enum class GameObjectType
-{
-    tank1 = '1',
-    tank2 = '2',
-    wall = '#',
-    mine = '@',
-    shell = '*'
-};
 
-enum class Direction
-{
-    UP = 0,
-    UPR = 1,
-    RIGHT = 2,
-    DOWNR = 3,
-    DOWN = 4,
-    DOWNL = 5,
-    LEFT = 6,
-    UPL = 7
-};
+#include "TankAction.h"
+#include "Direction.h"
+#include "GameObjectType.h"
 
-inline Direction operator+(Direction dir, int change){
-    // Allows addition of direction and int
-    int curr_dir = static_cast<int>(dir);
-    int new_dir = (curr_dir + change) % 8;
-    return static_cast<Direction>(new_dir);
-};
+using namespace std;
 
-inline Direction operator-(Direction dir, int change){
-    // Allows subtraction of direction and int
-    int curr_dir = static_cast<int>(dir);
-    int new_dir = (curr_dir - change + 8) % 8;
-    return static_cast<Direction>(new_dir);
-};
+// forward declaration
+class GameBoard;
+class BoardCell;
 
-
-constexpr std::pair<int, int> offset(Direction dir)
-{
-    switch (dir)
-    {
-    case Direction::UP:
-        return {0, 1};
-    case Direction::UPR:
-        return {1, 1};
-    case Direction::RIGHT:
-        return {1, 0};
-    case Direction::DOWNR:
-        return {1, -1};
-    case Direction::DOWN:
-        return {0, -1};
-    case Direction::DOWNL:
-        return {-1, -1};
-    case Direction::LEFT:
-        return {-1, 0};
-    case Direction::UPL:
-        return {-1, 1};
-    }
-    return {0, 0}; // should never hit this
-}
 
 // ===========================
 // Base Class
@@ -147,6 +94,7 @@ private:
     bool canMoveOrRotate() const;
     void tickWait();        // decreases wait counter if needed
     void tickShootCooldown();
+    void canTankMove(BoardCell target);
 
 public:
     Tank(GameBoard& b,
@@ -164,6 +112,8 @@ public:
     int getShells() const;
     void setShells(int new_shells);
     void reload(int amount);
+    int getShootCooldown() const;
+    int getBackwardWait() const;
 };
 
 class Shell : public MovableObject {

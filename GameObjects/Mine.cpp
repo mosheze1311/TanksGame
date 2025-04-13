@@ -1,4 +1,5 @@
 #include "GameObjects.h"
+#include "../GameBoard/GameBoard.h"
 
 Mine::Mine(GameBoard& b)
     : StaticObject(b, 1) {}

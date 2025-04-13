@@ -2,7 +2,8 @@
 #include <iostream>
 #include <ctime>
 
-Logger::Logger(const string &filename)
+
+Logger::Logger(const std::string &filename)
 {
     logFile.open(filename, std::ios::app);
 }

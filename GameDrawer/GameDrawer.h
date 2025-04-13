@@ -1,11 +1,11 @@
 #include <iostream>
-#include "GameBoard/GameBoard.h"
+#include "../GameBoard/GameBoard.h"
+#include "../GameObjects/GameObjects.h"
 
 class GameDrawer
 {
 private:
     const GameBoard& board;
-
     string decideCellImage(BoardCell c)
     {
         map<GameObjectType, string> draw_map = {
@@ -19,14 +19,15 @@ private:
 
         if (this->board.isOccupiedCell(c))
         {
-            return draw_map[this->board.objectOnCell(c)->getObjectType()];
+            unordered_set<GameObject *> objects = this->board.getObjectsOnCell(c);
+            GameObjectType t = (*(objects.begin()))->getObjectType();
+            return draw_map[t];
         }
-        return empty_blocks[(c.x + c.y) % 2];
+        return empty_blocks[(c.getX() + c.getY()) % 2];
     }
     
 public:
     GameDrawer(const GameBoard& board) : board(board) {};
-
     void draw()
     {
         string board_drawing=""; // board drawing result 
