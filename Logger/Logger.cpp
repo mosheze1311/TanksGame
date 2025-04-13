@@ -30,7 +30,7 @@ Logger &Logger::runtime()
 
 Logger &Logger::output()
 {
-    static Logger instance("output_errors.log");
+    static Logger instance("output.log");
     return instance;
 }
 
