@@ -86,7 +86,7 @@ private:
     // Removes an object from the board - internal use, arguments are treated as valid
     void removeObjectInternal(GameObject *obj);
 
-    void updateObjectCount(GameObject* obj, int incremental = 1);
+    void updateObjectCount(GameObject* obj, int incremental);
 public:
     // Constructor
     GameBoard(int height, int width);
