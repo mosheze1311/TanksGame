@@ -3,7 +3,7 @@
 #include <thread>
 #include <chrono>
 #include "../Logger/Logger.h"
-#include "../GameCollisionHandler/GameCollisionHandler.h"
+
 
 GameManager::GameManager(GameBoard &board, Player p1, Player p2, string output_file) : board(board) {};
 
@@ -75,26 +75,37 @@ bool GameManager::concludeGame()
     return false;
 }
 
+void GameManager::moveShells(GameCollisionHandler& c_handler, GameDrawer d)
+ // Moves all shells ny 2 steps each turn
+{
+    const auto& gameObjs = board.getGameObjects(GameObjectType::shell);
+    std::vector<Shell*> shells;
+
+    std::transform(gameObjs.begin(), gameObjs.end(), std::back_inserter(shells),
+               [](GameObject* obj) { return static_cast<Shell*>(obj); });
+
+    for (int i = 0; i < 2; i++)
+    {
+        for (Shell *shell : shells){
+            shell->action();
+        }
+        if ( i == 0){
+            c_handler.handleCollisions(board);
+            d.draw();
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
+    } 
+}
+
 void GameManager::play()
 {
+    
     GameDrawer d(this->board);
     d.draw();
     GameCollisionHandler c_handler(this->board);
     while (true)
     {
-        // TODO: this is a temporary logic for moving shells. should re-write correctly.
-        for (int i = 0; i < 2; i++)
-        {
-            for (GameObject *shell : board.getGameObjects(GameObjectType::shell))
-            {
-                ((Shell *)shell)->action();
-            }
-            if(i==0){
-                c_handler.handleCollisions(board);
-                d.draw();
-                std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            }
-        }
+        this->moveShells(c_handler, d);
         vector<TankAction> t1_actions = p1.getActions();
         vector<TankAction> t2_actions = p2.getActions();
         // board.moveTanksRandomly();

@@ -3,7 +3,7 @@
 #include "TankAction.h"
 #include "Direction.h"
 #include "GameObjectType.h"
-
+#include <string>
 using namespace std;
 
 // forward declaration
