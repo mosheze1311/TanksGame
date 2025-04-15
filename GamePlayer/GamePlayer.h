@@ -7,7 +7,17 @@
 using namespace std;
 
 class Player{
+
+private:
+std::vector<Tank*> player_tanks;
+
 public:
-    Player();
-    vector<TankAction> getActions(); // this function should get params that gives relevant board data to the player so he is able to strategize
+    Player(std::vector<Tank*>& tanks) : player_tanks(tanks) {}
+    vector<TankAction> getActionsFromFirstPlayer(GameBoard &board); // Strategy for first player
+
+    vector<TankAction> getActionsFromSecondPlayer(GameBoard &board);// Strategy for second player
+    
+    BoardCell BFS(GameBoard& board, BoardCell startingCell, GameObjectType target); // Sholud have loguc for BFS search
+    
+    
 };

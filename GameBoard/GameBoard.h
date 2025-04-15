@@ -133,6 +133,9 @@ public:
     // get all objects on the board
     vector<GameObject *> getAllGameObjects();
 
+    // get all tanks for a player
+    vector<Tank *> getTanks(const std::vector<GameObject*>& objects);
+
     // get an optional cell location of an object on board. if object not on board, return nullopt.
     std::optional<BoardCell> getObjectLocation(GameObject *go) const;
 

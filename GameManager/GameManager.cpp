@@ -106,8 +106,8 @@ void GameManager::play()
     while (true)
     {
         this->moveShells(c_handler, d);
-        vector<TankAction> t1_actions = p1.getActions();
-        vector<TankAction> t2_actions = p2.getActions();
+        vector<TankAction> t1_actions = p1.getActionsFromFirstPlayer(this->board);
+        vector<TankAction> t2_actions = p2.getActionsFromSecondPlayer(this->board);
         // board.moveTanksRandomly();
         ((Tank *)board.getGameObjects(GameObjectType::tank1)[0])->action(TankAction::FIRE);
         ((Tank *)board.getGameObjects(GameObjectType::tank2)[0])->action(TankAction::FIRE);

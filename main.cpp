@@ -16,8 +16,10 @@ int main(int argc, char *argv[])
         Logger::runtime().logError(std::format("Can't create board"));
         return 0;
     }
-    Player p1;
-    Player p2;
+    
+    
+    Player p1(b->getTanks(b->getGameObjects(GameObjectType::tank1)));
+    Player p2(b->getTanks(b->getGameObjects(GameObjectType::tank2)));
 
     GameManager gm(*b, p1, p2,(string) "");
     gm.play();

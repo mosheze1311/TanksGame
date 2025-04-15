@@ -121,6 +121,7 @@ void GameBoard:: removeObject(GameObject* obj){
 
 vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
 {
+    // Returns a vector of all instances if a specific GameObject
     vector<GameObject *> res;
     for (const pair<GameObject *, BoardCell> iter : this->objects_locations)
     {
@@ -130,6 +131,20 @@ vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
         }
     }
     return res;
+}
+
+// TODO- i think it sholud be in game manager, needs to check
+std::vector<Tank*> GameBoard::getTanks(const std::vector<GameObject*>& objects) {
+    std::vector<Tank*> tanks;
+    tanks.reserve(objects.size()); // optional optimization
+
+    for (GameObject* obj : objects) {
+        if (Tank* tank = dynamic_cast<Tank*>(obj)) {
+            tanks.push_back(tank);
+        }
+    }
+
+    return tanks;
 }
 
 vector<GameObject *> GameBoard::getAllGameObjects(){
