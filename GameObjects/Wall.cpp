@@ -12,7 +12,21 @@ void Wall::destroyed() {
     setHP(0);
 }
 
-string Wall::getDrawing() const
+string Wall::getDrawing(DrawingType t) const
 {
-    return this->getHP() == 2 ? "⬛" : "🟫";
+    switch (t)
+    {
+    case DrawingType::REGULAR:
+        return this->getHP() == 2 ? "⬛" : "🟫";
+    case DrawingType::TENNIS:
+        return this->getHP() == 2 ? "🥅" : "🥅";
+    case DrawingType::SCIFI:
+        return this->getHP() == 2 ? "📡" : "🛰️\0";
+    case DrawingType::PIRATE:
+        return this->getHP() == 2 ? "🌊" : "🪸\0";
+    case DrawingType::MIDDLE_EAST:
+        return this->getHP() == 2 ? "🏰" : "🛡️\0";
+    default:
+        return this->getHP() == 2 ? "⬛" : "🟫";
+    }
 }

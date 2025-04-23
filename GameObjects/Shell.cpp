@@ -24,7 +24,21 @@ void Shell::action()
     }
 }
 
-string Shell::getDrawing() const
+string Shell::getDrawing(DrawingType t) const
 {
-    return "🟠";
+    switch (t)
+    {
+    case DrawingType::REGULAR:
+        return "🟠";
+    case DrawingType::TENNIS:
+        return "🎾";
+    case DrawingType::SCIFI:
+        return "🔮";
+    case DrawingType::PIRATE:
+        return "💣";
+    case DrawingType::MIDDLE_EAST:
+        return "🚀";
+    default:
+        return "🟠";
+    }
 }
