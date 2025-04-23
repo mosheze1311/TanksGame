@@ -103,12 +103,20 @@ GameBoard* BoardFactory::createGameBoard(const string file_path)
             BoardFactory::logInputError("Object type " + std::string(1, static_cast<char>(obj_type)) + " is invalid");
             continue;
         }
+
         if (counters[obj_type] == 0)
         {
             BoardFactory::logInputError("Can't add another object of type '" + std::string(1, obj_type) + "'");
             continue;
         }
 
+        GameObject *go = createGameObjectOfType(*board, (GameObjectType)obj_type);
+        if (!go)
+        {
+            logInputError("Failed to create object for type '" + string(1, obj_type) + "'");
+            continue;
+        }
+        
         std::istringstream iss(line.substr(1)); // skip the first char (obj_type)
         if (!(iss >> x >> y))
         {
@@ -123,13 +131,6 @@ GameBoard* BoardFactory::createGameBoard(const string file_path)
         }
 
         BoardCell c(x, y);
-        GameObject *go = createGameObjectOfType(*board, (GameObjectType)obj_type);
-        if (!go)
-        {
-            logInputError("Failed to create object for type '" + string(1, obj_type) + "'");
-            continue;
-        }
-
         board->addObject(go, c);
         counters[obj_type]--;
     }
