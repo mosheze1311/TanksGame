@@ -11,6 +11,13 @@ std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::ex
     {GameObjectType::shell, {{GameObjectType::shell, 2}, {GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}, {GameObjectType::wall, 1}}},
     {GameObjectType::wall, {{GameObjectType::shell, 1}}}};
 
+std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::prevention_map = {
+    {GameObjectType::mine, {{GameObjectType::wall, 1}}},
+    {GameObjectType::tank1, {{GameObjectType::wall, 1}}},
+    {GameObjectType::tank2, {{GameObjectType::wall, 1}}},
+    {GameObjectType::shell, {}},
+    {GameObjectType::wall, {{GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}, {GameObjectType::mine, 1}}}};
+
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
 
 GameCollisionHandler::~GameCollisionHandler() {}
