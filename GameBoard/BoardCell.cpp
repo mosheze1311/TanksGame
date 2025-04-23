@@ -31,3 +31,10 @@ int BoardCell::getY() const
 bool BoardCell::operator==(const BoardCell& other) const {
     return x == other.x && y == other.y;
 }
+
+// TODO: maybe move to board so it will use the dimensions to move between sides
+int BoardCell::distance(BoardCell other){
+    int x_distance = abs(this->getX() - other.getX());
+    int y_distance = abs(this->getY() - other.getY());
+    return max(x_distance, y_distance);
+}

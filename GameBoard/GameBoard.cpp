@@ -66,14 +66,14 @@ vector<BoardCell> GameBoard::getOccupiedCells() const{
     return occupied_cells;
 }
 
-BoardCell GameBoard::createBoardCell(int x, int y)
+BoardCell GameBoard::createBoardCell(int x, int y) const
 {
     return BoardCell(
         (x + this->board_details.width) % this->board_details.width,
         (y + this->board_details.height) % this->board_details.height);
 }
 
-BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c)
+BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c) const
 {
     return this->createBoardCell(c.getX(), c.getY());
 }
@@ -133,8 +133,13 @@ vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
     return res;
 }
 
-// TODO- i think it sholud be in game manager, needs to check
-std::vector<Tank*> GameBoard::getTanks(const std::vector<GameObject*>& objects) {
+// TODO: i think it sholud be in game manager, needs to check
+std::vector<Tank*> GameBoard::getTanks(GameObjectType t) const {
+    if (t != GameObjectType::tank1 && t!=GameObjectType::tank2){
+        return {};
+    }
+    
+    std::vector<GameObject*> objects = this->getGameObjects(t);
     std::vector<Tank*> tanks;
     tanks.reserve(objects.size()); // optional optimization
 

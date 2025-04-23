@@ -7,7 +7,7 @@
 #include <ctime>   // for time()
 #include <vector>
 #include <optional>
-
+#include "../GameObjects/GameObjects.h"
 using namespace std;
 // Forward declarations
 class GameObject;
@@ -43,6 +43,8 @@ public:
 
     // == operator
     bool operator==(const BoardCell &other) const;
+
+    int distance(BoardCell otehr);
 };
 
 class GameBoard
@@ -75,10 +77,7 @@ private:
 
     // === Functions ===
     // create a board cell that fits the board without overflowing
-    BoardCell createBoardCell(int x, int y);
-
-    // create a board cell that fits the board without overflowing
-    BoardCell createAdjustedBoardCell(const BoardCell &c);
+    BoardCell createBoardCell(int x, int y) const;
 
     // Adds an object to the board - internal use, arguments are treated as valid
     void addObjectInternal(GameObject *obj, BoardCell c);
@@ -134,7 +133,7 @@ public:
     vector<GameObject *> getAllGameObjects();
 
     // get all tanks for a player
-    vector<Tank *> getTanks(const std::vector<GameObject*>& objects);
+    vector<Tank *> getTanks(GameObjectType t) const;
 
     // get an optional cell location of an object on board. if object not on board, return nullopt.
     std::optional<BoardCell> getObjectLocation(GameObject *go) const;
@@ -145,5 +144,6 @@ public:
     // TODO: this is a temporary function for testing - delete later
     void moveTanksRandomly();
 
-    
+    // create a board cell that fits the board without overflowing
+    BoardCell createAdjustedBoardCell(const BoardCell &c) const; 
 };
