@@ -2,7 +2,6 @@
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include <queue>
 #include <set>
-#include "iostream"
 
 Player::Player(GameObjectType tanks_type) : tanks_type(tanks_type) {}
 
@@ -22,23 +21,23 @@ map<Tank *, TankAction> Player::getActionsFromPlayer(const GameBoard &board)
     }
     return res;
 };
-
-TankAction Player::getTankAction(const GameBoard &board, const Tank *tank)
+TankAction Player::player1Algorithm(const GameBoard &board, const Tank *tank)
 {
-    // TODO: this is temp to test the dijkstra, keep in same place
-    if(this->tanks_type == GameObjectType::tank1){
-        return TankAction::NOTHING;
-    }
-    
-    // if there is a close bullet towards the tank or a tank that is in shooting range (and can shoot)
-    for (GameObject *shell_object : board.getGameObjects(GameObjectType::shell))
+    if (auto escape_shell_action = escapeShells(board, tank))
     {
-        Shell *shell = static_cast<Shell *>(shell_object);
+        return escape_shell_action.value();
+    }
+    return TankAction::NOTHING;
+}
 
-        if (isShellChasingTank(board, tank, shell))
-        {
-            return getEvasionAction(board, tank, shell);
-        }
+TankAction Player::player2Algorithm(const GameBoard &board, const Tank *tank)
+{
+    /* aggressive algorithm using dijkstra
+     */
+
+    if (auto escape_shell_action = escapeShells(board, tank))
+    {
+        return escape_shell_action.value();
     }
 
     // for (Tank* enemy_tank : board.getTanks(this->getEnemyTanksType()))
@@ -51,7 +50,31 @@ TankAction Player::getTankAction(const GameBoard &board, const Tank *tank)
     return getAggressiveAction(board, tank);
 }
 
-// TODO: write this function
+optional<TankAction> Player::escapeShells(const GameBoard &board, const Tank *tank)
+{
+    // if there is a close bullet towards the tank or a tank that is in shooting range (and can shoot)
+    for (GameObject *shell_object : board.getGameObjects(GameObjectType::shell))
+    {
+        Shell *shell = static_cast<Shell *>(shell_object);
+
+        if (isShellChasingTank(board, tank, shell))
+        {
+            return getEvasionAction(board, tank, shell);
+        }
+    }
+    return nullopt;
+}
+TankAction Player::getTankAction(const GameBoard &board, const Tank *tank)
+{
+    // select correct algorithm for each player
+    if (this->tanks_type == GameObjectType::tank1)
+    {
+        return this->player1Algorithm(board, tank);
+    }
+
+    return player2Algorithm(board, tank);
+}
+
 TankAction Player::getEvasionAction(const GameBoard &board, const Tank *tank, const MovableObject *evade_from)
 {
     // try to escape from tank/bullet
@@ -62,6 +85,31 @@ TankAction Player::getEvasionAction(const GameBoard &board, const Tank *tank, co
     // if can shoot the bullet, shoot
     // otherwise accept your faith
 
+    if (auto opt_cell = board.getObjectLocation(const_cast<Tank *>(tank)))
+    {
+        BoardCell c = opt_cell.value();
+
+        if (evade_from->getDirection() == tank->getDirection())
+        {
+            if(auto opt_escape_cell = getEscapingRoute(board, tank, c, evade_from->getDirection())){
+                return adjustDirection(board, c, opt_escape_cell.value(), tank->getDirection());
+            }
+            return TankAction::FIRE;
+        }
+        else if (evade_from->getDirection() == DirectionUtils::getOppositeDirection(tank->getDirection()))
+        {
+            if (auto opt_escape_cell = getEscapingRoute(board, tank, c, evade_from->getDirection()))
+            {
+                return adjustDirection(board, c, opt_escape_cell.value(), tank->getDirection());
+            }
+            return TankAction::FIRE;
+        }
+        else
+        {
+            return TankAction::FORWARD;
+        }
+    }
+
     // --- tank escape ---
     // (assuming can't shoot tank)
     // if can move from tank direction (sideways), move
@@ -69,8 +117,40 @@ TankAction Player::getEvasionAction(const GameBoard &board, const Tank *tank, co
     // if facing each other and nothing behind, move backwards
     // otherwise accept your faith
 
-    bool turn = std::rand() % 4 == 0;
-    return turn ? TankAction::TURN45RIGHT : TankAction::FORWARD;
+    return TankAction::NOTHING; // should not get here - only if evade_from not on board.
+}
+
+optional<BoardCell> Player::getEscapingRoute(const GameBoard &board, const Tank *tank, BoardCell current_cell, Direction enemy_dir) const
+{
+    vector<BoardCell> neighbors = this->getAdjacentCells(board, current_cell);
+    for (BoardCell neighbor : neighbors)
+    {
+
+        // check if stepped out from enemy direction
+        if (isDirectionMatch(current_cell, neighbor, enemy_dir) ||
+            isDirectionMatch(current_cell, neighbor, DirectionUtils::getOppositeDirection(enemy_dir)))
+            continue;
+
+        if (GameCollisionHandler::canObjectSafelyStepOn(board, tank->getObjectType(), neighbor))
+        {
+            return neighbor;
+        }
+    }
+
+    return nullopt;
+}
+
+vector<BoardCell> Player::getAdjacentCells(const GameBoard &board, BoardCell curr_cell) const
+{
+
+    vector<BoardCell> res;
+    for (int dir_number = 0; dir_number < 8; dir_number++)
+    {
+        BoardCell neighbor = board.createAdjustedBoardCell(curr_cell + static_cast<Direction>(dir_number));
+        res.push_back(neighbor);
+    }
+
+    return res;
 }
 
 TankAction Player::getAggressiveAction(const GameBoard &board, const Tank *tank)
@@ -89,14 +169,15 @@ TankAction Player::getAggressiveAction(const GameBoard &board, const Tank *tank)
     BoardCell start = opt.value();
     BoardCell target = this->approxClosestEnemyTankLocation(board, start);
 
-    if (inShootRange(board ,start, target) && tank->canShoot())
+    if (inShootRange(board, start, target) && tank->canShoot())
     {
         if (isDirectionMatch(start, target, tank->getDirection()))
             return TankAction::FIRE;
-            else if (canAdjustDirection(start, target)) {
-                BoardCell adjust_to = getAdjustToCellTowardsTarget(start, target);
-                return adjustDirection(board, start, adjust_to, tank->getDirection());
-            }
+        else if (canAdjustDirection(start, target))
+        {
+            BoardCell adjust_to = getAdjustToCellTowardsTarget(start, target);
+            return adjustDirection(board, start, adjust_to, tank->getDirection());
+        }
         else
         { // nothing here
         }
@@ -105,14 +186,14 @@ TankAction Player::getAggressiveAction(const GameBoard &board, const Tank *tank)
     return advanceTankToTarget(board, tank, start, target);
 }
 
-
-bool Player::inShootRange(const GameBoard &board,BoardCell from, BoardCell to)
+bool Player::inShootRange(const GameBoard &board, BoardCell from, BoardCell to)
 {
     return board.distance(from, to) <= 8;
 }
-bool Player::isDirectionMatch(BoardCell from, BoardCell to, Direction dir)
+bool Player::isDirectionMatch(BoardCell from, BoardCell to, Direction dir) const
 {
-    if(!canAdjustDirection(from, to)){
+    if (!canAdjustDirection(from, to))
+    {
         return false;
     }
 
@@ -120,7 +201,7 @@ bool Player::isDirectionMatch(BoardCell from, BoardCell to, Direction dir)
     int y_diff = to.getY() - from.getY();
 
     auto [dx, dy] = DirectionUtils::directionOffsets(dir);
-    if (dx == 0 && x_diff == 0 && y_diff/dy >0) // both up/down
+    if (dx == 0 && x_diff == 0 && y_diff / dy > 0) // both up/down
     {
         return true;
     }
@@ -128,23 +209,24 @@ bool Player::isDirectionMatch(BoardCell from, BoardCell to, Direction dir)
     {
         return true;
     }
-    if(y_diff/dy == x_diff/dx && x_diff/dx > 0) // same 45 degrees
+    if (y_diff / dy == x_diff / dx && x_diff / dx > 0) // same 45 degrees
     {
         return true;
     }
     return false;
 }
 
-
-bool Player::canAdjustDirection(BoardCell from, BoardCell to)
+bool Player::canAdjustDirection(BoardCell from, BoardCell to) const
 {
     int x_diff = to.getX() - from.getX();
     int y_diff = to.getY() - from.getY();
 
-    if(x_diff == 0 || y_diff == 0){
+    if (x_diff == 0 || y_diff == 0)
+    {
         return true;
-    } 
-    if (abs(x_diff) == abs(y_diff)){
+    }
+    if (abs(x_diff) == abs(y_diff))
+    {
         return true;
     }
 
@@ -152,7 +234,7 @@ bool Player::canAdjustDirection(BoardCell from, BoardCell to)
 }
 
 BoardCell Player::getAdjustToCellTowardsTarget(BoardCell from, BoardCell to) const
- {
+{
     int dx = to.getX() - from.getX();
     int dy = to.getY() - from.getY();
     int div = std::max(abs(dx), abs(dy));
@@ -163,8 +245,10 @@ BoardCell Player::getAdjustToCellTowardsTarget(BoardCell from, BoardCell to) con
     return BoardCell(from.getX() + dx / div, from.getY() + dy / div);
 }
 
-TankAction Player::adjustDirection(const GameBoard& board, BoardCell from, BoardCell to, Direction dir)
+TankAction Player::adjustDirection(const GameBoard &board, BoardCell from, BoardCell to, Direction dir)
 {
+    // assumption: from, to are adjacent cells
+
     if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 1)))
     {
         return TankAction::TURN45RIGHT;
@@ -201,16 +285,18 @@ TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank,
 {
     map<BoardCell, int> distances;
     map<BoardCell, BoardCell> parents;
-    Dijkstra(board, start, target,distances, parents);
+    Dijkstra(board, start, target, distances, parents);
 
-    //TODO: if cant reach target shoot and hope for good. maybe should do something smarter?
-    if(distances.find(target) == distances.end()){
+    // TODO: if cant reach target shoot and hope for good. maybe should do something smarter?
+    if (distances.find(target) == distances.end())
+    {
         return TankAction::FIRE;
     }
 
     // getting the next cell in the shortest path
     BoardCell next_cell_in_path = target;
-    while (parents[next_cell_in_path] != start){
+    while (parents[next_cell_in_path] != start)
+    {
         next_cell_in_path = parents[next_cell_in_path];
     }
 
@@ -223,7 +309,7 @@ TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank,
     {
         return TankAction::BACKWARD;
     }
-    return adjustDirection(board, start,next_cell_in_path,tank->getDirection());
+    return adjustDirection(board, start, next_cell_in_path, tank->getDirection());
 }
 
 // TODO: think again about logic
@@ -239,8 +325,7 @@ bool Player::isShellChasingTank(const GameBoard &board, const Tank *tank, const 
     BoardCell tank_loc = tank_opt_loc.value();
 
     int dist = board.distance(shell_loc, tank_loc);
-    int next_dist = board.distance(tank_loc, shell_loc + shell->getDirection());
-    if (dist <= shell->getSpeed() && next_dist < dist)
+    if (dist <= shell->getSpeed() * 3 && isDirectionMatch(shell_loc, tank_loc, shell->getDirection()))
     {
         return true;
     }
@@ -252,7 +337,7 @@ bool Player::canEnemyKillTank(const GameBoard &board, const Tank *tank, const Ta
     return false;
 }
 
-void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target, map<BoardCell,int>& distances, map<BoardCell,BoardCell>& parents)
+void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents)
 {
     // TODO: Currently implemented as Player method. Decide on a better class (Algorithms, Board, PlayerStrategies, PlayerUtils)?
     // TODO: Currently behaves like BFS. Consider using different weights when cell require turning.
@@ -265,7 +350,7 @@ void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target,
         q;
     q.push({0, {start, start}});
     set<BoardCell> visited;
-    
+
     while (!q.empty())
     {
         // access and pop first item in heap
@@ -288,13 +373,12 @@ void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target,
         if (c == target)
             break;
 
-        // adding neighbours to heap - only if tank can safely step there
-        for (int dir_number = 0; dir_number < 8; dir_number++)
+        // adding neighbors to heap - only if tank can safely step there
+        for (BoardCell neighbor : getAdjacentCells(board, c))
         {
-            BoardCell neighbour = board.createAdjustedBoardCell(c + static_cast<Direction>(dir_number));
-            if (target == neighbour || GameCollisionHandler::canObjectSafelyStepOn(board, this->tanks_type, neighbour))
+            if (target == neighbor || GameCollisionHandler::canObjectSafelyStepOn(board, this->tanks_type, neighbor))
             {
-                q.push({dist + 1, {neighbour, c}});
+                q.push({dist + 1, {neighbor, c}});
             }
         }
     }
@@ -302,9 +386,9 @@ void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target,
 
 BoardCell Player::approxClosestEnemyTankLocation(const GameBoard &board, BoardCell start)
 {
-    /*  this function gives an approximation of the closest enemy tank location. 
+    /*  this function gives an approximation of the closest enemy tank location.
         to be clear, the approximation is regarding the closest tank identity. the location is not an approximation.
-    
+
         using direct distance to find distance in a fast way
     */
     BoardCell closest = start;

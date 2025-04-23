@@ -330,3 +330,4 @@ void Tank::shoot()
 void Tank::moveToCell(BoardCell target){
     this->board.moveGameObject(this, target);
 }
+

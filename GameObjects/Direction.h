@@ -31,7 +31,7 @@ namespace DirectionUtils
         return static_cast<Direction>(new_dir);
     }
 
-    constexpr std::pair<int, int> directionOffsets(Direction dir)
+    constexpr inline std::pair<int, int> directionOffsets(Direction dir)
     {
         switch (dir)
         {
@@ -55,5 +55,9 @@ namespace DirectionUtils
             // This should never happen
             return {0, 0};
         }
+    }
+
+    constexpr inline Direction getOppositeDirection(Direction dir){
+        return rotateRight(dir, 4);
     }
 }
