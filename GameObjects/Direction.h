@@ -36,21 +36,21 @@ namespace DirectionUtils
         switch (dir)
         {
         case Direction::UP:
-            return {0, 1};
+            return {0, -1};
         case Direction::UPR:
-            return {1, 1};
+            return {1, -1};
         case Direction::RIGHT:
             return {1, 0};
         case Direction::DOWNR:
-            return {1, -1};
+            return {1, 1};
         case Direction::DOWN:
-            return {0, -1};
+            return {0, 1};
         case Direction::DOWNL:
-            return {-1, -1};
+            return {-1, 1};
         case Direction::LEFT:
             return {-1, 0};
         case Direction::UPL:
-            return {-1, 1};
+            return {-1, -1};
         default:
             // This should never happen
             return {0, 0};
