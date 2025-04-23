@@ -89,18 +89,14 @@ TankAction Player::getAggressiveAction(const GameBoard &board, const Tank *tank)
     BoardCell start = opt.value();
     BoardCell target = this->approxClosestEnemyTankLocation(board, start);
 
-    if (inShootRange(start, target) && tank->canShoot())
+    if (inShootRange(board ,start, target) && tank->canShoot())
     {
         if (isDirectionMatch(start, target, tank->getDirection()))
             return TankAction::FIRE;
-        else if (canAdjustDirection(start, target)){
-            // TODO: helper funciton to get the adjust_to cell
-            int dx = target.getX() - start.getX();
-            int dy = target.getY() - start.getY();
-            int div = max(abs(dx), abs(dy));
-            BoardCell adjust_to(start.getX() + dx/div, start.getY() + dy/div);
-            return adjustDirection(board, start, adjust_to, tank->getDirection());
-        }
+            else if (canAdjustDirection(start, target)) {
+                BoardCell adjust_to = getAdjustToCellTowardsTarget(start, target);
+                return adjustDirection(board, start, adjust_to, tank->getDirection());
+            }
         else
         { // nothing here
         }
@@ -109,9 +105,10 @@ TankAction Player::getAggressiveAction(const GameBoard &board, const Tank *tank)
     return advanceTankToTarget(board, tank, start, target);
 }
 
-bool Player::inShootRange(BoardCell from, BoardCell to)
+
+bool Player::inShootRange(const GameBoard &board,BoardCell from, BoardCell to)
 {
-    return from.distance(to) <= 8;
+    return board.distance(from, to) <= 8;
 }
 bool Player::isDirectionMatch(BoardCell from, BoardCell to, Direction dir)
 {
@@ -137,6 +134,8 @@ bool Player::isDirectionMatch(BoardCell from, BoardCell to, Direction dir)
     }
     return false;
 }
+
+
 bool Player::canAdjustDirection(BoardCell from, BoardCell to)
 {
     int x_diff = to.getX() - from.getX();
@@ -150,6 +149,18 @@ bool Player::canAdjustDirection(BoardCell from, BoardCell to)
     }
 
     return false;
+}
+
+BoardCell Player::getAdjustToCellTowardsTarget(BoardCell from, BoardCell to) const
+ {
+    int dx = to.getX() - from.getX();
+    int dy = to.getY() - from.getY();
+    int div = std::max(abs(dx), abs(dy));
+
+    if (div == 0)
+        return from;
+
+    return BoardCell(from.getX() + dx / div, from.getY() + dy / div);
 }
 
 TankAction Player::adjustDirection(const GameBoard& board, BoardCell from, BoardCell to, Direction dir)
@@ -188,7 +199,6 @@ TankAction Player::adjustDirection(const GameBoard& board, BoardCell from, Board
 
 TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank, BoardCell start, BoardCell target)
 {
-
     map<BoardCell, int> distances;
     map<BoardCell, BoardCell> parents;
     Dijkstra(board, start, target,distances, parents);
@@ -228,8 +238,8 @@ bool Player::isShellChasingTank(const GameBoard &board, const Tank *tank, const 
     BoardCell shell_loc = shell_opt_loc.value();
     BoardCell tank_loc = tank_opt_loc.value();
 
-    int dist = tank_loc.distance(shell_loc);
-    int next_dist = tank_loc.distance(shell_loc + shell->getDirection());
+    int dist = board.distance(shell_loc, tank_loc);
+    int next_dist = board.distance(tank_loc, shell_loc + shell->getDirection());
     if (dist <= shell->getSpeed() && next_dist < dist)
     {
         return true;

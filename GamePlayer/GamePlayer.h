@@ -29,9 +29,10 @@ private:
     TankAction adjustDirection(const GameBoard&board,BoardCell from, BoardCell to, Direction dir);
     
     //===helpers===
-    bool inShootRange(BoardCell from, BoardCell to);
+    bool inShootRange(const GameBoard &board, BoardCell from, BoardCell to);
     bool isDirectionMatch(BoardCell from, BoardCell to, Direction dir) ;
     bool canAdjustDirection(BoardCell from, BoardCell to) ;
     public : Player(GameObjectType tanks_type);
     map<Tank *, TankAction> getActionsFromPlayer(const GameBoard &board);
+    BoardCell getAdjustToCellTowardsTarget(BoardCell from, BoardCell to) const;
 };
