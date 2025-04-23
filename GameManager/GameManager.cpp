@@ -5,22 +5,22 @@
 #include "../Logger/Logger.h"
 
 
-GameManager::GameManager(GameBoard &board, Player p1, Player p2, string output_file) : board(board) {};
+GameManager::GameManager(GameBoard &board, Player p1, Player p2) : board(board), p1(p1), p2(p2) {};
 
 int GameManager::getRemainingTurns() const
 {
     return this->remaining_turns;
 }
 
-void GameManager::logWin(bool is_player1_winner)
+void GameManager::logWin(bool is_player1_winner, string reason)
 {
-    std::string winner = is_player1_winner ? "Player1 is the winner!" : "Player2 is the winner!";
-    Logger::output().logInfo("The winner is: " + winner);
+    std::string winner = is_player1_winner ? "Player 1!" : "Player 2!";
+    Logger::output().logInfo("The winner is: " + winner + " " + reason);
 }
 
-void GameManager::logTie()
+void GameManager::logTie(string reason)
 {
-    Logger::output().logInfo("The game is tied!");
+    Logger::output().logInfo("The game is tied! " + reason);
 }
 
 void GameManager::logAction(Tank *tank, TankAction action, bool is_valid)
@@ -33,7 +33,7 @@ void GameManager::logAction(Tank *tank, TankAction action, bool is_valid)
         "' tried action number '" + std::to_string(static_cast<int>(action)) + "'");
 }
 
-void GameManager::performPlayerActionsOnBoard(vector<pair<Tank *, TankAction>> actions)
+void GameManager::performPlayerActionsOnBoard(map<Tank *, TankAction> actions)
 {
     for (pair<Tank *, TankAction> action_pair : actions)
     {
@@ -44,30 +44,29 @@ void GameManager::performPlayerActionsOnBoard(vector<pair<Tank *, TankAction>> a
 
 bool GameManager::concludeGame()
 {
-
     int p1_tanks = board.getGameObjectCount(GameObjectType::tank1);
     int p2_tanks = board.getGameObjectCount(GameObjectType::tank2);
 
     if (p1_tanks == 0 && p2_tanks == 0)
     {
-        logTie();
+        logTie("All tanks exploded");
         return true;
     }
     if (p1_tanks == 0)
     {
-        logWin(false);
+        logWin(false, "All player's 1 tanks exploded!");
         return true;
     }
     if (p2_tanks == 0)
     {
-        logWin(true);
+        logWin(true, "All player's 2 tanks exploded!");
         return true;
     }
     if (board.getTotalRemainingShells() <= 0)
     {
         if (this->getRemainingTurns() == 0)
         {
-            logTie();
+            logTie("No more shells...");
             return true;
         }
         this->remaining_turns--;
@@ -92,25 +91,51 @@ void GameManager::moveShells(GameCollisionHandler& c_handler, GameDrawer d)
         if ( i == 0){
             c_handler.handleCollisions(board);
             d.draw();
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     } 
 }
 
-void GameManager::play()
+void GameManager::play(DrawingType dt)
 {
-    
-    GameDrawer d(this->board);
+    GameDrawer d(this->board, dt);
     d.draw();
+    
     GameCollisionHandler c_handler(this->board);
     while (true)
     {
         this->moveShells(c_handler, d);
-        vector<TankAction> t1_actions = p1.getActionsFromFirstPlayer(this->board);
-        vector<TankAction> t2_actions = p2.getActionsFromSecondPlayer(this->board);
-        // board.moveTanksRandomly();
+
+        map<Tank*, TankAction> t1_actions = this->p1.getActionsFromPlayer(this->board);
+        map<Tank *, TankAction> t2_actions = this->p2.getActionsFromPlayer(this->board);
+        this->performPlayerActionsOnBoard(t1_actions);
+        this->performPlayerActionsOnBoard(t2_actions);
+        
+        c_handler.handleCollisions(board);
+
+        d.draw();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+        if (this->concludeGame())
+        {
+            break;
+        }
+    }
+};
+
+// TODO: delete if not necessary
+void GameManager::simulateGame(){
+    GameDrawer d(this->board);
+    GameCollisionHandler c_handler(this->board);
+
+    d.draw();
+    while (true)
+    {
+        this->moveShells(c_handler, d);
+
         ((Tank *)board.getGameObjects(GameObjectType::tank1)[0])->action(TankAction::FIRE);
         ((Tank *)board.getGameObjects(GameObjectType::tank2)[0])->action(TankAction::FIRE);
+        
         c_handler.handleCollisions(board);
         d.draw();
         if (this->concludeGame())
@@ -119,4 +144,4 @@ void GameManager::play()
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
-};
+}
