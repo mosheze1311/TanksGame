@@ -44,7 +44,7 @@ void Logger::log(const std::string &level, const std::string &message)
 
     std::string logEntry = "[" + std::string(timeStr) + "] [" + level + "] " + message;
 
-    std::cerr << logEntry << std::endl;
+    // std::cerr << logEntry << std::endl; 
     if (logFile.is_open())
     {
         logFile << logEntry << std::endl;
