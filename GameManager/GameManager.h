@@ -5,6 +5,7 @@
 #include "../GameBoard/GameBoard.h"
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include "../GameDrawer/GameDrawer.h"
+#include <optional>
 
 
 class GameManager{

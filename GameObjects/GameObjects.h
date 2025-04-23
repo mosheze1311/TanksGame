@@ -5,6 +5,7 @@
 #include "GameObjectType.h"
 #include "../GameDrawer/DrawingTypes.h"
 #include <string>
+#include <optional>
 using namespace std;
 
 // forward declaration

@@ -3,6 +3,7 @@
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
 #include "DrawingTypes.h"
+#include <optional>
 
 class GameDrawer
 {

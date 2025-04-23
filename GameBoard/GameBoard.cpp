@@ -265,3 +265,14 @@ void GameBoard::updateObjectCount(GameObject* obj, int incremental = 1){
 void GameBoard::useTankShell(){
     this->board_details.remaining_shells--;
 }
+
+int GameBoard::distance(BoardCell first, BoardCell second) const{
+
+    int dx = abs(first.getX() - second.getX());
+    int dy = abs(first.getY() - second.getY());
+
+    dx = std::min(dx, this->getWidth() - dx);
+    dy = std::min(dy, this->getHeight() - dy);
+
+    return std::max(dx, dy);
+}

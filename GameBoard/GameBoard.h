@@ -44,7 +44,7 @@ public:
     // == operator
     bool operator==(const BoardCell &other) const;
 
-    int distance(BoardCell otehr);
+    // int distance(BoardCell otehr);
 };
 
 class GameBoard
@@ -146,4 +146,7 @@ public:
 
     // create a board cell that fits the board without overflowing
     BoardCell createAdjustedBoardCell(const BoardCell &c) const; 
+
+    //get distance of 2 cells
+    int distance(BoardCell first, BoardCell second) const;
 };

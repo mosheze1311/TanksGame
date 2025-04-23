@@ -3,6 +3,7 @@
 #include "../GameObjects/GameObjects.h"
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/TankAction.h"
+#include <optional>
 
 using namespace std;
 

@@ -306,7 +306,7 @@ BoardCell Player::approxClosestEnemyTankLocation(const GameBoard &board, BoardCe
             continue;
         BoardCell enemy_loc = opt_loc.value();
 
-        int curr_dist = start.distance(enemy_loc);
+        int curr_dist = board.distance(closest, enemy_loc);
         if (closest_dist == -1 || closest_dist > curr_dist)
         {
             closest_dist = curr_dist;
