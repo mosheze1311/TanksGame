@@ -34,6 +34,8 @@ add_executable(TanksGame
     GameObjects/StaticObject.cpp
     GameObjects/Tank.cpp
     GameObjects/Wall.cpp
+    GamePlayer/PlayerUtils.h
+    GamePlayer/PlayerUtils.cpp
     GamePlayer/GamePlayer.cpp
     GamePlayer/GamePlayer.h
     Logger/Logger.cpp
