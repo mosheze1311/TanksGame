@@ -3,6 +3,8 @@
 #include "../GameObjects/GameObjects.h"
 #include "../Logger/Logger.h"
 #include <iostream>
+#include <queue>
+#include <set>
 
 using namespace std;
 
@@ -76,6 +78,11 @@ BoardCell GameBoard::createBoardCell(int x, int y) const
 BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c) const
 {
     return this->createBoardCell(c.getX(), c.getY());
+}
+
+BoardCell GameBoard::getcreatedAdjustedBoardCell(const BoardCell &c) const
+{
+    return createAdjustedBoardCell(c);
 }
 
 std::unordered_set<GameObject *> GameBoard::getObjectsOnCell(const BoardCell &c) const
@@ -276,3 +283,64 @@ int GameBoard::distance(BoardCell first, BoardCell second) const{
 
     return std::max(dx, dy);
 }
+
+void GameBoard::Dijkstra( BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents, GameObjectType tank_type) const
+{
+    // TODO: Currently implemented as Player method. Decide on a better class (Algorithms, Board, PlayerStrategies, PlayerUtils)?
+    // TODO: Currently behaves like BFS. Consider using different weights when cell require turning.
+    // TODO: Currently scanning entire board. Consider improving to A* like algorithm.
+
+    priority_queue<
+        pair<int, pair<BoardCell, BoardCell>>,
+        vector<pair<int, pair<BoardCell, BoardCell>>>,
+        greater<pair<int, pair<BoardCell, BoardCell>>>>
+        q;
+    q.push({0, {start, start}});
+    set<BoardCell> visited;
+
+    while (!q.empty())
+    {
+        // access and pop first item in heap
+        auto [dist, current_and_parent_pair] = q.top();
+        auto [c, parent] = current_and_parent_pair;
+        q.pop();
+
+        // skip visited since inserting cells multiple times
+        if (visited.find(c) != visited.end())
+        {
+            continue;
+        }
+
+        // mark visted and save distance, parent data
+        visited.insert(c);
+        parents[c] = parent;
+        distances[c] = dist;
+
+        // early termination when reaching target
+        if (c == target)
+            break;
+
+        // adding neighbors to heap - only if tank can safely step there
+        for (BoardCell neighbor : getAdjacentCells(c))
+        {
+            if (target == neighbor || GameCollisionHandler::canObjectSafelyStepOn(*this, tank_type, neighbor))
+            {
+                q.push({dist + 1, {neighbor, c}});
+            }
+        }
+    }
+}
+
+vector<BoardCell> GameBoard::getAdjacentCells(const BoardCell& curr_cell) const 
+{
+    vector<BoardCell> res;
+
+    for (int dir_number = 0; dir_number < 8; dir_number++) {
+        Direction dir = static_cast<Direction>(dir_number);
+        BoardCell neighbor = this->createAdjustedBoardCell(curr_cell + dir);
+        res.push_back(neighbor);
+    }
+
+    return res;
+}
+

@@ -8,6 +8,7 @@
 #include <vector>
 #include <optional>
 #include "../GameObjects/GameObjects.h"
+#include "../GameCollisionHandler/GameCollisionHandler.h"
 using namespace std;
 // Forward declarations
 class GameObject;
@@ -86,6 +87,10 @@ private:
     void removeObjectInternal(GameObject *obj);
 
     void updateObjectCount(GameObject* obj, int incremental);
+
+    // create a board cell that fits the board without overflowing
+    BoardCell createAdjustedBoardCell(const BoardCell &c) const; 
+    
 public:
     // Constructor
     GameBoard(int height, int width);
@@ -144,9 +149,16 @@ public:
     // TODO: this is a temporary function for testing - delete later
     void moveTanksRandomly();
 
-    // create a board cell that fits the board without overflowing
-    BoardCell createAdjustedBoardCell(const BoardCell &c) const; 
+    // get created clles using createAdjustedBoardCell function
+    BoardCell getcreatedAdjustedBoardCell(const BoardCell &c) const;
 
-    //get distance of 2 cells
+    // get distance of 2 cells
     int distance(BoardCell first, BoardCell second) const;
+
+    // Dijkstra algorithm for finding sssp
+    void Dijkstra (BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents, GameObjectType tank_type) const;
+
+    // get neigbhor cells 
+    std::vector<BoardCell> getAdjacentCells(const BoardCell& curr_cell) const;
+
 };

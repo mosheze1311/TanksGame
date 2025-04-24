@@ -122,7 +122,7 @@ TankAction Player::getEvasionAction(const GameBoard &board, const Tank *tank, co
 
 optional<BoardCell> Player::getEscapingRoute(const GameBoard &board, const Tank *tank, BoardCell current_cell, Direction enemy_dir) const
 {
-    vector<BoardCell> neighbors = this->getAdjacentCells(board, current_cell);
+    vector<BoardCell> neighbors = board.getAdjacentCells(current_cell);
     for (BoardCell neighbor : neighbors)
     {
 
@@ -138,19 +138,6 @@ optional<BoardCell> Player::getEscapingRoute(const GameBoard &board, const Tank 
     }
 
     return nullopt;
-}
-
-vector<BoardCell> Player::getAdjacentCells(const GameBoard &board, BoardCell curr_cell) const
-{
-
-    vector<BoardCell> res;
-    for (int dir_number = 0; dir_number < 8; dir_number++)
-    {
-        BoardCell neighbor = board.createAdjustedBoardCell(curr_cell + static_cast<Direction>(dir_number));
-        res.push_back(neighbor);
-    }
-
-    return res;
 }
 
 TankAction Player::getAggressiveAction(const GameBoard &board, const Tank *tank)
@@ -249,31 +236,31 @@ TankAction Player::adjustDirection(const GameBoard &board, BoardCell from, Board
 {
     // assumption: from, to are adjacent cells
 
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 1)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 1)))
     {
         return TankAction::TURN45RIGHT;
     }
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 2)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 2)))
     {
         return TankAction::TURN90RIGHT;
     }
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 3)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateRight(dir, 3)))
     {
         return TankAction::TURN90RIGHT; // will need additional 45 deg turn
     }
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 1)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 1)))
     {
         return TankAction::TURN45LEFT;
     }
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 2)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 2)))
     {
         return TankAction::TURN90LEFT;
     }
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 3)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 3)))
     {
         return TankAction::TURN90LEFT; // will need additional 45 deg turn
     }
-    if (to == board.createAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 4)))
+    if (to == board.getcreatedAdjustedBoardCell(from + DirectionUtils::rotateLeft(dir, 4)))
     {
         return TankAction::TURN90LEFT; // will need additional 90 deg turn
     }
@@ -285,7 +272,7 @@ TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank,
 {
     map<BoardCell, int> distances;
     map<BoardCell, BoardCell> parents;
-    Dijkstra(board, start, target, distances, parents);
+    board.Dijkstra(start, target, distances, parents, tanks_type);
 
     // TODO: if cant reach target shoot and hope for good. maybe should do something smarter?
     if (distances.find(target) == distances.end())
@@ -301,11 +288,11 @@ TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank,
     }
 
     // decisions - try to advance to next cell
-    if (next_cell_in_path == board.createAdjustedBoardCell(start + tank->getDirection()))
+    if (next_cell_in_path == board.getcreatedAdjustedBoardCell(start + tank->getDirection()))
     {
         return TankAction::FORWARD;
     }
-    if (next_cell_in_path == board.createAdjustedBoardCell(start - tank->getDirection()))
+    if (next_cell_in_path == board.getcreatedAdjustedBoardCell(start - tank->getDirection()))
     {
         return TankAction::BACKWARD;
     }
@@ -337,52 +324,52 @@ bool Player::canEnemyKillTank(const GameBoard &board, const Tank *tank, const Ta
     return false;
 }
 
-void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents)
-{
-    // TODO: Currently implemented as Player method. Decide on a better class (Algorithms, Board, PlayerStrategies, PlayerUtils)?
-    // TODO: Currently behaves like BFS. Consider using different weights when cell require turning.
-    // TODO: Currently scanning entire board. Consider improving to A* like algorithm.
+// void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents)
+// {
+//     // TODO: Currently implemented as Player method. Decide on a better class (Algorithms, Board, PlayerStrategies, PlayerUtils)?
+//     // TODO: Currently behaves like BFS. Consider using different weights when cell require turning.
+//     // TODO: Currently scanning entire board. Consider improving to A* like algorithm.
 
-    priority_queue<
-        pair<int, pair<BoardCell, BoardCell>>,
-        vector<pair<int, pair<BoardCell, BoardCell>>>,
-        greater<pair<int, pair<BoardCell, BoardCell>>>>
-        q;
-    q.push({0, {start, start}});
-    set<BoardCell> visited;
+//     priority_queue<
+//         pair<int, pair<BoardCell, BoardCell>>,
+//         vector<pair<int, pair<BoardCell, BoardCell>>>,
+//         greater<pair<int, pair<BoardCell, BoardCell>>>>
+//         q;
+//     q.push({0, {start, start}});
+//     set<BoardCell> visited;
 
-    while (!q.empty())
-    {
-        // access and pop first item in heap
-        auto [dist, current_and_parent_pair] = q.top();
-        auto [c, parent] = current_and_parent_pair;
-        q.pop();
+//     while (!q.empty())
+//     {
+//         // access and pop first item in heap
+//         auto [dist, current_and_parent_pair] = q.top();
+//         auto [c, parent] = current_and_parent_pair;
+//         q.pop();
 
-        // skip visited since inserting cells multiple times
-        if (visited.find(c) != visited.end())
-        {
-            continue;
-        }
+//         // skip visited since inserting cells multiple times
+//         if (visited.find(c) != visited.end())
+//         {
+//             continue;
+//         }
 
-        // mark visted and save distance, parent data
-        visited.insert(c);
-        parents[c] = parent;
-        distances[c] = dist;
+//         // mark visted and save distance, parent data
+//         visited.insert(c);
+//         parents[c] = parent;
+//         distances[c] = dist;
 
-        // early termination when reaching target
-        if (c == target)
-            break;
+//         // early termination when reaching target
+//         if (c == target)
+//             break;
 
-        // adding neighbors to heap - only if tank can safely step there
-        for (BoardCell neighbor : getAdjacentCells(board, c))
-        {
-            if (target == neighbor || GameCollisionHandler::canObjectSafelyStepOn(board, this->tanks_type, neighbor))
-            {
-                q.push({dist + 1, {neighbor, c}});
-            }
-        }
-    }
-}
+//         // adding neighbors to heap - only if tank can safely step there
+//         for (BoardCell neighbor : getAdjacentCells(board, c))
+//         {
+//             if (target == neighbor || GameCollisionHandler::canObjectSafelyStepOn(board, this->tanks_type, neighbor))
+//             {
+//                 q.push({dist + 1, {neighbor, c}});
+//             }
+//         }
+//     }
+// }
 
 BoardCell Player::approxClosestEnemyTankLocation(const GameBoard &board, BoardCell start)
 {
