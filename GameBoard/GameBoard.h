@@ -8,7 +8,6 @@
 #include <vector>
 #include <optional>
 #include "../GameObjects/GameObjects.h"
-#include "../GameCollisionHandler/GameCollisionHandler.h"
 using namespace std;
 // Forward declarations
 class GameObject;

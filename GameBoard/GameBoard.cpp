@@ -1,5 +1,4 @@
 #include "GameBoard.h"
-
 #include "../GameObjects/GameObjects.h"
 #include "../Logger/Logger.h"
 #include <iostream>
