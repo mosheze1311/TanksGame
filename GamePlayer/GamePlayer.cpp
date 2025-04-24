@@ -2,6 +2,7 @@
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include <queue>
 #include <set>
+#include "PlayerUtils.cpp"
 
 Player::Player(GameObjectType tanks_type) : tanks_type(tanks_type) {}
 
@@ -272,7 +273,7 @@ TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank,
 {
     map<BoardCell, int> distances;
     map<BoardCell, BoardCell> parents;
-    board.Dijkstra(start, target, distances, parents, tanks_type);
+    PlayerUtils::Dijkstra(board, this->tanks_type ,start, target, distances, parents);
 
     // TODO: if cant reach target shoot and hope for good. maybe should do something smarter?
     if (distances.find(target) == distances.end())

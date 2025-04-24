@@ -153,10 +153,7 @@ public:
 
     // get distance of 2 cells
     int distance(BoardCell first, BoardCell second) const;
-
-    // Dijkstra algorithm for finding sssp
-    void Dijkstra (BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents, GameObjectType tank_type) const;
-
+    
     // get neigbhor cells 
     std::vector<BoardCell> getAdjacentCells(const BoardCell& curr_cell) const;
 

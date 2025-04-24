@@ -35,7 +35,7 @@ private:
     BoardCell getAdjustToCellTowardsTarget(BoardCell from, BoardCell to) const;
     optional<TankAction> escapeShells(const GameBoard &board, const Tank *tank);
     vector<BoardCell> getAdjacentCells(const GameBoard &board, BoardCell curr_cell) const;
-    optional<BoardCell> getEscapingRoute(const GameBoard &board, const Tank *tank, BoardCell current_cell, Direction enemy_dir) const;
+    optional<BoardCell> getEscapingRoute(const GameBoard &board ,const Tank *tank, BoardCell current_cell, Direction enemy_dir) const;
     //===Algorithms===
     TankAction player1Algorithm(const GameBoard &board, const Tank *tank);
     TankAction player2Algorithm(const GameBoard &board, const Tank *tank);
