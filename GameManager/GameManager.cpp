@@ -1,9 +1,6 @@
 #include "GameManager.h"
 #include "../GameDrawer/GameDrawer.h"
-#include <thread>
-#include <chrono>
 #include "../Logger/Logger.h"
-#define REST_MS 100
 
 //=== Constructors ===
 GameManager::GameManager(GameBoard &board, Player p1, Player p2) : board(board), p1(p1), p2(p2) {};
@@ -103,19 +100,16 @@ void GameManager::play(DrawingType dt)
         
         c_handler.handleCollisions(board);
         d.draw();
-        std::this_thread::sleep_for(std::chrono::milliseconds(REST_MS));
 
         this->moveShells();
 
         map<Tank*, TankAction> t1_actions = this->p1.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t1_actions);
-
         map<Tank *, TankAction> t2_actions = this->p2.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t2_actions);
         
         c_handler.handleCollisions(board);
         d.draw();
-        std::this_thread::sleep_for(std::chrono::milliseconds(REST_MS));
 
         if (this->concludeGame())
         {
