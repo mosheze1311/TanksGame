@@ -1,3 +1,5 @@
+#pragma once
+
 enum class GameObjectType
 {
     tank1 = '1',

@@ -9,9 +9,6 @@ GameObject::GameObject(GameBoard& b, int hp) : hp(hp), board(b)  {}
 // Virtual destructor
 GameObject::~GameObject() {}
 
-// Virtual function implementation (empty unless overridden)
-void GameObject::destroyed() {}
-
 int GameObject::getHP() const
 {
     return hp;
@@ -26,7 +23,7 @@ void GameObject::setHP(int new_hp)
 // Handling getting hit
 void GameObject::gotHit(int dmg)
 {
-    hp -= dmg;
+    this->setHP(hp - dmg);
     if (this->getHP() <= 0)
     {
         this->board.removeObject(this);

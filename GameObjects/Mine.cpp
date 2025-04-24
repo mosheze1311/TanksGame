@@ -1,18 +1,17 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
 
-Mine::Mine(GameBoard& b)
+//=== Constructor ===
+Mine::Mine(GameBoard &b)
     : StaticObject(b, 1) {}
 
-void Mine::printType() const {
+//=== Type Information ===
+GameObjectType Mine::getObjectType() const
+{
+    return GameObjectType::mine;
 }
 
-GameObjectType Mine::getObjectType() const{return GameObjectType::mine;}
-
-void Mine::destroyed() {
-    setHP(0);    
-}
-
+//=== Drawing ===
 string Mine::getDrawing(DrawingType t) const
 {
     switch (t)

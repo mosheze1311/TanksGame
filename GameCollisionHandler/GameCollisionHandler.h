@@ -5,7 +5,6 @@
 #include <unordered_set>
 #include <map>
 #include <vector>
-#
 
 class GameCollisionHandler
 {
@@ -43,52 +42,18 @@ private:
     // explosion list
     std::map<GameObjectType, int> getExplosionList(GameObjectType t);
 
-public:
+    // check for collisions regarding the collision map
+    static bool isCollision(std::map<GameObjectType, std::map<GameObjectType, int>> collision_map, const GameBoard& board, GameObjectType obj_type, BoardCell c);
 
-    GameCollisionHandler(GameBoard& board);
+public:
+    //=== Constructors ===
+    GameCollisionHandler(GameBoard &board);
     ~GameCollisionHandler();
 
+    //=== Functions ===
     void handleCollisions(GameBoard& updatedBoard);
 
-    // TODO: merge replication to a helper function
-    static bool isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c){
-        auto objects_on_cell = board.getObjectsOnCell(c);
-        map<GameObjectType, int> counters;
-        for (auto obj : objects_on_cell)
-        {
-            counters[obj->getObjectType()] += 1;
-        }
+    static bool isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
 
-        for (auto count_pair : counters)
-        {
-            if (GameCollisionHandler::prevention_map[obj_type][count_pair.first] <= count_pair.second)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    static bool canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
-    {
-        if (!GameCollisionHandler::isObjectAllowedToStepOn(board,obj_type, c)){
-            return false;
-        }
-
-        auto objects_on_cell = board.getObjectsOnCell(c);
-        map<GameObjectType, int> counters;
-        for (auto obj : objects_on_cell)
-        {
-            counters[obj->getObjectType()] += 1;
-        }
-
-        for (auto count_pair : counters)
-        {
-            if (GameCollisionHandler::explosion_map[obj_type][count_pair.first] <= count_pair.second)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+    static bool canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
 };

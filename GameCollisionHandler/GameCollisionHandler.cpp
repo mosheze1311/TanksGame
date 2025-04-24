@@ -1,9 +1,11 @@
 #include "GameCollisionHandler.h"
-// TODO:
-// instead of removing items from board on collision,
-// items should be 'hit' and handle their own board situation with according to their hp
 
-// Define the explosion_map with its initial values
+//=== Constructors ===
+GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
+
+GameCollisionHandler::~GameCollisionHandler() {}
+
+//=== Static Members ===
 std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::explosion_map = {
     {GameObjectType::mine, {{GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}}},
     {GameObjectType::tank1, {{GameObjectType::mine, 1}, {GameObjectType::tank1, 2}, {GameObjectType::tank2, 1}, {GameObjectType::shell, 1}}},
@@ -18,10 +20,7 @@ std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::pr
     {GameObjectType::shell, {}},
     {GameObjectType::wall, {{GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}, {GameObjectType::mine, 1}}}};
 
-GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
-
-GameCollisionHandler::~GameCollisionHandler() {}
-
+//=== Member Functions ===
 void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
 {
     this->handleMidStepCollisions(updated_board);
@@ -106,4 +105,42 @@ std::map<GameObjectType, int> GameCollisionHandler::getExplosionList(GameObjectT
     }
 
     return {};
+}
+
+//=== Static Functions ===
+bool GameCollisionHandler::isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
+{
+    return !GameCollisionHandler::isCollision(GameCollisionHandler::prevention_map, board, obj_type, c);
+}
+
+bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
+{
+    if (!GameCollisionHandler::isObjectAllowedToStepOn(board, obj_type, c))
+    {
+        return false;
+    }
+
+    return !GameCollisionHandler::isCollision(GameCollisionHandler::explosion_map, board, obj_type, c);
+}
+
+bool GameCollisionHandler::isCollision(std::map<GameObjectType, std::map<GameObjectType, int>> collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
+{
+    auto objects_on_cell = board.getObjectsOnCell(c);
+    map<GameObjectType, int> counters;
+    for (auto obj : objects_on_cell)
+    {
+        counters[obj->getObjectType()] += 1;
+    }
+
+    for (auto count_pair : counters)
+    {
+        if (collision_map[obj_type].find(count_pair.first) == collision_map[obj_type].end()){
+            continue;
+        }
+        if (collision_map[obj_type][count_pair.first] <= count_pair.second)
+        {
+            return true;
+        }
+    }
+    return false;
 }

@@ -1,20 +1,15 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
 
+//=== Constructor ===
 Shell::Shell(GameBoard &b, Direction dir, int spd)
     : MovableObject(b, dir, spd, 1) {}
 
-void Shell::printType() const
-{
-}
+//=== Type Info ===
 GameObjectType Shell::getObjectType() const { return GameObjectType::shell; }
 
-void Shell::destroyed()
-{
-    setHP(0);
-}
-
-void Shell::action()
+//=== Movement ===
+void Shell::advance()
 {
 
     board = this->board;
@@ -24,6 +19,7 @@ void Shell::action()
     }
 }
 
+//=== Drawing ===
 string Shell::getDrawing(DrawingType t) const
 {
     switch (t)

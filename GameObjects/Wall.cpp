@@ -1,17 +1,14 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
 
+//=== Constructors ===
 Wall::Wall(GameBoard& b)
     : StaticObject(b, 2) {}
 
-void Wall::printType() const {
-}
+//=== Type Info ===
 GameObjectType Wall::getObjectType() const { return GameObjectType::wall; }
 
-void Wall::destroyed() {
-    setHP(0);
-}
-
+//=== Drawing ===
 string Wall::getDrawing(DrawingType t) const
 {
     switch (t)
@@ -21,11 +18,11 @@ string Wall::getDrawing(DrawingType t) const
     case DrawingType::TENNIS:
         return this->getHP() == 2 ? "🥅" : "🥅";
     case DrawingType::SCIFI:
-        return this->getHP() == 2 ? "📡" : "🛰️\0";
+        return this->getHP() == 2 ? "📡" : "🛰️";
     case DrawingType::PIRATE:
-        return this->getHP() == 2 ? "🌊" : "🪸\0";
+        return this->getHP() == 2 ? "🌊" : "🪸";
     case DrawingType::MIDDLE_EAST:
-        return this->getHP() == 2 ? "🏰" : "🛡️\0";
+        return this->getHP() == 2 ? "🏰" : "🛡️";
     default:
         return this->getHP() == 2 ? "⬛" : "🟫";
     }

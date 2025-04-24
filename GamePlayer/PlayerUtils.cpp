@@ -4,11 +4,11 @@
 #include <queue>
 #include <limits>
 #include <utility>
+#define SHOOTING_RANGE 8
 
 // Dijkstra's algorithm to find shortest paths from a source node
 void PlayerUtils::Dijkstra(const GameBoard &board, GameObjectType tank_type, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents)
 {
-    // TODO: Currently implemented as Player method. Decide on a better class (Algorithms, Board, PlayerStrategies, PlayerUtils)?
     // TODO: Currently behaves like BFS. Consider using different weights when cell require turning.
     // TODO: Currently scanning entire board. Consider improving to A* like algorithm.
 
@@ -51,4 +51,43 @@ void PlayerUtils::Dijkstra(const GameBoard &board, GameObjectType tank_type, Boa
             }
         }
     }
+}
+
+bool PlayerUtils::inShootRange(const GameBoard &board, BoardCell from, BoardCell to)
+{
+    return board.distance(from, to) <= SHOOTING_RANGE;
+}
+
+
+BoardCell PlayerUtils::getNextCellInStraightLine(BoardCell from, BoardCell to)
+{
+    // assuming that from, to form a straight line in some direction.
+    int dx = to.getX() - from.getX();
+    int dy = to.getY() - from.getY();
+    int div = std::max(abs(dx), abs(dy));
+
+    if (div == 0)
+        return from;
+
+    return BoardCell(from.getX() + dx / div, from.getY() + dy / div);
+}
+
+// TODO: think again about logic
+bool PlayerUtils::isShellChasingTank(const GameBoard &board, const Tank *tank, const Shell *shell)
+{
+    auto shell_opt_loc = board.getObjectLocation(const_cast<Shell *>(shell));
+    auto tank_opt_loc = board.getObjectLocation(const_cast<Tank *>(tank));
+    if (!shell_opt_loc || !tank_opt_loc)
+    {
+        return false;
+    }
+    BoardCell shell_loc = shell_opt_loc.value();
+    BoardCell tank_loc = tank_opt_loc.value();
+
+    int dist = board.distance(shell_loc, tank_loc);
+    if (dist <= shell->getSpeed() * 3 && board.isDirectionMatch(shell_loc, tank_loc, shell->getDirection()))
+    {
+        return true;
+    }
+    return false;
 }

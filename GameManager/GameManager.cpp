@@ -3,15 +3,18 @@
 #include <thread>
 #include <chrono>
 #include "../Logger/Logger.h"
+#define REST_MS 100
 
-
+//=== Constructors ===
 GameManager::GameManager(GameBoard &board, Player p1, Player p2) : board(board), p1(p1), p2(p2) {};
 
+//=== Getters ===
 int GameManager::getRemainingTurns() const
 {
     return this->remaining_turns;
 }
 
+//=== Log Functions ===
 void GameManager::logWin(bool is_player1_winner, string reason)
 {
     std::string winner = is_player1_winner ? "Player 1!" : "Player 2!";
@@ -33,6 +36,7 @@ void GameManager::logAction(Tank *tank, TankAction action, bool is_valid)
         "' tried action number '" + std::to_string(static_cast<int>(action)) + "'");
 }
 
+//=== Gameplay Functions ===
 void GameManager::performPlayerActionsOnBoard(map<Tank *, TankAction> actions)
 {
     for (pair<Tank *, TankAction> action_pair : actions)
@@ -74,47 +78,44 @@ bool GameManager::concludeGame()
     return false;
 }
 
-void GameManager::moveShells(GameCollisionHandler& c_handler, GameDrawer d)
- // Moves all shells ny 2 steps each turn
+void GameManager::moveShells()
 {
     const auto& gameObjs = board.getGameObjects(GameObjectType::shell);
     std::vector<Shell*> shells;
-
     std::transform(gameObjs.begin(), gameObjs.end(), std::back_inserter(shells),
                [](GameObject* obj) { return static_cast<Shell*>(obj); });
 
-    for (int i = 0; i < 2; i++)
-    {
-        for (Shell *shell : shells){
-            shell->action();
-        }
-        if ( i == 0){
-            c_handler.handleCollisions(board);
-            d.draw();
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-    } 
+    for (Shell *shell : shells){
+        shell->advance();
+    }
+    
 }
-
+//=== Public Gameplay Function ===
 void GameManager::play(DrawingType dt)
 {
+    GameCollisionHandler c_handler(this->board);
     GameDrawer d(this->board, dt);
     d.draw();
     
-    GameCollisionHandler c_handler(this->board);
     while (true)
     {
-        this->moveShells(c_handler, d);
+        this->moveShells();
+        
+        c_handler.handleCollisions(board);
+        d.draw();
+        std::this_thread::sleep_for(std::chrono::milliseconds(REST_MS));
+
+        this->moveShells();
 
         map<Tank*, TankAction> t1_actions = this->p1.getActionsFromPlayer(this->board);
-        map<Tank *, TankAction> t2_actions = this->p2.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t1_actions);
+
+        map<Tank *, TankAction> t2_actions = this->p2.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t2_actions);
         
         c_handler.handleCollisions(board);
-
         d.draw();
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(REST_MS));
 
         if (this->concludeGame())
         {
@@ -123,25 +124,3 @@ void GameManager::play(DrawingType dt)
     }
 };
 
-// TODO: delete if not necessary
-void GameManager::simulateGame(){
-    GameDrawer d(this->board);
-    GameCollisionHandler c_handler(this->board);
-
-    d.draw();
-    while (true)
-    {
-        this->moveShells(c_handler, d);
-
-        ((Tank *)board.getGameObjects(GameObjectType::tank1)[0])->action(TankAction::FIRE);
-        ((Tank *)board.getGameObjects(GameObjectType::tank2)[0])->action(TankAction::FIRE);
-        
-        c_handler.handleCollisions(board);
-        d.draw();
-        if (this->concludeGame())
-        {
-            break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
-}

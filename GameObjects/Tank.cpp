@@ -3,21 +3,14 @@
 #include "../GameBoard/GameBoard.h"
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 
+//=== Constructors ===
 Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, int spd, int hp)
     : MovableObject(b, dir, spd, hp), type(t) {}
 
-void Tank::printType() const
-{
-}
-
+//=== Getters ===
 GameObjectType Tank::getObjectType() const
 {
     return type;
-}
-
-void Tank::destroyed()
-{
-    setHP(0);
 }
 
 int Tank::getShells() const
@@ -25,11 +18,13 @@ int Tank::getShells() const
     return shells;
 }
 
+//=== Setters ===
 void Tank::setShells(int new_shells)
 {
     shells = new_shells;
 }
 
+//=== Shooting Logic ===
 void Tank::reload(int amount)
 {
     shells += amount;
@@ -40,21 +35,18 @@ bool Tank::canShoot() const
     return shells > 0 && shoot_cooldown == 0;
 }
 
-bool Tank::notPendingBackwards() const
-{
-    return turns_to_wait_for_backward < 0;
-}
-
-int Tank::getBackwardWait() const
-{
-    return turns_to_wait_for_backward;
-}
-
 int Tank::getShootCooldown() const
 {
     return shoot_cooldown;
 }
 
+//=== Backward Movement Logic ===
+int Tank::getBackwardWait() const
+{
+    return turns_to_wait_for_backward;
+}
+
+//=== Round Clock Management ===
 void Tank::tickBackwardsWait()
 {
     turns_to_wait_for_backward = max(turns_to_wait_for_backward - 1, -2);
@@ -75,6 +67,7 @@ void Tank::tickShootCooldown()
     }
 }
 
+//=== Action Logic ===
 bool Tank::action(TankAction command)
 {
     /*
@@ -99,27 +92,7 @@ bool Tank::action(TankAction command)
     return validateAndPerformAction(command);
 }
 
-string Tank::getDrawing(DrawingType t) const
-{
-    bool is_t1 = this->getObjectType() == GameObjectType::tank1;
-
-    switch (t)
-    {
-    case DrawingType::REGULAR:
-        return is_t1 ? "🚙" : "🚜";
-    case DrawingType::TENNIS:
-        return is_t1 ? "🏸" : "🏓";
-    case DrawingType::SCIFI:
-        return is_t1 ? "👽" : "👾";
-    case DrawingType::PIRATE:
-        return is_t1 ? "⛴️" : "🚢";
-    case DrawingType::MIDDLE_EAST:
-        return is_t1 ? "🇮🇱" : "🇮🇷";
-    default:
-        return is_t1 ? "🚙" : "🚜";
-    }
-}
-
+//=== Action Validation ===
 bool Tank::validateAndPerformAction(TankAction command)
 {
     switch (command)
@@ -168,6 +141,7 @@ bool Tank::isPendingBackwards() const
     return turns_to_wait_for_backward >= 0;
 }
 
+//=== Movement ===
 bool Tank::performForwardAction()
 {
     // cancel backwards if relevant
@@ -190,22 +164,27 @@ bool Tank::performForwardAction()
     return false;
 }
 
-bool Tank::canMoveToCell(BoardCell target)
+bool Tank::canMoveToCell(BoardCell target) const
 {
     // assuming that the target is in reach from current position
     return GameCollisionHandler::isObjectAllowedToStepOn(this->board, this->getObjectType(), target);
 }
 
-optional<BoardCell> Tank::getForwardCell()
+void Tank::moveToCell(BoardCell target)
+{
+    this->board.moveGameObject(this, target);
+}
+
+optional<BoardCell> Tank::getForwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
-        return current_cell.value() + this->getDirection();
+        return board.getNextCellInDirection(current_cell.value(),this->getDirection());
     }
     return nullopt;
 }
 
-optional<BoardCell> Tank::getCurrentCell()
+optional<BoardCell> Tank::getCurrentCell() const
 {
     if (auto opt_cell = board.getObjectLocation(this))
     {
@@ -214,11 +193,11 @@ optional<BoardCell> Tank::getCurrentCell()
     return nullopt;
 }
 
-optional<BoardCell> Tank::getBackwardCell()
+optional<BoardCell> Tank::getBackwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
-        return current_cell.value() - this->getDirection();
+        return board.getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()));
     }
     return nullopt;
 }
@@ -254,7 +233,7 @@ void Tank::extendBackwardsStreak()
     turns_to_wait_for_backward = 0; // Stay in ready state for chained backwards
 }
 
-bool Tank::canMoveBackwards()
+bool Tank::canMoveBackwards() const
 {
     auto opt_backward_cell = this->getBackwardCell();
     if (!opt_backward_cell.has_value())
@@ -277,6 +256,7 @@ void Tank::moveBackwards()
     extendBackwardsStreak();
 }
 
+//=== Turning ===
 bool Tank::performTurnAction(TankAction command)
 {
     if (isPendingBackwards())
@@ -298,6 +278,7 @@ void Tank::turn(TankAction command)
     this->setDirection(rotationFunc(this->getDirection(), steps));
 }
 
+//=== Shooting ===
 bool Tank::performShootAction(){
     if (this->isPendingBackwards())
         return false;
@@ -327,7 +308,24 @@ void Tank::shoot()
     shells--;
 }
 
-void Tank::moveToCell(BoardCell target){
-    this->board.moveGameObject(this, target);
-}
+//=== Drawing ===
+string Tank::getDrawing(DrawingType t) const
+{
+    bool is_t1 = this->getObjectType() == GameObjectType::tank1;
 
+    switch (t)
+    {
+    case DrawingType::REGULAR:
+        return is_t1 ? "🚙" : "🚜";
+    case DrawingType::TENNIS:
+        return is_t1 ? "🏸" : "🏓";
+    case DrawingType::SCIFI:
+        return is_t1 ? "👽" : "👾";
+    case DrawingType::PIRATE:
+        return is_t1 ? "⛴️" : "🚢";
+    case DrawingType::MIDDLE_EAST:
+        return is_t1 ? "🇮🇱" : "🇮🇷";
+    default:
+        return is_t1 ? "🚙" : "🚜";
+    }
+}

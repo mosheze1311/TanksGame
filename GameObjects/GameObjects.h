@@ -6,6 +6,7 @@
 #include "../GameDrawer/DrawingTypes.h"
 #include <string>
 #include <optional>
+
 using namespace std;
 
 // forward declaration
@@ -24,6 +25,7 @@ public:
 class GameObject : public DrawableObject
 {
 protected:
+    //=== Attributes ===
     int hp;
     GameBoard &board;
 
@@ -32,13 +34,14 @@ public:
     GameObject(GameBoard &b, int hp);
     virtual ~GameObject();
 
-    virtual void printType() const = 0;
-    virtual void destroyed();
-
+    //=== Type & Drawing ===
     virtual GameObjectType getObjectType() const = 0;
+    string getDrawing(DrawingType t) const override = 0;
+
+    //=== HP Management ===
+    int getHP() const;
     void setHP(int new_hp);
     void gotHit(int dmg = 1);
-    int getHP() const;
 };
 
 // ===========================
@@ -56,18 +59,21 @@ public:
 class MovableObject : public GameObject
 {
 protected:
+    //=== Attributes ===
     Direction direction;
     int speed;
+
+    //=== Protected Movement Properties ===
+    void setDirection(Direction new_dir);
+    void setSpeed(int new_speed);
 
 public:
     MovableObject(GameBoard &b, Direction dir, int spd);
     MovableObject(GameBoard &b, Direction dir, int spd, int hp);
 
+    //=== Movement Properties ===
     Direction getDirection() const;
     int getSpeed() const;
-
-    void setDirection(Direction new_dir);
-    void setSpeed(int new_speed);
 };
 
 // ===========================
@@ -78,9 +84,8 @@ class Mine : public StaticObject
 public:
     explicit Mine(GameBoard &b);
 
-    void printType() const override;
+    //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    void destroyed() override;
     string getDrawing(DrawingType t) const override;
 };
 
@@ -88,10 +93,9 @@ class Wall : public StaticObject
 {
 public:
     explicit Wall(GameBoard &b);
-    void printType() const override;
-    GameObjectType getObjectType() const override;
 
-    void destroyed() override;
+    //=== Type & Drawing ===
+    GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
 };
 
@@ -101,42 +105,44 @@ public:
 class Tank : public MovableObject
 {
 private:
+    //=== Attributes ===
     const GameObjectType type;
     int shells = 16;
     int turns_to_wait_for_backward = -2;
     int shoot_cooldown = 0;
 
-    //===Functions===
+    //=== Cooldown / Wait Management ===
     void tickShootCooldown();
-    bool canMoveToCell(BoardCell target);
-    bool validateAndPerformAction(TankAction action);
-    optional<BoardCell> getForwardCell();
-    optional<BoardCell> getBackwardCell();
-    optional<BoardCell> getCurrentCell();
-    
-    //===Backwards-Wait Handling Functions===
-    void tickBackwardsWait(); // decreases wait counter if needed
+    void tickBackwardsWait();
     bool isPendingBackwards() const;
-    bool notPendingBackwards() const;
     bool canImmediateBackwards() const;
-
     void extendBackwardsStreak();
     void cancelBackwardsWait();
     void startBackwardsWait();
 
-    //===Perform Actions Functions===
+    //=== Action Validation & Execution ===
+    bool validateAndPerformAction(TankAction action);
     bool performBackwardAction();
     bool performForwardAction();
     bool performTurnAction(TankAction command);
     bool performShootAction();
 
+    //=== Movement Support ===
+    bool canMoveToCell(BoardCell target) const;
+    optional<BoardCell> getForwardCell() const;
+    optional<BoardCell> getBackwardCell() const;
+    optional<BoardCell> getCurrentCell() const;
     void moveToCell(BoardCell c);
-    void shoot();
-
-    bool canMoveBackwards();
+    bool canMoveBackwards() const;
     void moveBackwards();
-    
     void turn(TankAction command);
+
+    //=== Shooting Support ===
+    void shoot();
+    void setShells(int new_shells);
+    void reload(int amount); // currently not in use
+    int getShootCooldown() const;
+    int getBackwardWait() const;
 
 public:
     Tank(GameBoard &b,
@@ -145,20 +151,16 @@ public:
          int spd = 1,
          int hp = 1);
 
-    bool canShoot() const; // returns true if not waiting
-    void printType() const override;
+    //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    bool action(TankAction command);
-    void destroyed() override;
-
-    int getShells() const;
-    void setShells(int new_shells);
-    void reload(int amount);
-    int getShootCooldown() const;
-    int getBackwardWait() const;
-
-    //===Drawable Interface===
     string getDrawing(DrawingType t) const override;
+
+    //=== Tank-Specific Actions ===
+    bool action(TankAction command);
+
+    //=== Shells Management ===
+    int getShells() const;
+    bool canShoot() const;
 };
 
 class Shell : public MovableObject
@@ -166,9 +168,10 @@ class Shell : public MovableObject
 public:
     Shell(GameBoard &b, Direction dir, int spd = 2);
 
-    void printType() const override;
+    //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    void action();
-    void destroyed() override;
     string getDrawing(DrawingType t) const override;
+
+    //=== Behavior ===
+    void advance();
 };
