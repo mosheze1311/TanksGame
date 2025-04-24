@@ -1,8 +1,9 @@
 #include "GamePlayer.h"
+#include "PlayerUtils.h"
+
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include <queue>
 #include <set>
-#include "PlayerUtils.cpp"
 
 Player::Player(GameObjectType tanks_type) : tanks_type(tanks_type) {}
 
