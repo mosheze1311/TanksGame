@@ -1,4 +1,12 @@
-void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents)
+#include "PlayerUtils.h"
+
+#include <set>
+#include <queue>
+#include <limits>
+#include <utility>
+
+// Dijkstra's algorithm to find shortest paths from a source node
+void PlayerUtils::Dijkstra(const GameBoard &board, GameObjectType tank_type, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents)
 {
     // TODO: Currently implemented as Player method. Decide on a better class (Algorithms, Board, PlayerStrategies, PlayerUtils)?
     // TODO: Currently behaves like BFS. Consider using different weights when cell require turning.
@@ -35,9 +43,9 @@ void Player::Dijkstra(const GameBoard &board, BoardCell start, BoardCell target,
             break;
 
         // adding neighbors to heap - only if tank can safely step there
-        for (BoardCell neighbor : getAdjacentCells(board, c))
+        for (BoardCell neighbor : board.getAdjacentCells(c))
         {
-            if (target == neighbor || GameCollisionHandler::canObjectSafelyStepOn(board, this->tanks_type, neighbor))
+            if (target == neighbor || GameCollisionHandler::canObjectSafelyStepOn(board, tank_type, neighbor))
             {
                 q.push({dist + 1, {neighbor, c}});
             }
