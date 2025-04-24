@@ -1,12 +1,12 @@
 # Compiler and flags
-CXX = clang++
-CXXFLAGS = -std=c++20 -Wall # Add any flags you need
+CXX = g++
+CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic
 
 # Target executable
 TARGET = tanks_game
 
 # List of source files
-SRCS = BoardFactory/BoardFactory.cpp GameBoard/BoardCell.cpp GameBoard/GameBoard.cpp GameCollisionHandler/GameCollisionHandler.cpp GameManager/GameManager.cpp GameObjects/GameObject.cpp GameObjects/MovableObject.cpp GameObjects/StaticObject.cpp GameObjects/Mine.cpp GameObjects/Shell.cpp GameObjects/Tank.cpp GameObjects/Wall.cpp GamePlayer/GamePlayer.cpp Logger/Logger.cpp main.cpp
+SRCS = BoardFactory/BoardFactory.cpp GameBoard/BoardCell.cpp GameBoard/GameBoard.cpp GameCollisionHandler/GameCollisionHandler.cpp GameManager/GameManager.cpp GameObjects/GameObject.cpp GameObjects/MovableObject.cpp GameObjects/StaticObject.cpp GameObjects/Mine.cpp GameObjects/Shell.cpp GameObjects/Tank.cpp GameObjects/Wall.cpp GamePlayer/GamePlayer.cpp GamePlayer/PlayerUtils.cpp Logger/Logger.cpp main.cpp
 
 # Object files (replace .cpp with .o)
 OBJS = $(SRCS:.cpp=.o)
