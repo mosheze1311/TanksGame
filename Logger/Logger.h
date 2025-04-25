@@ -11,7 +11,8 @@ private:
     //=== Attributes ===
     std::ofstream logFile;
     std::mutex logMutex;
-    
+    static Logger output_instance;
+
     //===  Constructors ===
     Logger(const std::string &filename);
     ~Logger();
@@ -24,7 +25,7 @@ public:
     //=== Singleton Accessors ===
     static Logger &input();
     static Logger &runtime();
-    static Logger &output();
+    static Logger &output(const std::string& file_name);
 
     //=== Logging Methods ===
     void logError(const std::string &message);

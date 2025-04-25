@@ -2,15 +2,16 @@
 
 enum class DrawingType
 {
-    REGULAR,    //
-    TENNIS,     // t1🏸 t2🏓 wall🥅🥅 mine🔥 shell🎾
-    SCIFI,      // t1👽 t2👾 wall📡🛰️ mine💥 shell🔮
-    PIRATE,     // t1⛴️ t2🚢 wall🌊🪸 mine☠️ shell💣
+    REGULAR,     //
+    TENNIS,      // t1🏸 t2🏓 wall🥅🥅 mine🔥 shell🎾
+    SCIFI,       // t1👽 t2👾 wall📡🛰️ mine💥 shell🔮
+    PIRATE,      // t1⛴️ t2🚢 wall🌊🪸 mine☠️ shell💣
     MIDDLE_EAST, // t1🇮🇱 t2🇮🇷 wall🏰🛡️ mine🧨 shell🚀
     NONE
 };
 
-namespace DrawingTypes{
+namespace DrawingTypes
+{
     constexpr inline DrawingType fromInt(int drawingType)
     {
         switch (drawingType)
@@ -28,5 +29,5 @@ namespace DrawingTypes{
         default:
             return DrawingType::NONE;
         }
-}
+    }
 }

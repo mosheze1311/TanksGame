@@ -29,6 +29,7 @@ private:
     BoardCell approxClosestEnemyTankLocation(const GameBoard &board, BoardCell start) const;
     optional<TankAction> escapeShells(const GameBoard &board, const Tank *tank) const;
     optional<BoardCell> getEscapingRoute(const GameBoard &board ,const Tank *tank, BoardCell current_cell, Direction enemy_dir) const;
+    optional<TankAction> attemptShoot(const GameBoard &board, const Tank *tank, BoardCell start, BoardCell target) const;
 
     //=== Algorithm Implementations ===
     TankAction player1Algorithm(const GameBoard &board, const Tank *tank) const;

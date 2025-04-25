@@ -14,5 +14,4 @@ public:
     static bool isShellChasingTank(const GameBoard &board, const Tank *tank, const Shell *shell);
     
     static bool inShootRange(const GameBoard &board, BoardCell from, BoardCell to);
-    static BoardCell getNextCellInStraightLine(BoardCell from, BoardCell to);
 };

@@ -14,6 +14,7 @@ private:
     GameBoard &board;
     Player p1, p2;
     int remaining_turns = 40;
+    string output_file_name;
 
     //=== Getters ===
     int getRemainingTurns() const; // private getter for readability
@@ -30,7 +31,7 @@ private:
 
 public:
     //=== Constructors ===
-    GameManager(GameBoard &board, Player p1, Player p2);
+    GameManager(GameBoard &board, Player p1, Player p2, string output_file_name);
 
     //=== Functions ===
     void play(DrawingType dt);

@@ -15,13 +15,13 @@ GameObject *BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectTyp
 {
     switch (type)
     {
-    case GameObjectType::tank1:
+    case GameObjectType::TANK1:
         return new Tank(board, type, Direction::LEFT);
-    case GameObjectType::tank2:
+    case GameObjectType::TANK2:
         return new Tank(board, type, Direction::RIGHT);
-    case GameObjectType::wall:
+    case GameObjectType::WALL:
         return new Wall(board);
-    case GameObjectType::mine:
+    case GameObjectType::MINE:
         return new Mine(board);
     default:
         return nullptr; // Handle unknown type safely
@@ -85,10 +85,10 @@ GameBoard* BoardFactory::createGameBoard(const string file_path)
 
     GameBoard* board = new GameBoard(height, width);
     map<char, int> counters;
-    counters[(char)GameObjectType::tank1] = p1_tanks;
-    counters[(char)GameObjectType::tank2] = p2_tanks;
-    counters[(char)GameObjectType::mine] = mines;
-    counters[(char)GameObjectType::wall] = walls;
+    counters[(char)GameObjectType::TANK1] = p1_tanks;
+    counters[(char)GameObjectType::TANK2] = p2_tanks;
+    counters[(char)GameObjectType::MINE] = mines;
+    counters[(char)GameObjectType::WALL] = walls;
 
     char obj_type;
     int x, y;

@@ -147,7 +147,7 @@ private:
 
 public:
     Tank(GameBoard &b,
-         GameObjectType t = GameObjectType::tank1,
+         GameObjectType t = GameObjectType::TANK1,
          Direction dir = Direction::UP,
          int spd = 1,
          int hp = 1);
@@ -157,7 +157,7 @@ public:
     string getDrawing(DrawingType t) const override;
 
     //=== Tank-Specific Actions ===
-    bool action(TankAction command);
+    bool playTankRound(TankAction command);
 
     //=== Shells Management ===
     int getShells() const;
@@ -167,7 +167,7 @@ public:
 class Shell : public MovableObject
 {
 public:
-    Shell(GameBoard &b, Direction dir, int spd = 2);
+    Shell(GameBoard &b, Direction dir, int spd=2);
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;

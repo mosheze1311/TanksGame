@@ -8,7 +8,7 @@ Mine::Mine(GameBoard &b)
 //=== Type Information ===
 GameObjectType Mine::getObjectType() const
 {
-    return GameObjectType::mine;
+    return GameObjectType::MINE;
 }
 
 //=== Drawing ===

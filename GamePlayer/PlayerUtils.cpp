@@ -58,25 +58,10 @@ bool PlayerUtils::inShootRange(const GameBoard &board, BoardCell from, BoardCell
     return board.distance(from, to) <= SHOOTING_RANGE;
 }
 
-
-BoardCell PlayerUtils::getNextCellInStraightLine(BoardCell from, BoardCell to)
-{
-    // assuming that from, to form a straight line in some direction.
-    int dx = to.getX() - from.getX();
-    int dy = to.getY() - from.getY();
-    int div = std::max(abs(dx), abs(dy));
-
-    if (div == 0)
-        return from;
-
-    return BoardCell(from.getX() + dx / div, from.getY() + dy / div);
-}
-
-// TODO: think again about logic
 bool PlayerUtils::isShellChasingTank(const GameBoard &board, const Tank *tank, const Shell *shell)
 {
-    auto shell_opt_loc = board.getObjectLocation(const_cast<Shell *>(shell));
-    auto tank_opt_loc = board.getObjectLocation(const_cast<Tank *>(tank));
+    auto shell_opt_loc = board.getObjectLocation(shell);
+    auto tank_opt_loc = board.getObjectLocation(tank);
     if (!shell_opt_loc || !tank_opt_loc)
     {
         return false;

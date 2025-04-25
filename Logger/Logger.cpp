@@ -1,5 +1,6 @@
 #include "Logger.h"
 
+
 //===  Constructors ===
 Logger::Logger(const std::string &filename)
 {
@@ -27,9 +28,9 @@ Logger &Logger::runtime()
     return instance;
 }
 
-Logger &Logger::output()
+Logger &Logger::output(const std::string &file_name)
 {
-    static Logger instance("output.log");
+    static Logger instance(file_name);
     return instance;
 }
 

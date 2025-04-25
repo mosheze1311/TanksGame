@@ -8,18 +8,18 @@
 using namespace std;
 
 // === Constructors ===
-GameBoard::GameBoard(int height, int width): board_details(height, width){}
+GameBoard::GameBoard(int height, int width) : board_details(height, width) {}
 
 GameBoard::GameBoard(GameBoard &other) : board_details(other.board_details)
 {
     for (auto iter : other.objects_locations)
     {
-        this->addObjectInternal(iter.first,iter.second);
+        this->addObjectInternal(iter.first, iter.second);
     }
 }
 
 // Assignment Operator
-GameBoard& GameBoard::operator=(const GameBoard &other)
+GameBoard &GameBoard::operator=(const GameBoard &other)
 {
     if (this != &other)
     {
@@ -57,25 +57,25 @@ void GameBoard::updateObjectCount(GameObject *obj, int incremental = 1)
     // incremental can only be 1 or -1.
     switch (obj->getObjectType())
     {
-    case GameObjectType::tank1:
+    case GameObjectType::TANK1:
         this->board_details.p1_tanks += incremental;
         this->board_details.remaining_shells += incremental * ((Tank *)obj)->getShells();
         break;
 
-    case GameObjectType::tank2:
+    case GameObjectType::TANK2:
         this->board_details.p2_tanks += incremental;
         this->board_details.remaining_shells += incremental * ((Tank *)obj)->getShells();
         break;
 
-    case GameObjectType::mine:
+    case GameObjectType::MINE:
         this->board_details.mines += incremental;
         break;
 
-    case GameObjectType::wall:
+    case GameObjectType::WALL:
         this->board_details.walls += incremental;
         break;
 
-    case GameObjectType::shell:
+    case GameObjectType::SHELL:
         this->board_details.shells += incremental;
         break;
 
@@ -111,15 +111,15 @@ int GameBoard::getGameObjectCount(const GameObjectType type) const
 {
     switch (type)
     {
-    case GameObjectType::tank1:
+    case GameObjectType::TANK1:
         return this->board_details.p1_tanks;
-    case GameObjectType::tank2:
+    case GameObjectType::TANK2:
         return this->board_details.p2_tanks;
-    case GameObjectType::wall:
+    case GameObjectType::WALL:
         return this->board_details.walls;
-    case GameObjectType::shell:
+    case GameObjectType::SHELL:
         return this->board_details.shells;
-    case GameObjectType::mine:
+    case GameObjectType::MINE:
         return this->board_details.mines;
 
     default: // should not get here
@@ -127,11 +127,13 @@ int GameBoard::getGameObjectCount(const GameObjectType type) const
     }
 }
 
-int GameBoard::getTotalRemainingShells() const {
+int GameBoard::getTotalRemainingShells() const
+{
     return this->board_details.remaining_shells;
 }
 
-vector<BoardCell> GameBoard::getOccupiedCells() const{
+vector<BoardCell> GameBoard::getOccupiedCells() const
+{
     vector<BoardCell> occupied_cells;
     for (auto iter : this->board)
     {
@@ -153,7 +155,8 @@ std::unordered_set<GameObject *> GameBoard::getObjectsOnCell(const BoardCell &c)
 
 optional<BoardCell> GameBoard::getObjectLocation(const GameObject *obj) const
 {
-    auto iter = this->objects_locations.find(const_cast<GameObject*> (obj));
+    // the method will not change obj, but const_cast is made because the map contains non-const objects
+    auto iter = this->objects_locations.find(const_cast<GameObject *>(obj));
     if (iter == this->objects_locations.end())
     {
         return nullopt;
@@ -177,7 +180,7 @@ vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
 
 std::vector<Tank *> GameBoard::getTanks(GameObjectType t) const
 {
-    if (t != GameObjectType::tank1 && t != GameObjectType::tank2)
+    if (t != GameObjectType::TANK1 && t != GameObjectType::TANK2)
     {
         return {};
     }
@@ -237,22 +240,27 @@ bool GameBoard::isObjectOnBoard(GameObject *obj) const
     return this->objects_locations.find(obj) != this->objects_locations.end();
 }
 
+int GameBoard::xDistance(const BoardCell &first, const BoardCell &second) const
+{
+    int dx = abs(first.getX() - second.getX());
+    dx = std::min(dx, this->getWidth() - dx);
+    return dx;
+}
+int GameBoard::yDistance(const BoardCell &first, const BoardCell &second) const
+{
+    int dy = abs(first.getY() - second.getY());
+    dy = std::min(dy, this->getHeight() - dy);
+    return dy;
+}
 int GameBoard::distance(const BoardCell &first, const BoardCell &second) const
 {
-
-    int dx = abs(first.getX() - second.getX());
-    int dy = abs(first.getY() - second.getY());
-
-    dx = std::min(dx, this->getWidth() - dx);
-    dy = std::min(dy, this->getHeight() - dy);
-
-    return std::max(dx, dy);
+    return std::max(xDistance(first, second), yDistance(first, second));
 }
 
 bool GameBoard::isStraightLine(BoardCell from, BoardCell to) const
 {
-    int x_diff = to.getX() - from.getX();
-    int y_diff = to.getY() - from.getY();
+    int x_diff = xDistance(from, to);
+    int y_diff = yDistance(from, to);
 
     if (x_diff == 0 || y_diff == 0)
     {
@@ -265,40 +273,46 @@ bool GameBoard::isStraightLine(BoardCell from, BoardCell to) const
 
     return false;
 }
+BoardCell GameBoard::getNextCellInStraightLine(BoardCell from, BoardCell to) const
+{
+    // assuming that from, to form a straight line in some direction.
+    // TODO: try to write it in a algebraic form
+    // int normal_dx = to.getX() - from.getX();
+    // int normal_dy = to.getY() - from.getY();
+
+    // int vertical_border_dx = this->getWidth() + min(from.getX(), to.getX()) - max(from.getX(), to.getX());
+    // int horizontal_border_dy = this->getHeight() + min(from.getY(), to.getY()) - max(from.getY(), to.getY());
+
+    vector<BoardCell> neighbors = getAdjacentCells(from);
+    int min_dist = distance(from, to);
+    BoardCell next = from;
+
+    for (BoardCell neighbor : neighbors)
+    {
+        int neighbor_dist = distance(neighbor, to);
+        if (neighbor_dist < min_dist && isStraightLine(neighbor, to))
+        {
+            min_dist = neighbor_dist;
+            next = neighbor;
+        }
+    }
+    return next;
+}
 bool GameBoard::isDirectionMatch(BoardCell from, BoardCell to, Direction dir) const
 {
-    if (!GameBoard::isStraightLine(from, to))
-    {
-        return false;
-    }
-
-    int x_diff = to.getX() - from.getX();
-    int y_diff = to.getY() - from.getY();
-
-    auto [dx, dy] = DirectionUtils::directionOffsets(dir);
-    if (dx == 0 && x_diff == 0 && y_diff / dy > 0) // both up/down
-    {
-        return true;
-    }
-    if (dy == 0 && y_diff == 0 && x_diff / dx > 0) // both left/right
-    {
-        return true;
-    }
-    if (y_diff / dy == x_diff / dx && x_diff / dx > 0) // same 45 degrees
-    {
-        return true;
-    }
-    return false;
+    return this->getNextCellInDirection(from, dir) == this->getNextCellInStraightLine(from, to);
 }
 //=== Modify Board Functions ===
-void GameBoard::addObject(GameObject *obj, const BoardCell& c)
+void GameBoard::addObject(GameObject *obj, const BoardCell &c)
 {
     this->updateObjectCount(obj, 1);
     this->addObjectInternal(obj, this->createAdjustedBoardCell(c));
 }
 
-void GameBoard:: removeObject(GameObject* obj){
-    if(!isObjectOnBoard(obj)){
+void GameBoard::removeObject(GameObject *obj)
+{
+    if (!isObjectOnBoard(obj))
+    {
         return;
     }
 
@@ -306,7 +320,7 @@ void GameBoard:: removeObject(GameObject* obj){
     this->removeObjectInternal(obj);
 }
 
-void GameBoard::moveGameObject(GameObject *obj, const BoardCell& new_pos)
+void GameBoard::moveGameObject(GameObject *obj, const BoardCell &new_pos)
 {
     if (objects_locations.find(obj) == objects_locations.end())
     {
@@ -317,6 +331,7 @@ void GameBoard::moveGameObject(GameObject *obj, const BoardCell& new_pos)
     this->addObjectInternal(obj, this->createAdjustedBoardCell(new_pos));
 }
 
-void GameBoard::useTankShell(){
+void GameBoard::useTankShell()
+{
     this->board_details.remaining_shells--;
 }

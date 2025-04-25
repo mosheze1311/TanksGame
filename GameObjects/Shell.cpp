@@ -6,7 +6,7 @@ Shell::Shell(GameBoard &b, Direction dir, int spd)
     : MovableObject(b, dir, spd, 1) {}
 
 //=== Type Info ===
-GameObjectType Shell::getObjectType() const { return GameObjectType::shell; }
+GameObjectType Shell::getObjectType() const { return GameObjectType::SHELL; }
 
 //=== Movement ===
 void Shell::advance()

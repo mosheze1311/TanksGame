@@ -6,7 +6,7 @@ Wall::Wall(GameBoard& b)
     : StaticObject(b, 2) {}
 
 //=== Type Info ===
-GameObjectType Wall::getObjectType() const { return GameObjectType::wall; }
+GameObjectType Wall::getObjectType() const { return GameObjectType::WALL; }
 
 //=== Drawing ===
 string Wall::getDrawing(DrawingType t) const
