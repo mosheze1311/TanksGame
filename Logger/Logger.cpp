@@ -18,13 +18,13 @@ Logger::~Logger()
 //=== Singleton Accessors ===
 Logger &Logger::input()
 {
-    static Logger instance("input_errors.log");
+    static Logger instance("input_errors.txt");
     return instance;
 }
 
 Logger &Logger::runtime()
 {
-    static Logger instance("runtime_errors.log");
+    static Logger instance("runtime_errors.txt");
     return instance;
 }
 
