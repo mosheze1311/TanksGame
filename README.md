@@ -1,11 +1,107 @@
 # Tank Battle Game - TAU (Semester B 2025)
+## Names and IDS
+Itai Missri, 322330820
+
+Moshe Zeitouny, 211388913
 
 ## Overview
 A deterministic tank battle game for "Advanced Topics in Programming" at TAU. Features movement, shooting, and strategic gameplay.
 
 ## Input File Format
-- **Game board (text file)**: Specifies width, height, walls (`#`), mines (`@`), and tanks (`1`, `2`).
-- **Tank direction**: Player 1 faces left, Player 2 faces right.
+
+The input file is divided into two main sections: **Game Settings** and **Game Objects**.
+
+### 1. **Game Settings (First Line)**
+
+The first line of the input file defines the game settings. The values should be in the following order, separated by spaces:
+
+```
+height width tanks_p1 tanks_p2 walls mines
+```
+
+Where:
+- `height` = The number of rows (vertical size) of the game board.
+- `width` = The number of columns (horizontal size) of the game board.
+- `tanks_p1` = The number of tanks for player 1.
+- `tanks_p2` = The number of tanks for player 2.
+- `walls` = The number of walls on the board.
+- `mines` = The number of mines on the board.
+
+### 2. **Game Objects (Subsequent Lines)**
+
+Each subsequent line describes the positions of the game objects (tanks, walls, and mines) on the board. Each line should be in the format:
+
+```
+game_object_char x y
+```
+
+Where:
+- `game_object_char` = A character representing the type of object:
+  - `#` for wall
+  - `@` for mine
+  - `1` for tank1 (player 1's tank)
+  - `2` for tank2 (player 2's tank)
+- `x` = The x-coordinate (horizontal position, starting from 0).
+- `y` = The y-coordinate (vertical position, starting from 0).
+
+#### **Important Notes:**
+- Positions are **0-indexed**, meaning the first position on the board is `(0,0)`.
+- The order of the objects does **not** matter, but only the **first n objects** of each type (where `n` is defined by the first line) will be used.
+  - If there are fewer objects listed than expected, the number of objects used will be adjusted to match the number declared.
+- **Empty lines** are ignored.
+
+### Example Input:
+
+```
+4 5 3 2 1 1
+1 0 0
+1 0 1
+1 0 2
+2 1 1
+2 1 2
+# 2 2
+@ 3 3
+```
+
+This represents a 4x5 game board with:
+- 3 tanks for player 1 (`1` at (0,0), (0,1), (0,2))
+- 2 tanks for player 2 (`2` at (1,1), (1,2))
+- 1 wall (`#` at (2,2))
+- 1 mine (`@` at (3,3))
+
+
+## Output Files
+
+There are 3 types of output files generated during the game:
+
+1. **output**: This file logs the actions performed during the game.
+   - **Format**: 
+     ```
+     [INFO] (In)Valid action: Tank type '1'/'2' tried action {Action Name}
+     ```
+   - The last log will always declare the winner or a tie in the following format:
+     ```
+     [INFO] The winner is: Player {player number}! {winning reason}
+     [INFO] The game is tied! {tie reason}
+     ```
+
+2. **input_errors**: This file logs identified mismatches between the required format of the input file and the actual file.
+   - These errors may include:
+     - Unrecognized object character
+     - Object location out of board bounds
+     - And more
+   - **Format**:
+     ```
+     [ERROR] {error description}.
+     ```
+
+3. **runtime_errors**: This file logs any other errors encountered during code execution.
+   - In most cases, this file will be empty.
+   - **Format**: Same as `input_errors`:
+     ```
+     [ERROR] {error description}.
+     ```
+
 
 ## Game Mechanics
 - **Actions**: Move, rotate (1/8 or 1/4), shoot.
@@ -50,6 +146,6 @@ GameManager
 tanks_game <game_board_input_file>
 ```
 
+
 ## Submission Deadline
 **April 27, 2025, 23:30**
-
