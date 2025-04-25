@@ -30,6 +30,7 @@ protected:
     GameBoard &board;
 
 public:
+    //=== Constructors === 
     explicit GameObject(GameBoard &b);
     GameObject(GameBoard &b, int hp);
     virtual ~GameObject();

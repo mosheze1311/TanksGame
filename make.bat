@@ -23,6 +23,7 @@ GameObjects\Shell.cpp ^
 GameObjects\Tank.cpp ^
 GameObjects\Wall.cpp ^
 GamePlayer\GamePlayer.cpp ^
+GamePlayer\Playerutils.cpp ^ 
 Logger\Logger.cpp ^
 main.cpp
 
