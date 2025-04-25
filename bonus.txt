@@ -1,0 +1,35 @@
+
+
+Bonus: Visual Simulation
+
+We have implemented a visual simulation feature that prints the game state to the terminal using emojis.
+
+Details:
+- Added a `Drawer` class responsible for rendering the game state visually in the terminal.
+- The `Drawer` supports multiple visual "skins" including:
+  - Regular 🚙
+  - Tennis  🎾
+  - Aliens  👽
+  - Pirate  ☠️
+  - Middle East 🕌
+
+- Introduced a `DrawableObject` base class (`GameObjects/GameObjects.h`, line 17) with a pure virtual method:
+    string getDrawing(DrawingType t) const = 0;
+  All drawable game objects inherit from this class and implement this method:
+    - `Tank` class (`GameObjects/GameObjects.h`, line 160)
+    - `Wall` class (`GameObjects/GameObjects.h`, line 123)
+    - `Mine` class (`GameObjects/GameObjects.h`, line 106)
+    - `Shell` class (`GameObjects/GameObjects.h`, line 197)
+
+Usage:
+- To enable the visual simulation, an additional numeric argument should be passed to the program indicating the desired skin:
+  - 0 = Regular
+  - 1 = Tennis
+  - 2 = Aliens
+  - 3 = Pirate
+  - 4 = Middle East
+- If no number is given, the game runs without visual simulation by default.
+
+Relevant Files and Line References:
+- `GameDrawer.h` and `DrawingTypes.h`: Implementation of the Drawer class, DrawingTypes enum.
+- `main.cpp`: Logic to parse the additional command-line argument and enable the appropriate skin.
