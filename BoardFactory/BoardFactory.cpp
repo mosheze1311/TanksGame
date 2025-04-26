@@ -63,14 +63,15 @@ GameBoard* BoardFactory::createGameBoard(const string file_path)
     ifstream file(file_path);
     if (!file)
     {
-        BoardFactory::logInputError("Cant open the input file");
+        BoardFactory::logInputError("Can't open the input file");
         return NULL; // Handle file open failure
     }
 
     string line;
+    int line_number = 1;
     if (!(std::getline(file, line)))
     {
-        BoardFactory::logInputError("File does not contain the first mandatory line");
+        BoardFactory::logInputError("Line 1: File does not contain the first mandatory line");
         return NULL;
     };
 
@@ -79,7 +80,7 @@ GameBoard* BoardFactory::createGameBoard(const string file_path)
     int p1_tanks, p2_tanks, walls, mines;
     if (!(first_line_iss >> height >> width >> p1_tanks >> p2_tanks >> walls >> mines))
     {
-        BoardFactory::logInputError("Invalid first row format: '" + line + "'");
+        BoardFactory::logInputError("Line 1: Invalid first row format: '" + line + "'");
         return NULL;
     }
 
@@ -94,43 +95,49 @@ GameBoard* BoardFactory::createGameBoard(const string file_path)
     int x, y;
     while (std::getline(file, line))
     {
+        line_number++;
         if (line.empty())
             continue;
 
         obj_type = line[0];
         if (counters.find(obj_type) == counters.end())
         {
-            BoardFactory::logInputError("Object type " + std::string(1, static_cast<char>(obj_type)) + " is invalid");
+            BoardFactory::logInputError("Line " + std::to_string(line_number) + ": Object type '" + std::string(1, static_cast<char>(obj_type)) + "' is invalid");
             continue;
         }
 
         if (counters[obj_type] == 0)
         {
-            BoardFactory::logInputError("Can't add another object of type '" + std::string(1, obj_type) + "'");
+            BoardFactory::logInputError("Line " + std::to_string(line_number) + ": Can't add another object of type '" + std::string(1, obj_type) + "'");
             continue;
         }
 
         GameObject *go = createGameObjectOfType(*board, (GameObjectType)obj_type);
         if (!go)
         {
-            logInputError("Failed to create object for type '" + string(1, obj_type) + "'");
+            logInputError("Line " + std::to_string(line_number) + ": Failed to create object for type '" + std::string(1, obj_type) + "'");
             continue;
         }
         
         std::istringstream iss(line.substr(1)); // skip the first char (obj_type)
         if (!(iss >> x >> y))
         {
-            BoardFactory::logInputError("Invalid row format: '" + line + "'");
+            BoardFactory::logInputError("Line " + std::to_string(line_number) + ": Invalid row format: '" + line + "'");
             continue;
         }
 
         if (x < 0 || y < 0 || x >= width || y >= height)
         {
-            logInputError("Object position (" + to_string(x) + ", " + to_string(y) + ") is out of board bounds");
+            logInputError("Line " + std::to_string(line_number) + ": Object position (" + to_string(x) + ", " + to_string(y) + ") is out of board bounds");
             continue;
         }
 
         BoardCell c(x, y);
+        if(!board->getObjectsOnCell(c).empty()){
+            logInputError("Line " + std::to_string(line_number) + ": Can't add another object in position (" + to_string(x) + ", " + to_string(y) + ")");
+            continue;
+        }
+
         board->addObject(go, c);
         counters[obj_type]--;
     }
