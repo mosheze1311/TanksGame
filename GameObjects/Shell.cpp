@@ -2,11 +2,11 @@
 #include "../GameBoard/GameBoard.h"
 
 //=== Constructor ===
-Shell::Shell(GameBoard &b, Direction dir, int spd)
-    : MovableObject(b, dir, spd, 1) {}
+Shell::Shell(GameBoard &b, Direction dir, int spd, int hp)
+    : MovableObject(b, dir, spd, hp) {}
 
 //=== Type Info ===
-GameObjectType Shell::getObjectType() const { return GameObjectType::shell; }
+GameObjectType Shell::getObjectType() const { return GameObjectType::SHELL; }
 
 //=== Movement ===
 void Shell::advance()
@@ -37,4 +37,10 @@ string Shell::getDrawing(DrawingType t) const
     default:
         return "🟠";
     }
+}
+
+//=== Copy ===
+GameObject *Shell::copy(GameBoard &copy_new_board) const
+{
+    return new Shell(copy_new_board, this->direction, this->speed, this->hp);
 }

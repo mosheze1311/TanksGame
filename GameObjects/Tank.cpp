@@ -68,7 +68,7 @@ void Tank::tickShootCooldown()
 }
 
 //=== Action Logic ===
-bool Tank::action(TankAction command)
+bool Tank::playTankRound(TankAction command)
 {
     /*
      * This function checks if a tank can do a specific action, and if so – does it.
@@ -311,7 +311,7 @@ void Tank::shoot()
 //=== Drawing ===
 string Tank::getDrawing(DrawingType t) const
 {
-    bool is_t1 = this->getObjectType() == GameObjectType::tank1;
+    bool is_t1 = this->getObjectType() == GameObjectType::TANK1;
 
     switch (t)
     {
@@ -328,4 +328,10 @@ string Tank::getDrawing(DrawingType t) const
     default:
         return is_t1 ? "🚙" : "🚜";
     }
+}
+
+//=== Copy ===
+GameObject *Tank::copy(GameBoard &copy_new_board) const
+{
+    return new Tank(copy_new_board, this->type, this->direction, this->speed, this->hp);
 }

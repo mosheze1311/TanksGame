@@ -1,24 +1,23 @@
 #include "GameCollisionHandler.h"
-
 //=== Constructors ===
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
 
 GameCollisionHandler::~GameCollisionHandler() {}
 
 //=== Static Members ===
-std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::explosion_map = {
-    {GameObjectType::mine, {{GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}}},
-    {GameObjectType::tank1, {{GameObjectType::mine, 1}, {GameObjectType::tank1, 2}, {GameObjectType::tank2, 1}, {GameObjectType::shell, 1}}},
-    {GameObjectType::tank2, {{GameObjectType::mine, 1}, {GameObjectType::tank1, 1}, {GameObjectType::tank2, 2}, {GameObjectType::shell, 1}}},
-    {GameObjectType::shell, {{GameObjectType::shell, 2}, {GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}, {GameObjectType::wall, 1}}},
-    {GameObjectType::wall, {{GameObjectType::shell, 1}}}};
+const CollisionMap GameCollisionHandler::explosion_map = {
+    {GameObjectType::MINE, {{GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}}},
+    {GameObjectType::TANK1, {{GameObjectType::MINE, 1}, {GameObjectType::TANK1, 2}, {GameObjectType::TANK2, 1}, {GameObjectType::SHELL, 1}}},
+    {GameObjectType::TANK2, {{GameObjectType::MINE, 1}, {GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 2}, {GameObjectType::SHELL, 1}}},
+    {GameObjectType::SHELL, {{GameObjectType::SHELL, 2}, {GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}, {GameObjectType::WALL, 1}}},
+    {GameObjectType::WALL, {{GameObjectType::SHELL, 1}}}};
 
-std::map<GameObjectType, std::map<GameObjectType, int>> GameCollisionHandler::prevention_map = {
-    {GameObjectType::mine, {{GameObjectType::wall, 1}}},
-    {GameObjectType::tank1, {{GameObjectType::wall, 1}}},
-    {GameObjectType::tank2, {{GameObjectType::wall, 1}}},
-    {GameObjectType::shell, {}},
-    {GameObjectType::wall, {{GameObjectType::tank1, 1}, {GameObjectType::tank2, 1}, {GameObjectType::mine, 1}}}};
+const CollisionMap GameCollisionHandler::prevention_map = {
+    {GameObjectType::MINE, {{GameObjectType::WALL, 1}}},
+    {GameObjectType::TANK1, {{GameObjectType::WALL, 1}}},
+    {GameObjectType::TANK2, {{GameObjectType::WALL, 1}}},
+    {GameObjectType::SHELL, {}},
+    {GameObjectType::WALL, {{GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}, {GameObjectType::MINE, 1}}}};
 
 //=== Member Functions ===
 void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
@@ -29,12 +28,12 @@ void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
     this->previous_board = updated_board;
 };
 
-void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board)
+void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) const
 {
     // a mid step collision occurs when two objects switch lcations between steps.
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
-        map<GameObjectType, int> should_expload = this->getExplosionList(obj->getObjectType());
+        map<GameObjectType, int> should_expload = this->getCollisionCounterMap(GameCollisionHandler::explosion_map, obj->getObjectType());
 
         optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
         optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
@@ -66,7 +65,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board)
     }
 }
 
-void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board)
+void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) const
 {
     // an end of step collision occurs when two objects are on the same location at the end of the step.
     for (BoardCell &cell : updated_board.getOccupiedCells())
@@ -76,7 +75,7 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board)
 
         for (GameObject *obj : cell_objects)
         {
-            map<GameObjectType,int> should_expload = this->getExplosionList(obj->getObjectType());
+            map<GameObjectType, int> should_expload = this->getCollisionCounterMap(GameCollisionHandler::explosion_map, obj->getObjectType());
             for (auto iter: should_expload){
                 int value = iter.second;
                 if(exploding_objects.find(iter.first) != exploding_objects.end())
@@ -96,14 +95,13 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board)
     }
 }
 
-std::map<GameObjectType, int> GameCollisionHandler::getExplosionList(GameObjectType objType)
+const CollisionCountersMap GameCollisionHandler::getCollisionCounterMap(CollisionMap collision_map, GameObjectType objType)
 {
-
-    if (GameCollisionHandler::explosion_map.find(objType) != GameCollisionHandler::explosion_map.end())
+    auto iter = collision_map.find(objType);
+    if (iter != collision_map.end())
     {
-        return GameCollisionHandler::explosion_map[objType];
+        return iter->second;
     }
-
     return {};
 }
 
@@ -123,7 +121,7 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObj
     return !GameCollisionHandler::isCollision(GameCollisionHandler::explosion_map, board, obj_type, c);
 }
 
-bool GameCollisionHandler::isCollision(std::map<GameObjectType, std::map<GameObjectType, int>> collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::isCollision(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
 {
     auto objects_on_cell = board.getObjectsOnCell(c);
     map<GameObjectType, int> counters;
@@ -134,13 +132,17 @@ bool GameCollisionHandler::isCollision(std::map<GameObjectType, std::map<GameObj
 
     for (auto count_pair : counters)
     {
-        if (collision_map[obj_type].find(count_pair.first) == collision_map[obj_type].end()){
+        const CollisionCountersMap collision_counter_map = getCollisionCounterMap(collision_map, obj_type);
+        if (collision_counter_map.empty())
             continue;
-        }
-        if (collision_map[obj_type][count_pair.first] <= count_pair.second)
-        {
+
+        auto iter = collision_counter_map.find(count_pair.first);
+        if (iter == collision_counter_map.end()) 
+            continue;
+
+        if (iter->second <= count_pair.second)
             return true;
-        }
+
     }
     return false;
 }

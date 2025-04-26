@@ -11,14 +11,14 @@ Player::Player(GameObjectType tanks_type) : tanks_type(tanks_type) {}
 //=== Getters ===
 GameObjectType Player::getEnemyTanksType() const
 {
-    return this->tanks_type == GameObjectType::tank1 ? GameObjectType::tank2 : GameObjectType::tank1;
+    return this->tanks_type == GameObjectType::TANK1 ? GameObjectType::TANK2 : GameObjectType::TANK1;
 }
 
 //=== Core Logic Functions ===
 TankAction Player::decideTankAction(const GameBoard &board, const Tank *tank) const
 {
     // select correct algorithm for each player
-    if (this->tanks_type == GameObjectType::tank1)
+    if (this->tanks_type == GameObjectType::TANK1)
     {
         return this->player1Algorithm(board, tank);
     }
@@ -35,7 +35,7 @@ TankAction Player::getTankEvasionAction(const GameBoard &board, const Tank *tank
     // if can shoot the bullet, shoot
     // otherwise accept your faith
 
-    if (auto opt_cell = board.getObjectLocation(const_cast<Tank *>(tank)))
+    if (auto opt_cell = board.getObjectLocation(tank))
     {
         BoardCell c = opt_cell.value();
 
@@ -76,8 +76,8 @@ TankAction Player::getTankAggressiveAction(const GameBoard &board, const Tank *t
 
     // dijkstra to closest tank
     // if can shoot it - shoot
-    // if can't shoot it - chase (try not to get into a bullet trajectory)
-    optional<BoardCell> opt = board.getObjectLocation(const_cast<Tank *>(tank));
+    // if can't shoot it - chase
+    optional<BoardCell> opt = board.getObjectLocation(tank);
     if (!opt)
     {
         return TankAction::NOTHING; // should not happen
@@ -86,20 +86,16 @@ TankAction Player::getTankAggressiveAction(const GameBoard &board, const Tank *t
     BoardCell start = opt.value();
     BoardCell target = this->approxClosestEnemyTankLocation(board, start);
 
-    if (PlayerUtils::inShootRange(board, start, target) && tank->canShoot())
-    {
-        if (board.isDirectionMatch(start, target, tank->getDirection()))
-            return TankAction::FIRE;
-        else if (board.isStraightLine(start, target))
-        {
-            BoardCell adjust_to = PlayerUtils::getNextCellInStraightLine(start, target);
-            return adjustDirection(board, start, adjust_to, tank->getDirection());
-        }
-        else
-        { // nothing here
-        }
+    // try to shoot enemy
+    if(auto shoot_action_opt = attemptShoot(board, tank, start, target)){
+        return shoot_action_opt.value();
     }
-
+    
+    // if will be able to shoot in the future, wait 
+    if (PlayerUtils::inShootRange(board, start, target) && board.isStraightLine(start, target) && tank->getShells() > 0)
+    {
+        return TankAction::NOTHING;
+    }
     return advanceTankToTarget(board, tank, start, target);
 }
 TankAction Player::advanceTankToTarget(const GameBoard &board, const Tank *tank, BoardCell start, BoardCell target) const
@@ -164,7 +160,6 @@ TankAction Player::adjustDirection(const GameBoard &board, BoardCell from, Board
     {
         return TankAction::TURN90LEFT; // will need additional 90 deg turn
     }
-
     return TankAction::NOTHING; // in correct direction
 }
 
@@ -197,7 +192,7 @@ BoardCell Player::approxClosestEnemyTankLocation(const GameBoard &board, BoardCe
 optional<TankAction> Player::escapeShells(const GameBoard &board, const Tank *tank) const
 {
     // if there is a close bullet towards the tank or a tank that is in shooting range (and can shoot)
-    for (GameObject *shell_object : board.getGameObjects(GameObjectType::shell))
+    for (GameObject *shell_object : board.getGameObjects(GameObjectType::SHELL))
     {
         Shell *shell = static_cast<Shell *>(shell_object);
 
@@ -227,15 +222,48 @@ optional<BoardCell> Player::getEscapingRoute(const GameBoard &board, const Tank 
 
     return nullopt;
 }
+optional<TankAction> Player::attemptShoot(const GameBoard& board, const Tank* tank, BoardCell start, BoardCell target) const{
+    if (PlayerUtils::inShootRange(board, start, target) && tank->canShoot())
+    {
+        if (board.isDirectionMatch(start, target, tank->getDirection()))
+            return TankAction::FIRE;
+        else if (board.isStraightLine(start, target))
+        {
+            BoardCell adjust_to = board.getNextCellInStraightLine(start, target);
+            return adjustDirection(board, start, adjust_to, tank->getDirection());
+        }
+        else
+        { // Cell is not in direct range to target. can do nothing here.
+        }
+    }
+    return nullopt;
+}
 
 //=== Algorithm Implementations ===
 TankAction Player::player1Algorithm(const GameBoard &board, const Tank *tank) const
 {
+    optional<BoardCell> opt = board.getObjectLocation(tank);
+    if (!opt)
+    {
+        return TankAction::NOTHING; // should not happen
+    }
+
     if (auto escape_shell_action = escapeShells(board, tank))
     {
         return escape_shell_action.value();
     }
-    return TankAction::NOTHING;
+    // TODO: maybe add logic for escaping tanks
+    
+    BoardCell start = opt.value();
+    BoardCell target = this->approxClosestEnemyTankLocation(board, start);
+    
+    // try to shoot enemy
+    if (auto shoot_action_opt = attemptShoot(board, tank, start, target))
+    {
+        return shoot_action_opt.value();
+    }
+
+    return TankAction::FIRE;
 }
 
 TankAction Player::player2Algorithm(const GameBoard &board, const Tank *tank) const

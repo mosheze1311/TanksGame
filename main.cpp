@@ -5,6 +5,7 @@
 #include "GamePlayer/GamePlayer.h"
 #include "Logger/Logger.h"
 #include <format>
+#include <filesystem> // for splitting the file_path to name only
 #include <optional>
 
 int main(int argc, char *argv[])
@@ -32,8 +33,11 @@ int main(int argc, char *argv[])
             return 0;
         }
     }
-    Player p1(GameObjectType::tank1), p2(GameObjectType::tank2);
-    GameManager gm(*b, p1, p2);
+    std::string input_file_name = std::filesystem::path(file_path).stem().string(); // this is a standard library function the return the name of a file
+    Player p1(GameObjectType::TANK1), p2(GameObjectType::TANK2);
+    GameManager gm(*b, p1, p2, "output_" + input_file_name + ".txt");
     gm.play(dt);
+    delete b;
+    
     return 0;
 }

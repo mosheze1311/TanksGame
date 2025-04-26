@@ -3,7 +3,7 @@
 #include "../Logger/Logger.h"
 
 //=== Constructors ===
-GameManager::GameManager(GameBoard &board, Player p1, Player p2) : board(board), p1(p1), p2(p2) {};
+GameManager::GameManager(GameBoard &board, Player p1, Player p2, string output_file_name) : board(board), p1(p1), p2(p2), output_file_name(output_file_name) {};
 
 //=== Getters ===
 int GameManager::getRemainingTurns() const
@@ -15,22 +15,19 @@ int GameManager::getRemainingTurns() const
 void GameManager::logWin(bool is_player1_winner, string reason)
 {
     std::string winner = is_player1_winner ? "Player 1!" : "Player 2!";
-    Logger::output().logInfo("The winner is: " + winner + " " + reason);
+    Logger::output(output_file_name).logInfo("The winner is: " + winner + " " + reason);
 }
 
 void GameManager::logTie(string reason)
 {
-    Logger::output().logInfo("The game is tied! " + reason);
+    Logger::output(output_file_name).logInfo("The game is tied! " + reason);
 }
 
 void GameManager::logAction(Tank *tank, TankAction action, bool is_valid)
 {
     std::string status = is_valid ? "Valid" : "Invalid";
 
-    Logger::output().logInfo(
-        status + " action: Tank type '" +
-        std::string(1, static_cast<char>(tank->getObjectType())) +
-        "' tried action number '" + std::to_string(static_cast<int>(action)) + "'");
+    Logger::output(output_file_name).logInfo(status + " action: Tank type '" + std::string(1, static_cast<char>(tank->getObjectType())) + "' tried action " + TankActionUtil::getName(action) + "");
 }
 
 //=== Gameplay Functions ===
@@ -38,15 +35,15 @@ void GameManager::performPlayerActionsOnBoard(map<Tank *, TankAction> actions)
 {
     for (pair<Tank *, TankAction> action_pair : actions)
     {
-        bool is_valid = action_pair.first->action(action_pair.second);
+        bool is_valid = action_pair.first->playTankRound(action_pair.second);
         logAction(action_pair.first, action_pair.second, is_valid);
     }
 }
 
 bool GameManager::concludeGame()
 {
-    int p1_tanks = board.getGameObjectCount(GameObjectType::tank1);
-    int p2_tanks = board.getGameObjectCount(GameObjectType::tank2);
+    int p1_tanks = board.getGameObjectCount(GameObjectType::TANK1);
+    int p2_tanks = board.getGameObjectCount(GameObjectType::TANK2);
 
     if (p1_tanks == 0 && p2_tanks == 0)
     {
@@ -77,7 +74,7 @@ bool GameManager::concludeGame()
 
 void GameManager::moveShells()
 {
-    const auto& gameObjs = board.getGameObjects(GameObjectType::shell);
+    const auto& gameObjs = board.getGameObjects(GameObjectType::SHELL);
     std::vector<Shell*> shells;
     std::transform(gameObjs.begin(), gameObjs.end(), std::back_inserter(shells),
                [](GameObject* obj) { return static_cast<Shell*>(obj); });
@@ -96,18 +93,16 @@ void GameManager::play(DrawingType dt)
     
     while (true)
     {
-        this->moveShells();
-        
-        c_handler.handleCollisions(board);
-        d.draw();
-
-        this->moveShells();
+        for (int i = 0 ; i < 2; i++){
+            this->moveShells();
+            c_handler.handleCollisions(board);
+            d.draw();
+        }
 
         map<Tank*, TankAction> t1_actions = this->p1.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t1_actions);
         map<Tank *, TankAction> t2_actions = this->p2.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t2_actions);
-        
         c_handler.handleCollisions(board);
         d.draw();
 

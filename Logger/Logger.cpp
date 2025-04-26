@@ -1,5 +1,6 @@
 #include "Logger.h"
 
+
 //===  Constructors ===
 Logger::Logger(const std::string &filename)
 {
@@ -17,19 +18,19 @@ Logger::~Logger()
 //=== Singleton Accessors ===
 Logger &Logger::input()
 {
-    static Logger instance("input_errors.log");
+    static Logger instance("input_errors.txt");
     return instance;
 }
 
 Logger &Logger::runtime()
 {
-    static Logger instance("runtime_errors.log");
+    static Logger instance("runtime_errors.txt");
     return instance;
 }
 
-Logger &Logger::output()
+Logger &Logger::output(const std::string &file_name)
 {
-    static Logger instance("output.log");
+    static Logger instance(file_name);
     return instance;
 }
 

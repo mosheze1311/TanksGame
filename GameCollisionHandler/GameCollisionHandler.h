@@ -6,6 +6,9 @@
 #include <map>
 #include <vector>
 
+#define CollisionCountersMap std::map<GameObjectType, int>
+#define CollisionMap std::map<GameObjectType, const CollisionCountersMap>
+
 class GameCollisionHandler
 {
     /*
@@ -29,21 +32,22 @@ class GameCollisionHandler
 private:
     //=== Attributes ===
     GameBoard previous_board;
-    static std::map<GameObjectType, std::map<GameObjectType, int>> explosion_map;
-    static std::map<GameObjectType, std::map<GameObjectType, int>> prevention_map;
+    static const CollisionMap explosion_map;
+    static const CollisionMap prevention_map;
+
+    //=== Static Functions ===
+    // check for collisions regarding the collision map
+    static bool isCollision(CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c);
+
+    // explosion list
+    static const CollisionCountersMap getCollisionCounterMap(CollisionMap collision_map, GameObjectType t);
 
     //=== Functions ===
     // check for collision mid step (went through each other)
-    void handleMidStepCollisions(GameBoard &updated_board);
+    void handleMidStepCollisions(GameBoard &updated_board) const;
     
     // check for collisions after step (objects in the same locaition)
-    void handleEndOfStepCollisions(GameBoard &updated_board);
-
-    // explosion list
-    std::map<GameObjectType, int> getExplosionList(GameObjectType t);
-
-    // check for collisions regarding the collision map
-    static bool isCollision(std::map<GameObjectType, std::map<GameObjectType, int>> collision_map, const GameBoard& board, GameObjectType obj_type, BoardCell c);
+    void handleEndOfStepCollisions(GameBoard &updated_board) const;
 
 public:
     //=== Constructors ===
@@ -53,6 +57,7 @@ public:
     //=== Functions ===
     void handleCollisions(GameBoard& updatedBoard);
 
+    //=== Static Functions ===
     static bool isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
 
     static bool canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);

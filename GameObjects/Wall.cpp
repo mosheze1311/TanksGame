@@ -2,11 +2,11 @@
 #include "../GameBoard/GameBoard.h"
 
 //=== Constructors ===
-Wall::Wall(GameBoard& b)
-    : StaticObject(b, 2) {}
+Wall::Wall(GameBoard& b, int hp)
+    : StaticObject(b, hp) {}
 
 //=== Type Info ===
-GameObjectType Wall::getObjectType() const { return GameObjectType::wall; }
+GameObjectType Wall::getObjectType() const { return GameObjectType::WALL; }
 
 //=== Drawing ===
 string Wall::getDrawing(DrawingType t) const
@@ -26,4 +26,10 @@ string Wall::getDrawing(DrawingType t) const
     default:
         return this->getHP() == 2 ? "⬛" : "🟫";
     }
+}
+
+//=== Copy ===
+GameObject *Wall::copy(GameBoard &copy_new_board) const
+{
+    return new Wall(copy_new_board, this->hp);
 }

@@ -95,8 +95,10 @@ public:
     GameBoard(int height, int width);
 
     // Copy Constructor
-    GameBoard(GameBoard &board);
+    GameBoard(const GameBoard &board);
 
+    ~GameBoard();
+    
     // Assignment Operator
     GameBoard &operator=(const GameBoard &other);
     
@@ -159,7 +161,15 @@ public:
     // get distance of 2 cells
     int distance(const BoardCell& first, const BoardCell& second) const;
 
+    // finds x distance
+    int xDistance(const BoardCell &first, const BoardCell &second) const;
+
+    // finds y distance
+    int yDistance(const BoardCell &first, const BoardCell &second) const;
+
     bool isStraightLine(BoardCell from, BoardCell to) const; // maybe add modulo
 
     bool isDirectionMatch(BoardCell from, BoardCell to, Direction dir) const;
+
+    BoardCell getNextCellInStraightLine(BoardCell from, BoardCell to) const;
 };
