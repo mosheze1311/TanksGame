@@ -45,10 +45,10 @@ Where:
 - `y` = The y-coordinate (vertical position, starting from 0).
 
 #### **Important Notes:**
-- Positions are **0-indexed**, meaning the first position on the board is `(0,0)`.
+- Positions are **0-indexed**, meaning the first position on the board is `(0,0)`, last one is `(width-1,      height-1)`.
 - The order of the objects does **not** matter, but only the **first n objects** of each type (where `n` is defined by the first line) will be used.
-  - If there are fewer objects listed than expected, the number of objects used will be adjusted to match the number declared.
-- **Empty lines** are ignored.
+  - If there are fewer objects listed than expected, `n` will be adjusted to the actual number of objects.
+- **Empty lines** are ignored - only after the first line.
 - **Duplicate start positions** – During board setup, if several objects are listed for the same cell, only the first one is placed and any others for that cell are skipped.
 
 ### Example Input:
@@ -58,8 +58,10 @@ Where:
 1 0 0
 1 0 1
 1 0 2
+
 2 1 1
 2 1 2
+
 # 2 2
 @ 3 3
 ```
@@ -105,7 +107,7 @@ There are 3 types of output files generated during the game:
 
 
 ## Game Mechanics
-- **Actions**: Move, rotate (1/8 or 1/4), shoot.
+- **Actions**: Move, rotate (1/8 or 1/4), shoot, nothing.
 - **Shells**: Move 2 squares per step, destroy tanks, weaken walls.
 - **Ammo limit**: Each tank starts with **16 shells** (no reloading).
 - **Board wraps around** (looped boundaries).
@@ -113,8 +115,8 @@ There are 3 types of output files generated during the game:
 
 ## Game Manager
 - Controls the flow of the game by asking the players for actions.
-- Manages game rules, turns, and action validation.
-- Executes valid moves by modifying the game board.
+- Manages game rules and turns.
+- Executes player actions on tanks and moves shells. 
 - Logs all actions and invalid moves in the output file.
 
 ### Hierarchy Structure
@@ -122,42 +124,49 @@ There are 3 types of output files generated during the game:
 GameManager
 │
 ├── Player (x2)
-│   ├── Strategy 1 (Chasing Opponent - DFS/BFS)
+│   ├── Strategy 1 (Chasing Opponent - Dijkstra)
 │   ├── Strategy 2 (Survival - Evading Shells & Mines)
-│   ├── Has access to game board data (read-only)
-│   └── Requests actions from GameManager
+│   └── Has access to game board data (read-only)
+│
+├── CollisionHandler
+│   │ 
+│   └── Handle collision of objects
 │
 └── Game Board
     ├── Walls, Mines
     ├── Shells
-    ├── Tank Positions & Directions
-    └── Movement & Collision Logic (controlled by GameManager)
+    ├── Tank 
+    └── Metric calculations 
 ```
 
 ## Player Strategies
 - **Each player has two different strategies**:
-  - One **chases the opponent** (DFS/BFS-based pathfinding).
+  - One **chases the opponent** (Dijkstra-based pathfinding).
   - One **focuses on survival** (avoiding mines, evading shots).
 
 ## Win & Tie Conditions
 * **Elimination** – A player wins immediately when the opponent has no tanks left on the board.
-* **Simultaneous knockout** – If the last tank of each player is destroyed in the same turn  
-  (e.g., Player 1’s tank is destroyed during the first half-turn and Player 2’s during the second),  
+* **Simultaneous knockout** – If the last tank of each player is destroyed in the same turn    
   the game ends in a **tie**.
 * **Shell-out stalemate** – When **all remaining tanks run out of shells**, the game continues for **40
-  more turns** (shell-movement steps).  
+  more turns** (tank-movement steps).  
   If neither tank is destroyed during those 40 turns, the game is declared a **tie**.
 * **Adjacent duel rule** – If two enemy tanks stand on adjacent cells and both fire at each other
   during the same turn, **both tanks are destroyed**.
+* **End-game check** – All win/tie conditions are evaluated after a full turn completes.
+  For instance, if Player 1’s last tank is destroyed in the first half-turn and Player 2’s in the second, both events are considered together at the end of that turn, the game is declared as a tie.
 
-## Logging
-- Logs **all actions, invalid moves, and results**.
+## Building
+The repository includes a standard **Makefile**.  
+Simply run:
 
-## Running the Program
-```
-tanks_game <game_board_input_file>
-```
+    make         # compiles tanks_game
 
+## Running
+After a successful build:
+
+    ./tanks_game <game_board_input_file>
+    
 
 ## Submission Deadline
 **April 27, 2025, 23:30**
