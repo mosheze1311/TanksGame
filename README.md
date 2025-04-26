@@ -138,6 +138,17 @@ GameManager
   - One **chases the opponent** (DFS/BFS-based pathfinding).
   - One **focuses on survival** (avoiding mines, evading shots).
 
+## Win & Tie Conditions
+* **Elimination** – A player wins immediately when the opponent has no tanks left on the board.
+* **Simultaneous knockout** – If the last tank of each player is destroyed in the same turn  
+  (e.g., Player 1’s tank is destroyed during the first half-turn and Player 2’s during the second),  
+  the game ends in a **tie**.
+* **Shell-out stalemate** – When **all remaining tanks run out of shells**, the game continues for **40
+  more turns** (shell-movement steps).  
+  If neither tank is destroyed during those 40 turns, the game is declared a **tie**.
+* **Adjacent duel rule** – If two enemy tanks stand on adjacent cells and both fire at each other
+  during the same turn, **both tanks are destroyed**.
+
 ## Logging
 - Logs **all actions, invalid moves, and results**.
 
