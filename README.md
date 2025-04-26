@@ -49,6 +49,7 @@ Where:
 - The order of the objects does **not** matter, but only the **first n objects** of each type (where `n` is defined by the first line) will be used.
   - If there are fewer objects listed than expected, the number of objects used will be adjusted to match the number declared.
 - **Empty lines** are ignored.
+- **Duplicate start positions** – During board setup, if several objects are listed for the same cell, only the first one is placed and any others for that cell are skipped.
 
 ### Example Input:
 
