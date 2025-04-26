@@ -329,3 +329,9 @@ string Tank::getDrawing(DrawingType t) const
         return is_t1 ? "🚙" : "🚜";
     }
 }
+
+//=== Copy ===
+GameObject *Tank::copy(GameBoard &copy_new_board) const
+{
+    return new Tank(copy_new_board, this->type, this->direction, this->speed, this->hp);
+}

@@ -2,8 +2,8 @@
 #include "../GameBoard/GameBoard.h"
 
 //=== Constructor ===
-Mine::Mine(GameBoard &b)
-    : StaticObject(b, 1) {}
+Mine::Mine(GameBoard &b, int hp)
+    : StaticObject(b, hp) {}
 
 //=== Type Information ===
 GameObjectType Mine::getObjectType() const
@@ -29,4 +29,9 @@ string Mine::getDrawing(DrawingType t) const
     default:
         return "💥"; // fallback symbol
     }
+}
+
+GameObject *Mine::copy(GameBoard &copy_new_board) const
+{
+    return new Mine(copy_new_board, this->hp);
 }

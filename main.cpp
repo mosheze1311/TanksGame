@@ -37,5 +37,7 @@ int main(int argc, char *argv[])
     Player p1(GameObjectType::TANK1), p2(GameObjectType::TANK2);
     GameManager gm(*b, p1, p2, "output_" + input_file_name + ".txt");
     gm.play(dt);
+    delete b;
+    
     return 0;
 }

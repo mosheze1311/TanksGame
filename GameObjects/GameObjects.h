@@ -30,19 +30,22 @@ protected:
     GameBoard &board;
 
 public:
-    //=== Constructors === 
+    //=== Constructors ===
     explicit GameObject(GameBoard &b);
     GameObject(GameBoard &b, int hp);
     virtual ~GameObject();
 
     //=== Type & Drawing ===
     virtual GameObjectType getObjectType() const = 0;
-    string getDrawing(DrawingType t) const override = 0;
+    virtual string getDrawing(DrawingType t) const override = 0;
 
     //=== HP Management ===
     int getHP() const;
     void setHP(int new_hp);
     void gotHit(int dmg = 1);
+
+    //=== Copy ===
+    virtual GameObject *copy(GameBoard& copy_new_board) const = 0;
 };
 
 // ===========================
@@ -83,21 +86,27 @@ public:
 class Mine : public StaticObject
 {
 public:
-    explicit Mine(GameBoard &b);
+    explicit Mine(GameBoard &b, int hp = 1);
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
+
+    //=== Copy ===
+    GameObject *copy(GameBoard &copy_new_board) const override;
 };
 
 class Wall : public StaticObject
 {
 public:
-    explicit Wall(GameBoard &b);
+    explicit Wall(GameBoard &b,int hp = 2);
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
+
+    //=== Copy ===
+    GameObject *copy( GameBoard &copy_new_board) const override;
 };
 
 // ===========================
@@ -152,6 +161,7 @@ public:
          int spd = 1,
          int hp = 1);
 
+    
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
@@ -162,12 +172,15 @@ public:
     //=== Shells Management ===
     int getShells() const;
     bool canShoot() const;
+
+    //=== Copy ===
+    GameObject *copy( GameBoard &copy_new_board) const override;
 };
 
 class Shell : public MovableObject
 {
 public:
-    Shell(GameBoard &b, Direction dir, int spd=2);
+    Shell(GameBoard &b, Direction dir, int spd = 2, int hp = 1);
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
@@ -175,4 +188,7 @@ public:
 
     //=== Behavior ===
     void advance();
+
+    //=== Copy ===
+    GameObject *copy( GameBoard &copy_new_board) const override;
 };

@@ -95,8 +95,10 @@ public:
     GameBoard(int height, int width);
 
     // Copy Constructor
-    GameBoard(GameBoard &board);
+    GameBoard(const GameBoard &board);
 
+    ~GameBoard();
+    
     // Assignment Operator
     GameBoard &operator=(const GameBoard &other);
     

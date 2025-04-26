@@ -1,7 +1,6 @@
 #include "GameBoard.h"
 #include "../GameObjects/GameObjects.h"
 #include "../Logger/Logger.h"
-#include <iostream>
 #include <queue>
 #include <set>
 
@@ -10,11 +9,20 @@ using namespace std;
 // === Constructors ===
 GameBoard::GameBoard(int height, int width) : board_details(height, width) {}
 
-GameBoard::GameBoard(GameBoard &other) : board_details(other.board_details)
+GameBoard::GameBoard(const GameBoard &other) : board_details(other.board_details)
 {
+    this->board_details = other.board_details;
     for (auto iter : other.objects_locations)
     {
-        this->addObjectInternal(iter.first, iter.second);
+        this->addObjectInternal(iter.first->copy(*this), iter.second);
+    }
+}
+
+GameBoard::~GameBoard(){
+    auto locs = this->objects_locations;
+    for (auto iter : locs)
+    {
+        this->removeObject(iter.first);
     }
 }
 
@@ -23,12 +31,10 @@ GameBoard &GameBoard::operator=(const GameBoard &other)
 {
     if (this != &other)
     {
-        this->board_details = other.board_details;
-
-        for (auto iter : other.objects_locations)
-        {
-            this->addObjectInternal(iter.first, iter.second);
-        }
+        GameBoard temp(other); // use copy constructor
+        std::swap(this->board_details, temp.board_details);
+        std::swap(this->objects_locations, temp.objects_locations);
+        std::swap(this->board, temp.board);
     }
     return *this;
 }
@@ -318,6 +324,8 @@ void GameBoard::removeObject(GameObject *obj)
 
     this->updateObjectCount(obj, -1);
     this->removeObjectInternal(obj);
+
+    delete obj;
 }
 
 void GameBoard::moveGameObject(GameObject *obj, const BoardCell &new_pos)
