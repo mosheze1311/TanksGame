@@ -1,0 +1,3 @@
+[INFO] Valid action: Tank type '1' tried action FIRE
+[INFO] Valid action: Tank type '2' tried action FIRE
+[INFO] The game is tied! All tanks exploded
