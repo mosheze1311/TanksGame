@@ -4,5 +4,4 @@
 /input_file_1_expected.txt
 /.idea
 /cmake-build-debug
-/ScriptsAndHelpers
 *.o
