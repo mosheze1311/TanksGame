@@ -93,13 +93,11 @@ void GameManager::play(DrawingType dt)
     
     while (true)
     {
-        this->moveShells();
-        c_handler.handleCollisions(board);
-        d.draw();
-
-        this->moveShells();
-        c_handler.handleCollisions(board);
-        d.draw();
+        for (int i = 0 ; i < 2; i++){
+            this->moveShells();
+            c_handler.handleCollisions(board);
+            d.draw();
+        }
 
         map<Tank*, TankAction> t1_actions = this->p1.getActionsFromPlayer(this->board);
         this->performPlayerActionsOnBoard(t1_actions);
