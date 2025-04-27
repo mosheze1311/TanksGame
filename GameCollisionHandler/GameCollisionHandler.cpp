@@ -1,5 +1,4 @@
 #include "GameCollisionHandler.h"
-#include <iostream>
 
 //=== Constructors ===
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
