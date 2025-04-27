@@ -1,10 +1,12 @@
 #pragma once
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
+#include "GameBoardShallowCopy.h"
 
 #include <unordered_set>
 #include <map>
 #include <vector>
+
 
 #define CollisionCountersMap std::map<GameObjectType, int>
 #define CollisionMap std::map<GameObjectType, const CollisionCountersMap>
@@ -31,7 +33,7 @@ class GameCollisionHandler
 
 private:
     //=== Attributes ===
-    GameBoard previous_board;
+    GameBoardShallowCopy previous_board;
     static const CollisionMap explosion_map;
     static const CollisionMap prevention_map;
 
@@ -49,7 +51,10 @@ private:
     // check for collisions after step (objects in the same locaition)
     void handleEndOfStepCollisions(GameBoard &updated_board) const;
 
-public:
+    // add new shells to precious board to allow mid-step collision handling
+    void positionNewShellsOnPreviousBoard(const GameBoard &updated_board);
+
+    public :
     //=== Constructors ===
     GameCollisionHandler(GameBoard &board);
     ~GameCollisionHandler();

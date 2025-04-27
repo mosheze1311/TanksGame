@@ -1,10 +1,12 @@
 #include "GameCollisionHandler.h"
+#include <iostream>
+
 //=== Constructors ===
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
 
 GameCollisionHandler::~GameCollisionHandler() {}
 
-//=== Static Members ===
+//=== Static Members - Collision maps ===
 const CollisionMap GameCollisionHandler::explosion_map = {
     {GameObjectType::MINE, {{GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}}},
     {GameObjectType::TANK1, {{GameObjectType::MINE, 1}, {GameObjectType::TANK1, 2}, {GameObjectType::TANK2, 1}, {GameObjectType::SHELL, 1}}},
@@ -22,6 +24,8 @@ const CollisionMap GameCollisionHandler::prevention_map = {
 //=== Member Functions ===
 void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
 {
+    this->positionNewShellsOnPreviousBoard(updated_board); // mid step collision preparing
+
     this->handleMidStepCollisions(updated_board);
     this->handleEndOfStepCollisions(updated_board);
 
@@ -33,18 +37,21 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
     // a mid step collision occurs when two objects switch lcations between steps.
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
-        map<GameObjectType, int> should_expload = this->getCollisionCounterMap(GameCollisionHandler::explosion_map, obj->getObjectType());
 
         optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
         optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
-        if (!opt_current_loc || !opt_previous_loc) // should not happen
+        if (!opt_current_loc || !opt_previous_loc) // object is no longer on board
             continue;
-
         BoardCell current_location = *opt_current_loc;
         BoardCell previous_location = *opt_previous_loc;
-        unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location);
+       
+        map<GameObjectType, int> should_expload = this->getCollisionCounterMap(GameCollisionHandler::explosion_map, obj->getObjectType());
+        unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location); // petntial mid step collisions
         for (GameObject *other : objects_that_were_on_my_current_cell)
         {
+            if(!updated_board.isObjectOnBoard(other))
+                continue;
+                
             if (obj == other)
                 continue;
 
@@ -58,6 +65,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
             BoardCell other_current_loc = *opt_other_current_loc;
             if (other_current_loc == previous_location)
             {
+                // TODO: this is ok for now since all moving objects have 1 hp. to ensure only 1 hit per collision later - list mid step colliders and handle at the end
                 obj->gotHit(1);
                 other->gotHit(1);
             }
@@ -95,7 +103,21 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) c
     }
 }
 
-const CollisionCountersMap GameCollisionHandler::getCollisionCounterMap(CollisionMap collision_map, GameObjectType objType)
+void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard& updated_board){
+    vector<GameObject*> all_shells = updated_board.getGameObjects(GameObjectType::SHELL);
+    for(GameObject* shell_obj : all_shells){
+        if(!(this->previous_board.isObjectOnBoard(shell_obj))){
+            Shell* shell = static_cast<Shell*>(shell_obj);
+            BoardCell shell_current_location = updated_board.getObjectLocation(shell_obj).value(); // immediate unwrap optioanl since object is on board
+            BoardCell shell_shot_location = updated_board.getNextCellInDirection(shell_current_location, DirectionUtils::getOppositeDirection(shell->getDirection()));
+            this->previous_board.addObject(shell, shell_shot_location);
+        }
+    }
+
+}
+
+    const CollisionCountersMap
+    GameCollisionHandler::getCollisionCounterMap(CollisionMap collision_map, GameObjectType objType)
 {
     auto iter = collision_map.find(objType);
     if (iter != collision_map.end())
