@@ -125,7 +125,7 @@ public:
     vector<GameObject *> getGameObjects(GameObjectType t) const;
 
     // get all objects on the board
-    vector<GameObject *> getAllGameObjects();
+    vector<GameObject *> getAllGameObjects() const;
 
     // get all tanks for a player
     vector<Tank *> getTanks(GameObjectType t) const;

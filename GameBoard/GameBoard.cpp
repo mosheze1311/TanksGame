@@ -206,7 +206,7 @@ std::vector<Tank *> GameBoard::getTanks(GameObjectType t) const
     return tanks;
 }
 
-vector<GameObject *> GameBoard::getAllGameObjects()
+vector<GameObject *> GameBoard::getAllGameObjects() const
 {
     vector<GameObject *> res;
     for (const pair<GameObject *, BoardCell> iter : this->objects_locations)
