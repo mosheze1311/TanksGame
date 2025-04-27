@@ -1,7 +1,8 @@
+Bonus 1: Visual Simulation
+Bonus 2: Random Board Generator
 
 
-Bonus: Visual Simulation
-
+=== Visual Simulation: ===
 We have implemented a visual simulation feature that prints the game state to the terminal using emojis.
 
 Details:
@@ -33,3 +34,18 @@ Usage:
 Relevant Files and Line References:
 - `GameDrawer.h` and `DrawingTypes.h`: Implementation of the Drawer class, DrawingTypes enum.
 - `main.cpp`: Logic to parse the additional command-line argument and enable the appropriate skin.
+
+
+=== Random Board Generator ===
+We wrote a script that generates random board creation input files for testing.
+
+Details:
+- Added a script 'generate_random_input_file.cpp' that accepts user input for board settings and generates a matching random input file in our format
+- The script prints the requested input file and draws the board using emojis for the user to see
+
+Usage:
+- We created additional Makefile for compiling this script - simply run 'make' in the ScriptsAndHelpers folder and then run using './random_input_generator'
+- The script will prompt some questions about the board that the user need to answer.
+
+Relevant Files:
+- `ScriptsAndHelpers/generate_random_input_file.cpp` and `ScriptsAndHelpers/Makefile`: Implementation of the generator and its Makefile.
