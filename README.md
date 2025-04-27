@@ -151,8 +151,6 @@ GameManager
 * **Shell-out stalemate** – When **all remaining tanks run out of shells**, the game continues for **40
   more turns** (tank-movement steps).  
   If neither tank is destroyed during those 40 turns, the game is declared a **tie**.
-* **Adjacent duel rule** – If two enemy tanks stand on adjacent cells and both fire at each other
-  during the same turn, **both tanks are destroyed**.
 * **End-game check** – All win/tie conditions are evaluated after a full turn completes.
   For instance, if Player 1’s last tank is destroyed in the first half-turn and Player 2’s in the second, both events are considered together at the end of that turn, the game is declared as a tie.
 
