@@ -15,11 +15,6 @@ int main(int argc, char *argv[])
         return 0;
     }
     const string file_path = argv[1];
-    GameBoard* b = BoardFactory::createGameBoard(file_path);
-    if(!b){
-        Logger::runtime().logError(std::format("Can't create board"));
-        return 0;
-    }
     DrawingType dt = DrawingType::NONE;
     if(argc == 3) // if drawing is requested
     {
@@ -32,6 +27,12 @@ int main(int argc, char *argv[])
             Logger::runtime().logError(std::format("If given, 3rd argument must be a number"));
             return 0;
         }
+    }
+    GameBoard *b = BoardFactory::createGameBoard(file_path);
+    if (!b)
+    {
+        Logger::runtime().logError(std::format("Can't create board"));
+        return 0;
     }
     std::string input_file_name = std::filesystem::path(file_path).stem().string(); // this is a standard library function the return the name of a file
     Player p1(GameObjectType::TANK1), p2(GameObjectType::TANK2);
