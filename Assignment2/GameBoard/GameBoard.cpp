@@ -103,15 +103,26 @@ BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c) const
 }
 
 // === Getters ===
-int GameBoard::getWidth() const
+size_t GameBoard::getWidth() const
 {
     return this->board_details.width;
 }
 
-int GameBoard::getHeight() const
+size_t GameBoard::getHeight() const
 {
     return this->board_details.height;
 }
+
+size_t GameBoard::getMaxSteps() const {
+    return this->board_details.max_steps;
+}
+
+
+size_t GameBoard::getTanksNumShells() const
+{
+    return this->board_details.tanks_num_shells;
+}
+
 
 int GameBoard::getGameObjectCount(const GameObjectType type) const
 {
@@ -248,13 +259,13 @@ bool GameBoard::isObjectOnBoard(GameObject *obj) const
 
 int GameBoard::xDistance(const BoardCell &first, const BoardCell &second) const
 {
-    int dx = abs(first.getX() - second.getX());
-    dx = std::min(dx, this->getWidth() - dx);
+    size_t dx = abs(first.getX() - second.getX());
+    dx = min(dx, this->getWidth() - dx);
     return dx;
 }
 int GameBoard::yDistance(const BoardCell &first, const BoardCell &second) const
 {
-    int dy = abs(first.getY() - second.getY());
+    size_t dy = abs(first.getY() - second.getY());
     dy = std::min(dy, this->getHeight() - dy);
     return dy;
 }
@@ -318,6 +329,16 @@ void GameBoard::setHeight(size_t height)
 {
     // TODO: maybe modify location to fit new board? maybe prevent using this after insertion to board.
     this->board_details.height = height;
+}
+
+void GameBoard::setMaxSteps(size_t max_steps)
+{
+    this->board_details.max_steps = max_steps;
+}
+
+void GameBoard::setTanksNumShells(size_t tanks_num_shells)
+{
+    this->board_details.tanks_num_shells = tanks_num_shells;
 }
 
 //=== Modify Board Functions ===

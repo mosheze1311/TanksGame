@@ -1,0 +1,40 @@
+#pragma once
+#include "SatelliteView.h"
+#include "GameBoard.h"
+#include <vector>
+#include <map>
+
+using std::map;
+
+class BoardSatelliteView : public SatelliteView
+{
+private:
+    //=== Attributes ===
+    map<BoardCell, GameObjectType> sat_view;
+
+public:
+    //=== Constructor ===
+    explicit BoardSatelliteView(GameBoard &board)
+    {
+        for (BoardCell c : board.getOccupiedCells()){
+            auto objects = board.getObjectsOnCell(c);
+            if(objects.empty())
+                continue; // should not get here since c is an occupied cell. for safety reasons only.
+            
+            auto obj = *(objects.begin());
+            this->sat_view[c] = obj->getObjectType();
+        }
+    }
+    //=== Interface Implementation ===
+    char getObjectAt(size_t x, size_t y) const override
+    {
+        // TODO: i don't like the use of a constant char ' ', we need to make it cleaner somehow
+        auto iter = this->sat_view.find(BoardCell(x, y));
+        if (iter == this->sat_view.end())
+        {
+            return ' ';
+        }
+
+        return static_cast<char>(iter->second);
+    }
+};

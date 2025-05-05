@@ -52,19 +52,23 @@ private:
     {
     public:
         // === Attributes ===
-        int height;
-        int width;
+        size_t height;
+        size_t width;
 
-        int walls;
-        int mines;
+        size_t walls;
+        size_t mines;
 
-        int p1_tanks;
-        int p2_tanks;
+        size_t p1_tanks;
+        size_t p2_tanks;
 
-        int shells;
-        int remaining_shells;
+        size_t shells;
+        size_t remaining_shells;
+
+        size_t max_steps;
+        size_t tanks_num_shells;
+
         // === Constructor ===
-        BoardDetails(int height, int width) : height(height), width(width), walls(0), mines(0), p1_tanks(0), p2_tanks(0), shells(0), remaining_shells(0) {};
+        BoardDetails(int height, int width) : height(height), width(width), walls(0), mines(0), p1_tanks(0), p2_tanks(0), shells(0), remaining_shells(0), max_steps(0), tanks_num_shells(0) {};
     };
 
     // === Attributes ===
@@ -103,9 +107,14 @@ public:
     GameBoard &operator=(const GameBoard &other);
     
     //=== Getters ===
-    int getWidth() const;
+    size_t getWidth() const;
     
-    int getHeight() const;
+    size_t getHeight() const;
+
+    size_t getMaxSteps() const;
+
+    size_t getTanksNumShells() const;
+
 
     // get count of object type on board
     int getGameObjectCount(GameObjectType type) const;
@@ -140,6 +149,10 @@ public:
     void setWidth(size_t width);
 
     void setHeight(size_t height);
+
+    void setMaxSteps(size_t max_steps);
+
+    void setTanksNumShells(size_t tanks_num_shells);
 
     //=== Modify Board Functions ===
     // Add an object to the board on the requested cell
