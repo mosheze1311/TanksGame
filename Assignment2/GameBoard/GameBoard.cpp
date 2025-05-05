@@ -117,12 +117,10 @@ size_t GameBoard::getMaxSteps() const {
     return this->board_details.max_steps;
 }
 
-
 size_t GameBoard::getTanksNumShells() const
 {
     return this->board_details.tanks_num_shells;
 }
-
 
 int GameBoard::getGameObjectCount(const GameObjectType type) const
 {
@@ -263,12 +261,14 @@ int GameBoard::xDistance(const BoardCell &first, const BoardCell &second) const
     dx = min(dx, this->getWidth() - dx);
     return dx;
 }
+
 int GameBoard::yDistance(const BoardCell &first, const BoardCell &second) const
 {
     size_t dy = abs(first.getY() - second.getY());
     dy = std::min(dy, this->getHeight() - dy);
     return dy;
 }
+
 int GameBoard::distance(const BoardCell &first, const BoardCell &second) const
 {
     return std::max(xDistance(first, second), yDistance(first, second));
@@ -290,6 +290,7 @@ bool GameBoard::isStraightLine(BoardCell from, BoardCell to) const
 
     return false;
 }
+
 BoardCell GameBoard::getNextCellInStraightLine(BoardCell from, BoardCell to) const
 {
     // assuming that from, to form a straight line in some direction.
@@ -315,10 +316,12 @@ BoardCell GameBoard::getNextCellInStraightLine(BoardCell from, BoardCell to) con
     }
     return next;
 }
+
 bool GameBoard::isDirectionMatch(BoardCell from, BoardCell to, Direction dir) const
 {
     return this->getNextCellInDirection(from, dir) == this->getNextCellInStraightLine(from, to);
 }
+
 //=== Setters ===
 void GameBoard::setWidth(size_t width){
     // TODO: maybe modify location to fit new board? maybe prevent using this after insertion to board.

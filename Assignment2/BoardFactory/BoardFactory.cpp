@@ -7,7 +7,6 @@
 using namespace std;
 
 //=== Input File Handling ===
-
 void BoardFactory::logInputError(const string error_message)
 {
     Logger::input().logError(error_message);
@@ -71,21 +70,21 @@ bool BoardFactory::isValidObjectChar(char obj_char)
     return (valid_chars.find(obj_char) != valid_chars.end());
 }
 
-unique_ptr<GameObject> BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectType type)
+shared_ptr<GameObject> BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectType type)
 {
     switch(type)
         {
             case GameObjectType::TANK1:
-                return std::make_unique<Tank>(board, type, Direction::LEFT);
+                return std::make_shared<Tank>(board, type, Direction::LEFT);
 
             case GameObjectType::TANK2:
-                return std::make_unique<Tank>(board, type, Direction::RIGHT);
+                return std::make_shared<Tank>(board, type, Direction::RIGHT);
             
             case GameObjectType::WALL:
-                return std::make_unique<Wall>(board);
+                return std::make_shared<Wall>(board);
             
             case GameObjectType::MINE:
-                return std::make_unique<Mine>(board);
+                return std::make_shared<Mine>(board);
             
             default:
               //  logInputError("Invalid object type: " + std::to_string((int)type));

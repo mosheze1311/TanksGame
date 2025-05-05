@@ -47,6 +47,12 @@ This project implements a turn-based tank game simulator as defined in Assignmen
   Ensure that all base classes (e.g., `GameObject`, `Player`, `TankAlgorithm`) declare a `virtual` destructor.  
   This is essential for correct cleanup of derived objects when managed via `std::unique_ptr<Base>`, and avoids undefined behavior or memory leaks.
 
+
+### Config File
+- **Create a config file and enable use in code**  
+  create a simple config file format
+  use it to config shell speed relative to tanks and use this logic in relevant places (shell constructors, move shells loop, maybe more)
+  think of more things to write in the config file.
 <!-- ## Build and Run
 
 To compile and run the project:

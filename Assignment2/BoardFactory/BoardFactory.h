@@ -1,11 +1,16 @@
 #pragma once
-#include "GameBoard/GameBoard.h"
-#include "Logger/Logger.h"
-#include "GameObjects/GameObjects.h"
+#include "../GameBoard/GameBoard.h"
+#include "../Logger/Logger.h"
+#include "../GameObjects/GameObjects.h"
+
+#include <memory>
 #include <string>
 #include <optional>
 #include <set>
 
+using std::make_shared;
+
+//TODO: decide name for class
 class BoardFactory
 {
 private:
@@ -21,7 +26,7 @@ private:
 
     //=== Helper Functions ===
     static bool isValidObjectChar(char obj_char);
-    static unique_ptr<GameObject> createGameObjectOfType(GameBoard &board, GameObjectType type);
+    static shared_ptr<GameObject> createGameObjectOfType(GameBoard &board, GameObjectType type);
 
     //=== Modify Board Functions ===
     static void setBoardDimensions(GameBoard& board, size_t rows, size_t cols);

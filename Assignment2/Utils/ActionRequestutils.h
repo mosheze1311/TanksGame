@@ -1,4 +1,7 @@
 #pragma once
+#include "../common/ActionRequest.h"
+
+#include <string>
 
 // No covrage for kill or ignored commands. should address later. 
 namespace ActionRequestUtils{
