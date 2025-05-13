@@ -53,10 +53,10 @@ public:
         board_drawing += "\n";
 
         // board
-        for (int y = 0; y < this->board.getHeight(); y++)
+        for (size_t y = 0; y < this->board.getHeight(); y++)
         {
             board_drawing += game_border_portal;
-            for (int x = 0; x < this->board.getWidth(); x++)
+            for (size_t x = 0; x < this->board.getWidth(); x++)
             {
                 BoardCell c(x, y);
                 board_drawing += this->decideCellImage(c);
