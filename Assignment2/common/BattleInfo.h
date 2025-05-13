@@ -1,8 +1,5 @@
 #pragma once
 
-
-
-
 class BattleInfo
 {
 public:
