@@ -30,8 +30,3 @@ string Mine::getDrawing(DrawingType t) const
         return "💥"; // fallback symbol
     }
 }
-
-GameObject *Mine::copy(GameBoard &copy_new_board) const
-{
-    return new Mine(copy_new_board, this->hp);
-}

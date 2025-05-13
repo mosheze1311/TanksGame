@@ -4,8 +4,8 @@
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 
 //=== Constructors ===
-Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, int spd, int hp)
-    : MovableObject(b, dir, spd, hp), type(t) {}
+Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells, int spd, int hp)
+    : MovableObject(b, dir, spd, hp), type(t), shells(tank_num_shells) {}
 
 //=== Getters ===
 GameObjectType Tank::getObjectType() const
@@ -68,7 +68,7 @@ void Tank::tickShootCooldown()
 }
 
 //=== Action Logic ===
-bool Tank::playTankRound(TankAction command)
+bool Tank::playTankRound(ActionRequest command)
 {
     /*
      * This function checks if a tank can do a specific action, and if so – does it.
@@ -93,26 +93,26 @@ bool Tank::playTankRound(TankAction command)
 }
 
 //=== Action Validation ===
-bool Tank::validateAndPerformAction(TankAction command)
+bool Tank::validateAndPerformAction(ActionRequest command)
 {
     switch (command)
     {
-    case TankAction::NOTHING:
+    case ActionRequest::DoNothing:
         return true; // allways correct, does nothing.
 
-    case TankAction::FORWARD:
+    case ActionRequest::MoveForward:
         return performForwardAction();
 
-    case TankAction::BACKWARD:
+    case ActionRequest::MoveBackward:
         return performBackwardAction();
 
-    case TankAction::TURN45LEFT:
-    case TankAction::TURN90LEFT:
-    case TankAction::TURN45RIGHT:
-    case TankAction::TURN90RIGHT:
-       return performTurnAction(command);
+    case ActionRequest::RotateLeft45:
+    case ActionRequest::RotateLeft90:
+    case ActionRequest::RotateRight45:
+    case ActionRequest::RotateRight90:
+        return performTurnAction(command);
 
-    case TankAction::FIRE:
+    case ActionRequest::Shoot:
         return performShootAction();
 
     default:
@@ -179,7 +179,7 @@ optional<BoardCell> Tank::getForwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
-        return board.getNextCellInDirection(current_cell.value(),this->getDirection());
+        return board.getNextCellInDirection(current_cell.value(), this->getDirection());
     }
     return nullopt;
 }
@@ -257,7 +257,7 @@ void Tank::moveBackwards()
 }
 
 //=== Turning ===
-bool Tank::performTurnAction(TankAction command)
+bool Tank::performTurnAction(ActionRequest command)
 {
     if (isPendingBackwards())
     { // ignore action
@@ -268,27 +268,29 @@ bool Tank::performTurnAction(TankAction command)
     return true;
 }
 
-void Tank::turn(TankAction command)
+void Tank::turn(ActionRequest command)
 {
-    int steps = (command == TankAction::TURN45LEFT || command == TankAction::TURN45RIGHT) ? 1 : 2;
-    auto rotationFunc = (command == TankAction::TURN45LEFT || command == TankAction::TURN90LEFT)
+    int steps = (command == ActionRequest::RotateLeft45 || command == ActionRequest::RotateRight45) ? 1 : 2;
+    auto rotationFunc = (command == ActionRequest::RotateLeft45 || command == ActionRequest::RotateLeft90)
                             ? DirectionUtils::rotateLeft
                             : DirectionUtils::rotateRight;
-    
+
     this->setDirection(rotationFunc(this->getDirection(), steps));
 }
 
 //=== Shooting ===
-bool Tank::performShootAction(){
+bool Tank::performShootAction()
+{
     if (this->isPendingBackwards())
         return false;
 
-    if (this->canShoot()){
+    if (this->canShoot())
+    {
         shoot();
         return true;
     }
 
-    return false; // On cloodowns, can't preform shooting act. 
+    return false; // On cloodowns, can't preform shooting act.
 }
 
 void Tank::shoot()
@@ -300,7 +302,7 @@ void Tank::shoot()
     BoardCell forward_cell = opt_forward_cell.value();
 
     // add shell to board
-    board.addObject(new Shell(board, this->getDirection()), forward_cell);
+    board.addObject(std::make_unique<Shell>(board, this->getDirection()), forward_cell);
     board.useTankShell(); // make sure bord knows that the shell was shot from a tank and not just added to board.
 
     // modify tank shoot cooldown and shells count
@@ -328,10 +330,4 @@ string Tank::getDrawing(DrawingType t) const
     default:
         return is_t1 ? "🚙" : "🚜";
     }
-}
-
-//=== Copy ===
-GameObject *Tank::copy(GameBoard &copy_new_board) const
-{
-    return new Tank(copy_new_board, this->type, this->direction, this->speed, this->hp);
 }

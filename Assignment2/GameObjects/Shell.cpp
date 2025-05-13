@@ -11,11 +11,9 @@ GameObjectType Shell::getObjectType() const { return GameObjectType::SHELL; }
 //=== Movement ===
 void Shell::advance()
 {
-
-    board = this->board;
     if(auto opt_cell = board.getObjectLocation(this)){
         BoardCell curr_cell = *opt_cell;
-        board.moveGameObject(this, curr_cell + this->direction);
+        this->board.moveGameObject(this, curr_cell + this->direction);
     }
 }
 
@@ -37,10 +35,4 @@ string Shell::getDrawing(DrawingType t) const
     default:
         return "🟠";
     }
-}
-
-//=== Copy ===
-GameObject *Shell::copy(GameBoard &copy_new_board) const
-{
-    return new Shell(copy_new_board, this->direction, this->speed, this->hp);
 }

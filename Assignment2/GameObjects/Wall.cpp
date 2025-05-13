@@ -27,9 +27,3 @@ string Wall::getDrawing(DrawingType t) const
         return this->getHP() == 2 ? "⬛" : "🟫";
     }
 }
-
-//=== Copy ===
-GameObject *Wall::copy(GameBoard &copy_new_board) const
-{
-    return new Wall(copy_new_board, this->hp);
-}
