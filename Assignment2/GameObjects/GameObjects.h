@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TankAction.h"
+#include "../common/ActionRequest.h"
 #include "Direction.h"
 #include "GameObjectType.h"
 #include "../GameDrawer/DrawingTypes.h"
@@ -20,6 +20,7 @@ class DrawableObject
 {
 public:
     virtual string getDrawing(DrawingType t) const = 0;
+    virtual ~DrawableObject() {};
 };
 
 class GameObject : public DrawableObject
@@ -43,9 +44,6 @@ public:
     int getHP() const;
     void setHP(int new_hp);
     void gotHit(int dmg = 1);
-
-    //=== Copy ===
-    virtual GameObject *copy(GameBoard& copy_new_board) const = 0;
 };
 
 // ===========================
@@ -91,22 +89,16 @@ public:
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
-
-    //=== Copy ===
-    GameObject *copy(GameBoard &copy_new_board) const override;
 };
 
 class Wall : public StaticObject
 {
 public:
-    explicit Wall(GameBoard &b,int hp = 2);
+    explicit Wall(GameBoard &b, int hp = 2);
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
-
-    //=== Copy ===
-    GameObject *copy( GameBoard &copy_new_board) const override;
 };
 
 // ===========================
@@ -115,9 +107,10 @@ public:
 class Tank : public MovableObject
 {
 private:
+    // TODO: need to change the number of shells so it would read from file instead of static 16.
     //=== Attributes ===
     const GameObjectType type;
-    int shells = 16;
+    int shells;
     int turns_to_wait_for_backward = -2;
     int shoot_cooldown = 0;
 
@@ -131,10 +124,10 @@ private:
     void startBackwardsWait();
 
     //=== Action Validation & Execution ===
-    bool validateAndPerformAction(TankAction action);
+    bool validateAndPerformAction(ActionRequest action);
     bool performBackwardAction();
     bool performForwardAction();
-    bool performTurnAction(TankAction command);
+    bool performTurnAction(ActionRequest command);
     bool performShootAction();
 
     //=== Movement Support ===
@@ -145,7 +138,7 @@ private:
     void moveToCell(BoardCell c);
     bool canMoveBackwards() const;
     void moveBackwards();
-    void turn(TankAction command);
+    void turn(ActionRequest command);
 
     //=== Shooting Support ===
     void shoot();
@@ -158,23 +151,20 @@ public:
     Tank(GameBoard &b,
          GameObjectType t = GameObjectType::TANK1,
          Direction dir = Direction::UP,
+         size_t tank_num_shells = 16,
          int spd = 1,
          int hp = 1);
 
-    
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
     string getDrawing(DrawingType t) const override;
 
     //=== Tank-Specific Actions ===
-    bool playTankRound(TankAction command);
+    bool playTankRound(ActionRequest command);
 
     //=== Shells Management ===
     int getShells() const;
     bool canShoot() const;
-
-    //=== Copy ===
-    GameObject *copy( GameBoard &copy_new_board) const override;
 };
 
 class Shell : public MovableObject
@@ -188,7 +178,4 @@ public:
 
     //=== Behavior ===
     void advance();
-
-    //=== Copy ===
-    GameObject *copy( GameBoard &copy_new_board) const override;
 };
