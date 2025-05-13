@@ -9,38 +9,18 @@ using namespace std;
 // === Constructors ===
 GameBoard::GameBoard(int height, int width) : board_details(height, width) {}
 
-GameBoard::GameBoard(const GameBoard &other) : board_details(other.board_details)
+GameBoard::~GameBoard()
 {
-    this->board_details = other.board_details;
-    for (auto iter : other.objects_locations)
-    {
-        this->addObjectInternal(iter.first->copy(*this), iter.second);
-    }
-}
-
-GameBoard::~GameBoard(){
+    // TODO: make sure deletion is good (maybe not freeing?)
     auto locs = this->objects_locations;
     for (auto iter : locs)
     {
-        this->removeObject(iter.first);
+        this->removeObjectInternal(iter.first);
     }
-}
-
-// Assignment Operator
-GameBoard &GameBoard::operator=(const GameBoard &other)
-{
-    if (this != &other)
-    {
-        GameBoard temp(other); // use copy constructor
-        std::swap(this->board_details, temp.board_details);
-        std::swap(this->objects_locations, temp.objects_locations);
-        std::swap(this->board, temp.board);
-    }
-    return *this;
 }
 
 // === Private Functions ===
-void GameBoard::removeObjectInternal(GameObject *obj)
+void GameBoard::removeObjectInternal(GameObject* obj, bool final)
 {
     BoardCell c = objects_locations[obj];
     this->objects_locations.erase(obj);
@@ -50,27 +30,38 @@ void GameBoard::removeObjectInternal(GameObject *obj)
     {
         board.erase(c);
     }
+    
+    // Remove from owned_objects
+    if(final)
+        owned_objects.erase(obj);
 }
 
-void GameBoard::addObjectInternal(GameObject *obj, const BoardCell &c)
+void GameBoard::addObjectInternal(unique_ptr<GameObject> obj, const BoardCell &c)
 {
+    GameObject *raw_ptr = obj.get();
+    this->owned_objects[raw_ptr] = std::move(obj);
+
+    this->placeObjectOnBoard(raw_ptr, c);
+}
+
+void GameBoard::placeObjectOnBoard(GameObject* obj, const BoardCell& c){
     this->objects_locations[obj] = c;
     this->board[c].insert(obj);
 }
 
-void GameBoard::updateObjectCount(GameObject *obj, int incremental = 1)
+void GameBoard::updateObjectCount(const GameObject* obj, int incremental = 1)
 {
     // incremental can only be 1 or -1.
     switch (obj->getObjectType())
     {
     case GameObjectType::TANK1:
         this->board_details.p1_tanks += incremental;
-        this->board_details.remaining_shells += incremental * ((Tank *)obj)->getShells();
+        this->board_details.remaining_shells += incremental * (static_cast<const Tank*>(obj))->getShells();
         break;
 
     case GameObjectType::TANK2:
         this->board_details.p2_tanks += incremental;
-        this->board_details.remaining_shells += incremental * ((Tank *)obj)->getShells();
+        this->board_details.remaining_shells += incremental * (static_cast<const Tank *>(obj))->getShells();
         break;
 
     case GameObjectType::MINE:
@@ -113,7 +104,8 @@ size_t GameBoard::getHeight() const
     return this->board_details.height;
 }
 
-size_t GameBoard::getMaxSteps() const {
+size_t GameBoard::getMaxSteps() const
+{
     return this->board_details.max_steps;
 }
 
@@ -170,10 +162,8 @@ std::unordered_set<GameObject *> GameBoard::getObjectsOnCell(const BoardCell &c)
 
 optional<BoardCell> GameBoard::getObjectLocation(const GameObject *obj) const
 {
-    // the method will not change obj, but const_cast is made because the map contains non-const objects
-    auto iter = this->objects_locations.find(const_cast<GameObject *>(obj));
-    if (iter == this->objects_locations.end())
-    {
+    auto iter = this->objects_locations.find(const_cast<GameObject*>(obj));
+    if (iter == this->objects_locations.end()) {
         return nullopt;
     }
     return iter->second;
@@ -183,7 +173,7 @@ vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
 {
     // Returns a vector of all instances if a specific GameObject
     vector<GameObject *> res;
-    for (const pair<GameObject *, BoardCell> iter : this->objects_locations)
+    for (const auto& iter : this->owned_objects)
     {
         if (iter.first->getObjectType() == t)
         {
@@ -196,15 +186,14 @@ vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
 std::vector<Tank *> GameBoard::getTanks(GameObjectType t) const
 {
     if (t != GameObjectType::TANK1 && t != GameObjectType::TANK2)
-    {
         return {};
-    }
+    
 
     std::vector<GameObject *> objects = this->getGameObjects(t);
     std::vector<Tank *> tanks;
     tanks.reserve(objects.size()); // optional optimization
 
-    for (GameObject *obj : objects)
+    for (auto obj : objects)
     {
         if (Tank *tank = dynamic_cast<Tank *>(obj))
         {
@@ -218,9 +207,9 @@ std::vector<Tank *> GameBoard::getTanks(GameObjectType t) const
 vector<GameObject *> GameBoard::getAllGameObjects() const
 {
     vector<GameObject *> res;
-    for (const pair<GameObject *, BoardCell> iter : this->objects_locations)
+    for (const auto& obj : this->owned_objects)
     {
-        res.push_back(iter.first);
+        res.push_back(obj.first);
     }
     return res;
 }
@@ -250,9 +239,9 @@ bool GameBoard::isOccupiedCell(const BoardCell &c) const
     return board.find(c) != board.end();
 }
 
-bool GameBoard::isObjectOnBoard(GameObject *obj) const
+bool GameBoard::isObjectOnBoard(const GameObject *obj) const
 {
-    return this->objects_locations.find(obj) != this->objects_locations.end();
+    return this->objects_locations.find(const_cast<GameObject*>(obj)) != this->objects_locations.end();
 }
 
 int GameBoard::xDistance(const BoardCell &first, const BoardCell &second) const
@@ -323,7 +312,8 @@ bool GameBoard::isDirectionMatch(BoardCell from, BoardCell to, Direction dir) co
 }
 
 //=== Setters ===
-void GameBoard::setWidth(size_t width){
+void GameBoard::setWidth(size_t width)
+{
     // TODO: maybe modify location to fit new board? maybe prevent using this after insertion to board.
     this->board_details.width = width;
 }
@@ -345,13 +335,13 @@ void GameBoard::setTanksNumShells(size_t tanks_num_shells)
 }
 
 //=== Modify Board Functions ===
-void GameBoard::addObject(GameObject *obj, const BoardCell &c)
+void GameBoard::addObject(unique_ptr<GameObject> obj, const BoardCell &c)
 {
-    this->updateObjectCount(obj, 1);
-    this->addObjectInternal(obj, this->createAdjustedBoardCell(c));
+    this->updateObjectCount(obj.get(), 1);
+    this->addObjectInternal(std::move(obj), this->createAdjustedBoardCell(c));
 }
 
-void GameBoard::removeObject(GameObject *obj)
+void GameBoard::removeObject(GameObject* obj)
 {
     if (!isObjectOnBoard(obj))
     {
@@ -360,19 +350,17 @@ void GameBoard::removeObject(GameObject *obj)
 
     this->updateObjectCount(obj, -1);
     this->removeObjectInternal(obj);
-
-    delete obj;
 }
 
-void GameBoard::moveGameObject(GameObject *obj, const BoardCell &new_pos)
+void GameBoard::moveGameObject(GameObject* obj, const BoardCell &new_pos)
 {
-    if (objects_locations.find(obj) == objects_locations.end())
+    if (this->objects_locations.find(obj) == this->objects_locations.end())
     {
         return;
     }
 
-    this->removeObjectInternal(obj);
-    this->addObjectInternal(obj, this->createAdjustedBoardCell(new_pos));
+    this->removeObjectInternal(obj, false);
+    this->placeObjectOnBoard(obj, this->createAdjustedBoardCell(new_pos));
 }
 
 void GameBoard::useTankShell()

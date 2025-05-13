@@ -75,6 +75,8 @@ private:
     BoardDetails board_details;
     unordered_map<GameObject *, BoardCell> objects_locations;
     map<BoardCell, unordered_set<GameObject *>> board;
+    
+    unordered_map<GameObject *, unique_ptr<GameObject>> owned_objects;
 
     // === Functions ===
     // create a board cell that fits the board without overflowing
@@ -84,37 +86,37 @@ private:
     BoardCell createAdjustedBoardCell(const BoardCell &c) const;
 
     // Adds an object to the board - internal use, arguments are treated as valid
-    void addObjectInternal(GameObject *obj, const BoardCell& c);
+    void addObjectInternal(std::unique_ptr<GameObject> obj, const BoardCell &c);
 
     // Removes an object from the board - internal use, arguments are treated as valid
-    void removeObjectInternal(GameObject *obj);
+    void removeObjectInternal(GameObject *obj, bool final = true);
 
+    // Places the object on the requested location - Assumes object is owned by board and not placed elsewhere
+    void placeObjectOnBoard(GameObject *obj, const BoardCell &c);
+   
     // Updates the count of a specific object type on the board by adding incremental
-    void updateObjectCount(GameObject* obj, int incremental);
+    void updateObjectCount(const GameObject *obj, int incremental);
 
-
-    
 public:
     // Constructor
     GameBoard(int height, int width);
 
-    // Copy Constructor
-    GameBoard(const GameBoard &board);
+    // Copy Constructor (DELETED)
+    GameBoard(const GameBoard &board) = delete;
 
     ~GameBoard();
-    
-    // Assignment Operator
-    GameBoard &operator=(const GameBoard &other);
-    
+
+    // Assignment Operator (DELETED)
+    GameBoard &operator=(const GameBoard &other) = delete;
+
     //=== Getters ===
     size_t getWidth() const;
-    
+
     size_t getHeight() const;
 
     size_t getMaxSteps() const;
 
     size_t getTanksNumShells() const;
-
 
     // get count of object type on board
     int getGameObjectCount(GameObjectType type) const;
@@ -156,10 +158,10 @@ public:
 
     //=== Modify Board Functions ===
     // Add an object to the board on the requested cell
-    void addObject(GameObject *obj_type, const BoardCell& c);
+    void addObject(std::unique_ptr<GameObject> obj, const BoardCell &c);
 
     // moves an object on the board from its current cell to new position. ignores if object not on board
-    void moveGameObject(GameObject *obj, const BoardCell& new_position);
+    void moveGameObject(GameObject *obj, const BoardCell &new_position);
 
     // remove the object from the board
     void removeObject(GameObject *obj);
@@ -172,10 +174,10 @@ public:
     bool isOccupiedCell(const BoardCell &c) const;
 
     // Check if the specific object exists on board
-    bool isObjectOnBoard(GameObject *obj) const;
+    bool isObjectOnBoard(const GameObject *obj) const;
 
     // get distance of 2 cells
-    int distance(const BoardCell& first, const BoardCell& second) const;
+    int distance(const BoardCell &first, const BoardCell &second) const;
 
     // finds x distance
     int xDistance(const BoardCell &first, const BoardCell &second) const;

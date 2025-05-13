@@ -3,9 +3,6 @@
 #include <sstream>
 #include <memory>
 
-
-using namespace std;
-
 //=== Input File Handling ===
 void BoardFactory::logInputError(const string error_message)
 {
@@ -53,7 +50,7 @@ bool BoardFactory::parseBoardLine(GameBoard& board, const string &line, size_t l
     for (size_t col = 0; col < cols; col++)
     {
         obj_char = line[col];
-        if (BoardFactory::isValidObjectChar(obj_char))
+        if (!GameObjectTypeUtils::isValidObjectChar(obj_char))
             continue;
 
         BoardFactory::addObjectToBoard(board, obj_char, col, line_number);
@@ -62,33 +59,28 @@ bool BoardFactory::parseBoardLine(GameBoard& board, const string &line, size_t l
     return true;
 }
 
-bool BoardFactory::isValidObjectChar(char obj_char) 
+unique_ptr<GameObject> BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectType type)
 {
-    // TODO: maybe move to GameObjectType enum class as helper function
-    set<char> valid_chars({'1', '2', '#', '@'});
-
-    return (valid_chars.find(obj_char) != valid_chars.end());
-}
-
-shared_ptr<GameObject> BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectType type)
-{
+    //TODO: tanks should be initiated with 'tanks_num_shells' shells.
     switch(type)
         {
             case GameObjectType::TANK1:
-                return std::make_shared<Tank>(board, type, Direction::LEFT);
+                return std::make_unique<Tank>(board, type, Direction::LEFT,board.getTanksNumShells());
 
             case GameObjectType::TANK2:
-                return std::make_shared<Tank>(board, type, Direction::RIGHT);
-            
+                return std::make_unique<Tank>(board, type, Direction::RIGHT, board.getTanksNumShells());
+
             case GameObjectType::WALL:
-                return std::make_shared<Wall>(board);
-            
+                return std::make_unique<Wall>(board);
+
             case GameObjectType::MINE:
-                return std::make_shared<Mine>(board);
+                return std::make_unique<Mine>(board);
+
+            case GameObjectType::SHELL:
+                return std::make_unique<Shell>(board, Direction::DOWN);
             
             default:
-              //  logInputError("Invalid object type: " + std::to_string((int)type));
-                return nullptr;
+                return nullptr; // should not get here
         }
 }
 
@@ -130,7 +122,6 @@ bool BoardFactory::initGameBoardFromFile(GameBoard &board, const string input_fi
     if (!std::getline(file, line) || !parseKeyLine(line, ++line_number, "Cols", cols))
         return false;
 
-    // TODO: This should be done in the GameBoard , but we need to set it here to be able to use the BoardFactory::addObjectToBoard function.
     BoardFactory::setBoardDimensions(board, rows, cols);
     BoardFactory::setBoardDetails(board, max_steps, tanks_num_shells);
 
@@ -165,8 +156,8 @@ void BoardFactory::setBoardDetails(GameBoard& board, size_t max_steps, size_t ta
     board.setTanksNumShells(tanks_num_shells);
 }
 
-void BoardFactory::addObjectToBoard(GameBoard& board, const char object_char, size_t x, size_t y)
+void BoardFactory::addObjectToBoard(GameBoard& board, const char object_char, int x, int y)
 {
-    // TODO: fix this and match to GameBoard - currently not correct and gives char instead of GameObject*
-    board.addObject(createGameObjectOfType((GameObjectType)object_char), {static_cast<int>(x), static_cast<int>(y)});
+    unique_ptr<GameObject> ptr = createGameObjectOfType(board, (GameObjectType)object_char);
+    board.addObject(std::move(ptr), {x, y});
 }
