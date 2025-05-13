@@ -1,11 +1,7 @@
 #include "GameManager.h"
-#include "../GameCollisionHandler/GameCollisionHandler.h"
 
-//=== Constructor ===
-GameManager::GameManager(const PlayerFactory &player_factory, const TankAlgorithmFactory &tank_algorithm_factory)
-    : board(0, 0), player_factory(player_factory), tank_algorithm_factory(tank_algorithm_factory)
-{
-}
+#include "../GameCollisionHandler/GameCollisionHandler.h"
+#include "../Utils/ActionRequestutils.h"
 
 //=== Getters ===
 int GameManager::getRemainingTurns() const
@@ -14,28 +10,28 @@ int GameManager::getRemainingTurns() const
 }
 
 //=== Log Functions ===
-void GameManager::logWin(bool is_player1_winner, string reason)
+void GameManager::logWin(int winner, int remaining_tanks)
 {
-    std::string winner = is_player1_winner ? "Player 1!" : "Player 2!";
-    Logger::output(output_file_name).logInfo("The winner is: " + winner + " " + reason);
+    string winning_text = "Player " + std::to_string(winner) + " won with " + std::to_string(remaining_tanks) + " tanks still alive";
+    Logger::output(output_file_name).logInfo(winning_text);
 }
 
 void GameManager::logTie(string reason)
 {
-    Logger::output(output_file_name).logInfo("The game is tied! " + reason);
+    Logger::output(output_file_name).logInfo("Tie, " + reason);
 }
 
-void GameManager::logAction(Tank *tank, TankAction action, bool is_valid)
+void GameManager::logAction(Tank *tank, ActionRequest action, bool is_valid)
 {
     std::string status = is_valid ? "Valid" : "Invalid";
 
-    Logger::output(output_file_name).logInfo(status + " action: Tank type '" + std::string(1, static_cast<char>(tank->getObjectType())) + "' tried action " + TankActionUtil::getName(action) + "");
+    Logger::output(output_file_name).logInfo(status + " action: Tank type '" + std::string(1, static_cast<char>(tank->getObjectType())) + "' tried action " + ActionRequestUtils::actionToString(action) + "");
 }
 
 //=== Gameplay Functions ===
-void GameManager::performPlayerActionsOnBoard(map<Tank *, TankAction> actions)
+void GameManager::performActionsOnBoard(map<Tank *, ActionRequest> actions)
 {
-    for (pair<Tank *, TankAction> action_pair : actions)
+    for (pair<Tank *, ActionRequest> action_pair : actions)
     {
         bool is_valid = action_pair.first->playTankRound(action_pair.second);
         logAction(action_pair.first, action_pair.second, is_valid);
@@ -49,27 +45,26 @@ bool GameManager::concludeGame()
 
     if (p1_tanks == 0 && p2_tanks == 0)
     {
-        logTie("All tanks exploded");
-        return true;
-    }
-    if (p1_tanks == 0)
-    {
-        logWin(false, "All player's 1 tanks exploded!");
+        logTie("both players have zero tanks");
         return true;
     }
     if (p2_tanks == 0)
     {
-        logWin(true, "All player's 2 tanks exploded!");
+        logWin(true, p1_tanks);
         return true;
     }
-    if (board.getTotalRemainingShells() <= 0)
+    if (p1_tanks == 0)
     {
-        if (this->getRemainingTurns() == 0)
-        {
-            logTie("No more shells...");
-            return true;
-        }
-        this->remaining_turns--;
+        logWin(false, p2_tanks);
+        return true;
+    }
+    if (this->getRemainingTurns() == 0)
+    {
+        // TODO: allow using up to 9 players
+        logTie("reached max steps = " + std::to_string(this->board.getMaxSteps()) + ", " +
+               +"player 1 has " + std::to_string(p1_tanks) + " tanks, " +
+               +"player 2 has " + std::to_string(p2_tanks) + " tanks");
+        return true;
     }
     return false;
 }
@@ -88,7 +83,18 @@ void GameManager::moveShells()
     }
 }
 
-//=== Public Function ===
+BoardSatelliteView GameManager::TakeSatelliteImage() 
+{
+    return BoardSatelliteView(this->board);
+}
+
+//=== Public Functions ===
+//=== Constructor ===
+GameManager::GameManager(const PlayerFactory &player_factory, const TankAlgorithmFactory &tank_algorithm_factory)
+    : board(0, 0), player_factory(player_factory), tank_algorithm_factory(tank_algorithm_factory)
+{
+}
+
 void GameManager::run(DrawingType dt)
 {
     // TODO: need to modify this function logic.
@@ -98,6 +104,9 @@ void GameManager::run(DrawingType dt)
 
     while (true)
     {
+        BoardSatelliteView sat_view = this->TakeSatelliteImage();
+
+        // move shells - TODO: make speed a configured paramter instead of static number
         for (int i = 0; i < 2; i++)
         {
             this->moveShells();
@@ -105,20 +114,26 @@ void GameManager::run(DrawingType dt)
             d.draw();
         }
 
-        // TODO: handle TanksAlgorithmsLogic here.
-        
-        // map<Tank *, TankAction> t1_actions = this->p1.getActionsFromPlayer(this->board);
-        // this->performPlayerActionsOnBoard(t1_actions);
-        // map<Tank *, TankAction> t2_actions = this->p2.getActionsFromPlayer(this->board);
-        // this->performPlayerActionsOnBoard(t2_actions);
+        // perfrom tanks algorithms actions
+        map<Tank *, ActionRequest> actions;
+        for (auto &[tank, algorithm] : tanks_algorithms)
+        {
+
+            ActionRequest algorithm_action = algorithm->getAction();
+            actions[tank] = algorithm_action;
+        }
+        this->performActionsOnBoard(actions);
+
         c_handler.handleCollisions(board);
         d.draw();
 
+        // check for winner / tie
         if (this->concludeGame())
         {
             break;
         }
-    }}
+    }
+}
 
 bool GameManager::readBoard(std::string input_file_path)
 {
