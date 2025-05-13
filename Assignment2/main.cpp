@@ -1,4 +1,4 @@
-#include "GameManager.h"
+#include "GameManager/GameManager.h"
 #include "common/PlayerFactory.h"
 #include "common/TankAlgorithmFactory.h"
 
@@ -50,6 +50,6 @@ int main(int argc, char **argv)
 {
     GameManager game(getPlayerFactory(), getTankAlgorithmFactory());
     game.readBoard("InputFiles/input1.txt");
-    game.run();
+    game.run(DrawingType::REGULAR);
 }
     
