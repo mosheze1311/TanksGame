@@ -9,17 +9,28 @@ class MyTankAlgorithm : public TankAlgorithm
 {
 
 private:
+
+    // === Attributes === //
+    int player_index;
+    int tank_index;
     BoardCell current_cell;
     size_t remaining_shells;
 
 public:
     // === Constructor === //
-    MyTankAlgorithm();
+    MyTankAlgorithm(int player_index, int tank_index)
+        : player_index(player_index),
+          tank_index(tank_index),
+          current_cell(0, 0),
+          remaining_shells(0)
+    {
+    };
     // === Destructor === //
     ~MyTankAlgorithm() override = default;
 
     ActionRequest getAction()
     {
+
     }
     
     void updateBattleInfo(BattleInfo &info) override
