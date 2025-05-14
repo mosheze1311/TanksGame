@@ -112,6 +112,7 @@ void GameManager::run(DrawingType dt)
     // TODO: need to modify this function logic.
     GameCollisionHandler c_handler(this->board);
     GameDrawer d(this->board, dt);
+    
     d.draw();
 
     while (true)
@@ -130,7 +131,6 @@ void GameManager::run(DrawingType dt)
         map<Tank *, ActionRequest> actions;
         for (auto &[tank, algorithm] : tanks_algorithms)
         {
-
             ActionRequest algorithm_action = algorithm->getAction();
             actions[tank] = algorithm_action;
         }
