@@ -40,6 +40,8 @@ private:
     //=== Log Functions===
     void logAction(Tank *tank, ActionRequest action, bool is_valid);
     void logWin(int winner, int remaining_tanks);
+    void logZeroTanksTie();
+    void logMaxStepsTie();
     void logTie(string reason);
 
 public:    

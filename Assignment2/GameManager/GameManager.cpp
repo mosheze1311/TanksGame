@@ -16,6 +16,20 @@ void GameManager::logWin(int winner, int remaining_tanks)
     Logger::output(output_file_name).logInfo(winning_text);
 }
 
+void GameManager::logZeroTanksTie(){
+    logTie("both players have zero tanks");
+    
+}
+
+void GameManager::logMaxStepsTie(){
+    // TODO: allow using up to 9 players
+    int p1_tanks = this->board.getGameObjectCount(GameObjectType::TANK1);
+    int p2_tanks = this->board.getGameObjectCount(GameObjectType::TANK2);
+    logTie("reached max steps = " + std::to_string(this->board.getMaxSteps()) + ", " +
+           +"player 1 has " + std::to_string(p1_tanks) + " tanks, " +
+           +"player 2 has " + std::to_string(p2_tanks) + " tanks");
+}
+
 void GameManager::logTie(string reason)
 {
     Logger::output(output_file_name).logInfo("Tie, " + reason);
@@ -40,12 +54,13 @@ void GameManager::performActionsOnBoard(map<Tank *, ActionRequest> actions)
 
 bool GameManager::concludeGame()
 {
+    // TODO: allow using up to 9 players
     int p1_tanks = board.getGameObjectCount(GameObjectType::TANK1);
     int p2_tanks = board.getGameObjectCount(GameObjectType::TANK2);
 
     if (p1_tanks == 0 && p2_tanks == 0)
     {
-        logTie("both players have zero tanks");
+        this->logZeroTanksTie();
         return true;
     }
     if (p2_tanks == 0)
@@ -60,10 +75,7 @@ bool GameManager::concludeGame()
     }
     if (this->getRemainingTurns() == 0)
     {
-        // TODO: allow using up to 9 players
-        logTie("reached max steps = " + std::to_string(this->board.getMaxSteps()) + ", " +
-               +"player 1 has " + std::to_string(p1_tanks) + " tanks, " +
-               +"player 2 has " + std::to_string(p2_tanks) + " tanks");
+        this->logMaxStepsTie();
         return true;
     }
     return false;
