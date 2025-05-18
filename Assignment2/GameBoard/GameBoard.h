@@ -58,17 +58,16 @@ private:
         size_t walls;
         size_t mines;
 
-        size_t p1_tanks;
-        size_t p2_tanks;
-
         size_t shells;
         size_t remaining_shells;
 
         size_t max_steps;
         size_t tanks_num_shells;
 
+        map<GameObjectType, size_t> tanks_count;
+
         // === Constructor ===
-        BoardDetails(int height, int width) : height(height), width(width), walls(0), mines(0), p1_tanks(0), p2_tanks(0), shells(0), remaining_shells(0), max_steps(0), tanks_num_shells(0) {};
+        BoardDetails(int height, int width) : height(height), width(width), walls(0), mines(0), shells(0), remaining_shells(0), max_steps(0), tanks_num_shells(0) {};
     };
 
     // === Attributes ===
@@ -118,6 +117,8 @@ public:
 
     size_t getTanksNumShells() const;
 
+    map<GameObjectType, size_t> getTanksCountPerType() const;
+
     // get count of object type on board
     int getGameObjectCount(GameObjectType type) const;
 
@@ -141,11 +142,6 @@ public:
 
     // get an optional cell location of an object on board. if object not on board, return nullopt.
     std::optional<BoardCell> getObjectLocation(const GameObject *go) const;
-
-    // get neigbhor cells
-    std::vector<BoardCell> getAdjacentCells(const BoardCell &curr_cell) const;
-
-    BoardCell getNextCellInDirection(const BoardCell &c, const Direction dir) const;
 
     //=== Setters ===
     void setWidth(size_t width);
@@ -176,18 +172,4 @@ public:
     // Check if the specific object exists on board
     bool isObjectOnBoard(const GameObject *obj) const;
 
-    // get distance of 2 cells
-    int distance(const BoardCell &first, const BoardCell &second) const;
-
-    // finds x distance
-    int xDistance(const BoardCell &first, const BoardCell &second) const;
-
-    // finds y distance
-    int yDistance(const BoardCell &first, const BoardCell &second) const;
-
-    bool isStraightLine(BoardCell from, BoardCell to) const; // maybe add modulo
-
-    bool isDirectionMatch(BoardCell from, BoardCell to, Direction dir) const;
-
-    BoardCell getNextCellInStraightLine(BoardCell from, BoardCell to) const;
 };
