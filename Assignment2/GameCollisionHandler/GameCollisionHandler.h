@@ -2,14 +2,14 @@
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
 #include "GameBoardShallowCopy.h"
+#include "CollisionObjectType.h"
+#include "../GameBoardUtils/GameBoardUtils.h"
 
 #include <unordered_set>
 #include <map>
 #include <vector>
 
-
-#define CollisionCountersMap std::map<GameObjectType, int>
-#define CollisionMap std::map<GameObjectType, const CollisionCountersMap>
+#define CollisionMap std::map<CollisionObjectType, const unordered_set<CollisionObjectType>>
 
 class GameCollisionHandler
 {
@@ -39,10 +39,10 @@ private:
 
     //=== Static Functions ===
     // check for collisions regarding the collision map
-    static bool isCollision(CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c);
+    static bool isCollidingOnCell(CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c);
 
     // explosion list
-    static const CollisionCountersMap getCollisionCounterMap(CollisionMap collision_map, GameObjectType t);
+    static const unordered_set<CollisionObjectType> getCollidingTypes(CollisionMap collision_map, GameObjectType t);
 
     //=== Functions ===
     // check for collision mid step (went through each other)

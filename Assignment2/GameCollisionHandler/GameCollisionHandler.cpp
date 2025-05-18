@@ -1,24 +1,24 @@
 #include "GameCollisionHandler.h"
 
+// TODO: change collision handling to fit multiple tanks.
 //=== Constructors ===
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
 
 GameCollisionHandler::~GameCollisionHandler() {}
 
 //=== Static Members - Collision maps ===
+// TODO: rethink about the counters of each CollisionType.
 const CollisionMap GameCollisionHandler::explosion_map = {
-    {GameObjectType::MINE, {{GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}}},
-    {GameObjectType::TANK1, {{GameObjectType::MINE, 1}, {GameObjectType::TANK1, 2}, {GameObjectType::TANK2, 1}, {GameObjectType::SHELL, 1}}},
-    {GameObjectType::TANK2, {{GameObjectType::MINE, 1}, {GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 2}, {GameObjectType::SHELL, 1}}},
-    {GameObjectType::SHELL, {{GameObjectType::SHELL, 2}, {GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}, {GameObjectType::WALL, 1}}},
-    {GameObjectType::WALL, {{GameObjectType::SHELL, 1}}}};
+    {CollisionObjectType::MINE, {CollisionObjectType::TANK}},
+    {CollisionObjectType::TANK, {CollisionObjectType::MINE, CollisionObjectType::TANK, CollisionObjectType::SHELL}},
+    {CollisionObjectType::SHELL, {CollisionObjectType::SHELL, CollisionObjectType::TANK, CollisionObjectType::WALL}},
+    {CollisionObjectType::WALL, {CollisionObjectType::SHELL}}};
 
 const CollisionMap GameCollisionHandler::prevention_map = {
-    {GameObjectType::MINE, {{GameObjectType::WALL, 1}}},
-    {GameObjectType::TANK1, {{GameObjectType::WALL, 1}}},
-    {GameObjectType::TANK2, {{GameObjectType::WALL, 1}}},
-    {GameObjectType::SHELL, {}},
-    {GameObjectType::WALL, {{GameObjectType::TANK1, 1}, {GameObjectType::TANK2, 1}, {GameObjectType::MINE, 1}}}};
+    {CollisionObjectType::MINE, {CollisionObjectType::WALL}},
+    {CollisionObjectType::TANK, {CollisionObjectType::WALL}},
+    {CollisionObjectType::SHELL, {}},
+    {CollisionObjectType::WALL, {CollisionObjectType::TANK, CollisionObjectType::MINE}}};
 
 //=== Member Functions ===
 void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
@@ -36,25 +36,25 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
     // a mid step collision occurs when two objects switch lcations between steps.
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
-
         optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
         optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
-        if (!opt_current_loc || !opt_previous_loc) // object is no longer on board
+        if (!opt_current_loc || !opt_previous_loc) // object is no longer on board. TODO: think of new shells and how it effects them
             continue;
+        
         BoardCell current_location = *opt_current_loc;
         BoardCell previous_location = *opt_previous_loc;
-       
-        map<GameObjectType, int> should_expload = this->getCollisionCounterMap(GameCollisionHandler::explosion_map, obj->getObjectType());
-        unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location); // petntial mid step collisions
+
+        unordered_set<CollisionObjectType> colliders = this->getCollidingTypes(GameCollisionHandler::explosion_map, obj->getObjectType());
+        unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location); // potential mid step collisions
         for (GameObject *other : objects_that_were_on_my_current_cell)
         {
-            if(!updated_board.isObjectOnBoard(other))
+            if (!updated_board.isObjectOnBoard(other))
                 continue;
-                
+
             if (obj == other)
                 continue;
 
-            if (should_expload.find(other->getObjectType()) == should_expload.end())
+            if (colliders.find(CollisionObjectTypeUtils::fromGameObjectType(obj->getObjectType())) == colliders.end())
                 continue;
 
             optional<BoardCell> opt_other_current_loc = updated_board.getObjectLocation(other);
@@ -75,50 +75,47 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
 void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) const
 {
     // an end of step collision occurs when two objects are on the same location at the end of the step.
+    // each collision cause 1 hp hit
     for (BoardCell &cell : updated_board.getOccupiedCells())
     {
-        map<GameObjectType, int> exploding_objects;
         unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
-
-        for (GameObject *obj : cell_objects)
+        for (auto iter = cell_objects.begin(); iter != cell_objects.end();)
         {
-            map<GameObjectType, int> should_expload = this->getCollisionCounterMap(GameCollisionHandler::explosion_map, obj->getObjectType());
-            for (auto iter: should_expload){
-                int value = iter.second;
-                if(exploding_objects.find(iter.first) != exploding_objects.end())
-                    value = 1;
-                exploding_objects[iter.first] = value;
-            }
-            exploding_objects.insert(should_expload.begin(), should_expload.end());
-        }
-
-        for (GameObject *obj : cell_objects)
-        {
-            if (exploding_objects.find(obj->getObjectType()) != exploding_objects.end() && exploding_objects[obj->getObjectType()] == 1)
+            GameObject *obj1 = *iter;
+            unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
+            for (auto iter2 = ++iter; iter2 != cell_objects.end(); ++iter2)
             {
-                obj->gotHit(1);
+                GameObject *obj2 = *iter2;
+                CollisionObjectType obj2_type = CollisionObjectTypeUtils::fromGameObjectType(obj2->getObjectType());
+                if (collide_with.find(obj2_type) != collide_with.end())
+                { 
+                    // should explode each other
+                    obj1->gotHit(1);
+                    obj2->gotHit(1);
+                }
             }
         }
     }
 }
 
-void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard& updated_board){
-    vector<GameObject*> all_shells = updated_board.getGameObjects(GameObjectType::SHELL);
-    for(GameObject* shell_obj : all_shells){
-        if(!(this->previous_board.isObjectOnBoard(shell_obj))){
-            Shell* shell = static_cast<Shell*>(shell_obj);
+void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard &updated_board)
+{
+    vector<GameObject *> all_shells = updated_board.getGameObjects(GameObjectType::SHELL);
+    for (GameObject *shell_obj : all_shells)
+    {
+        if (!(this->previous_board.isObjectOnBoard(shell_obj)))
+        {
+            Shell *shell = static_cast<Shell *>(shell_obj);
             BoardCell shell_current_location = updated_board.getObjectLocation(shell_obj).value(); // immediate unwrap optioanl since object is on board
-            BoardCell shell_shot_location = updated_board.getNextCellInDirection(shell_current_location, DirectionUtils::getOppositeDirection(shell->getDirection()));
+            BoardCell shell_shot_location = GameBoardUtils::getNextCellInDirection(shell_current_location, DirectionUtils::getOppositeDirection(shell->getDirection()), updated_board.getWidth(), updated_board.getHeight());
             this->previous_board.addObject(shell, shell_shot_location);
         }
     }
-
 }
 
-    const CollisionCountersMap
-    GameCollisionHandler::getCollisionCounterMap(CollisionMap collision_map, GameObjectType objType)
+const unordered_set<CollisionObjectType> GameCollisionHandler::getCollidingTypes(CollisionMap collision_map, GameObjectType objType)
 {
-    auto iter = collision_map.find(objType);
+    auto iter = collision_map.find(CollisionObjectTypeUtils::fromGameObjectType(objType));
     if (iter != collision_map.end())
     {
         return iter->second;
@@ -129,7 +126,7 @@ void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard& upd
 //=== Static Functions ===
 bool GameCollisionHandler::isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
 {
-    return !GameCollisionHandler::isCollision(GameCollisionHandler::prevention_map, board, obj_type, c);
+    return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, board, obj_type, c);
 }
 
 bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
@@ -139,31 +136,23 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObj
         return false;
     }
 
-    return !GameCollisionHandler::isCollision(GameCollisionHandler::explosion_map, board, obj_type, c);
+    return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, board, obj_type, c);
 }
 
-bool GameCollisionHandler::isCollision(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
 {
     auto objects_on_cell = board.getObjectsOnCell(c);
-    map<GameObjectType, int> counters;
-    for (auto obj : objects_on_cell)
+    const unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
+
+    if (collidors.empty())
+        return false;
+
+    for (GameObject* object : objects_on_cell)
     {
-        counters[obj->getObjectType()] += 1;
-    }
-
-    for (auto count_pair : counters)
-    {
-        const CollisionCountersMap collision_counter_map = getCollisionCounterMap(collision_map, obj_type);
-        if (collision_counter_map.empty())
-            continue;
-
-        auto iter = collision_counter_map.find(count_pair.first);
-        if (iter == collision_counter_map.end()) 
-            continue;
-
-        if (iter->second <= count_pair.second)
+        CollisionObjectType t = CollisionObjectTypeUtils::fromGameObjectType(object->getObjectType());
+        if (collidors.find(t) != collidors.end())
             return true;
-
     }
+    
     return false;
 }
