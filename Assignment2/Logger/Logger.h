@@ -15,21 +15,21 @@ private:
 
     //===  Constructors ===
     Logger(const std::string &filename);
+    Logger(const Logger &other) = delete;
+    Logger operator=(const Logger &other) = delete;
+
     ~Logger();
 
     //=== Log Function ===
-    void log(const std::string &level, const std::string &message);
+    void logInternal(const std::string &message, bool newline);
 
 public:
-
     //=== Singleton Accessors ===
     static Logger &input();
     static Logger &runtime();
-    static Logger &output(const std::string& file_name);
+    static Logger &output(const std::string &file_name);
 
     //=== Logging Methods ===
-    void logError(const std::string &message);
-    void logInfo(const std::string &message);
-   // void logLine(const std::string &line);
-    
+    void log(const std::string &message);
+    void logLine(const std::string &message);
 };
