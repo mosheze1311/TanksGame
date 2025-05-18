@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic
+CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address
 
 # Target executable
 TARGET = tanks_game
@@ -13,7 +13,7 @@ OBJS = $(SRCS:.cpp=.o)
 
 # Rule to create the executable
 $(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
 
 # Rule to create object files from source files
 %.o: %.cpp
