@@ -179,7 +179,7 @@ optional<BoardCell> Tank::getForwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
-        return board.getNextCellInDirection(current_cell.value(), this->getDirection());
+        return GameBoardUtils::getNextCellInDirection(current_cell.value(), this->getDirection(), board.getWidth(), board.getHeight());
     }
     return nullopt;
 }
@@ -197,7 +197,7 @@ optional<BoardCell> Tank::getBackwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
-        return board.getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()));
+        return GameBoardUtils::getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()), board.getWidth(), board.getHeight());
     }
     return nullopt;
 }
