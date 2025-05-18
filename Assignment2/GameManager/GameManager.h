@@ -1,4 +1,4 @@
-#pragma  once
+#pragma once
 #include "../common/PlayerFactory.h"
 #include "../common/TankAlgorithmFactory.h"
 
@@ -12,44 +12,64 @@
 #include <sstream>
 #include <string>
 #include <set>
+#include <vector>
 
-
-class GameManager{
+class GameManager
+{
 private:
     //=== Attributes ===
     GameBoard board;
-    size_t remaining_turns;
+    size_t remaining_steps;
+    const size_t steps_after_shells_end = 40;
 
-    const PlayerFactory& player_factory;
-    const TankAlgorithmFactory& tank_algorithm_factory;
+    const PlayerFactory &player_factory;
+    const TankAlgorithmFactory &tank_algorithm_factory;
 
-    map<Tank*, unique_ptr<TankAlgorithm>> tanks_algorithms;
-     
+    vector<Tank *> tanks;
+    vector<unique_ptr<TankAlgorithm>> algorithms;
+    map<int, unique_ptr<Player>> players_map;
 
     string output_file_name;
 
     //=== Getters ===
-    int getRemainingTurns() const; // private getter for readability
+    int getRemainingSteps() const; // private getter for readability
 
     //=== Gameplay Function ===
     bool concludeGame(); // Checks if a game is finsihed in a specific turn
-    void performActionsOnBoard(map<Tank *, ActionRequest> actions);
-    void moveShells(); // Move shells acoording to their direction
+    void performActionsOnBoard(map<int, ActionRequest> actions);
+    void moveShellsOnce();                       // Move shells acoording to their direction
     BoardSatelliteView TakeSatelliteImage(); // Returns an updated SatelliteView object at the start of the turn.
+    void advanceStepsClock();
 
     //=== Log Functions===
-    void logAction(Tank *tank, ActionRequest action, bool is_valid);
-    void logWin(int winner, int remaining_tanks);
-    void logZeroTanksTie();
-    void logMaxStepsTie();
-    void logTie(string reason);
+    void logAction(ActionRequest action, bool is_valid, bool is_killed, bool coma) const;
+    void logKilled(bool coma) const;
 
-public:    
+    void logComa() const;
+    void logEndOfStep() const;
+    void logWin(int winner, int remaining_tanks) const;
+
+    void logTie(string reason) const;
+    void logZeroTanksTie() const;
+    void logZeroShellsTie() const;
+    void logMaxStepsTie() const;
+
+    //=== Factory Funcitons ===
+    void initiatePlayers();
+    void initiateAlgorithms();
+
+    map<int, int> exctractPlayerTanks(GameBoard &board);
+
+    map<int, ActionRequest> requestAlgorithmsActions();
+
+    void moveShells(int times, GameCollisionHandler& c_handler, GameDrawer& d);
+
+public:
     //=== Constructors ===
-    GameManager(const PlayerFactory& player_factory, const TankAlgorithmFactory& tank_algorithm_factory);
+    GameManager(const PlayerFactory &player_factory, const TankAlgorithmFactory &tank_algorithm_factory);
 
     //=== Functions ===
-    // Reads input file into board object. 
+    // Reads input file into board object.
     bool readBoard(std::string input_file_path);
 
     // Runs the game
