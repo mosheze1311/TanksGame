@@ -6,7 +6,7 @@ CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address
 TARGET = tanks_game
 
 # List of source files
-SRCS = GameManager/GameManager.cpp BoardFactory/BoardFactory.cpp GameBoard/BoardCell.cpp GameBoard/GameBoard.cpp SatelliteView/BoardSatelliteView.cpp GameCollisionHandler/GameCollisionHandler.cpp GameObjects/GameObject.cpp GameObjects/MovableObject.cpp GameObjects/StaticObject.cpp GameObjects/Mine.cpp GameObjects/Shell.cpp GameObjects/Tank.cpp GameObjects/Wall.cpp Logger/Logger.cpp main.cpp
+SRCS = GameManager/GameManager.cpp BoardFactory/BoardFactory.cpp GameBoard/BoardCell.cpp GameBoard/GameBoard.cpp SatelliteView/BoardSatelliteView.cpp GameCollisionHandler/GameCollisionHandler.cpp GameBoardUtils/GameBoardUtils.cpp GameObjects/GameObject.cpp GameObjects/MovableObject.cpp GameObjects/StaticObject.cpp GameObjects/Mine.cpp GameObjects/Shell.cpp GameObjects/Tank.cpp GameObjects/Wall.cpp Logger/Logger.cpp main.cpp
 
 # Object files (replace .cpp with .o)
 OBJS = $(SRCS:.cpp=.o)
