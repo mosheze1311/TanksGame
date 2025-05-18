@@ -6,11 +6,10 @@
 //=== Input File Handling ===
 void BoardFactory::logInputError(const string error_message)
 {
-    Logger::input().logError(error_message);
+    Logger::input().logLine(error_message);
 }
 
-
-bool BoardFactory::parseKeyLine(const string &line, size_t line_number, const string &expected_key, size_t &out_value) 
+bool BoardFactory::parseKeyLine(const string &line, size_t line_number, const string &expected_key, size_t &out_value)
 {
     istringstream iss(line);
     string key, equal_sign;
@@ -42,7 +41,7 @@ bool BoardFactory::parseKeyLine(const string &line, size_t line_number, const st
     return true;
 }
 
-bool BoardFactory::parseBoardLine(GameBoard& board, const string &line, size_t line_number, size_t cols)
+bool BoardFactory::parseBoardLine(GameBoard &board, const string &line, size_t line_number, size_t cols)
 {
     cols = min(cols, line.length()); // ensure no overflowing lines.
 
@@ -61,27 +60,36 @@ bool BoardFactory::parseBoardLine(GameBoard& board, const string &line, size_t l
 
 unique_ptr<GameObject> BoardFactory::createGameObjectOfType(GameBoard &board, GameObjectType type)
 {
-    //TODO: tanks should be initiated with 'tanks_num_shells' shells.
-    switch(type)
-        {
-            case GameObjectType::TANK1:
-                return std::make_unique<Tank>(board, type, Direction::LEFT,board.getTanksNumShells());
+    switch (type)
+    {
+    case GameObjectType::TANK1:
+    case GameObjectType::TANK2:
+    case GameObjectType::TANK3:
+    case GameObjectType::TANK4:
+    case GameObjectType::TANK5:
+    case GameObjectType::TANK6:
+    case GameObjectType::TANK7:
+    case GameObjectType::TANK8:
+    case GameObjectType::TANK9:
+        return std::make_unique<Tank>(
+            board,
+            type,
+            GameObjectTypeUtils::tankTypeToPlayerIndex(type) % 2 == 1 ? Direction::LEFT : Direction::RIGHT,
+            board.getTanksNumShells());
 
-            case GameObjectType::TANK2:
-                return std::make_unique<Tank>(board, type, Direction::RIGHT, board.getTanksNumShells());
+    case GameObjectType::WALL:
+        return std::make_unique<Wall>(board);
 
-            case GameObjectType::WALL:
-                return std::make_unique<Wall>(board);
+    case GameObjectType::MINE:
+        return std::make_unique<Mine>(board);
 
-            case GameObjectType::MINE:
-                return std::make_unique<Mine>(board);
-
-            case GameObjectType::SHELL:
-                return std::make_unique<Shell>(board, Direction::DOWN);
-            
-            default:
-                return nullptr; // should not get here
-        }
+    case GameObjectType::SHELL:
+        return std::make_unique<Shell>(board, Direction::DOWN);
+        // Should never happen, input file should not contain shells.
+        
+    default:
+        return nullptr; // should not get here
+    }
 }
 
 bool BoardFactory::initGameBoardFromFile(GameBoard &board, const string input_file_path)
@@ -90,7 +98,7 @@ bool BoardFactory::initGameBoardFromFile(GameBoard &board, const string input_fi
     return: true iff could initiate board using the input file.
 
     input file expected format:
-    
+
     */
 
     ifstream file(input_file_path);
@@ -125,7 +133,6 @@ bool BoardFactory::initGameBoardFromFile(GameBoard &board, const string input_fi
     BoardFactory::setBoardDimensions(board, rows, cols);
     BoardFactory::setBoardDetails(board, max_steps, tanks_num_shells);
 
-
     // read the board itself
     size_t board_row_number = 0;
 
@@ -144,19 +151,19 @@ bool BoardFactory::initGameBoardFromFile(GameBoard &board, const string input_fi
 }
 
 //=== Board Manipulations ===
-void BoardFactory::setBoardDimensions(GameBoard& board, size_t rows, size_t cols)
+void BoardFactory::setBoardDimensions(GameBoard &board, size_t rows, size_t cols)
 {
     board.setWidth(cols);
     board.setHeight(rows);
 }
 
-void BoardFactory::setBoardDetails(GameBoard& board, size_t max_steps, size_t tanks_num_shells)
+void BoardFactory::setBoardDetails(GameBoard &board, size_t max_steps, size_t tanks_num_shells)
 {
     board.setMaxSteps(max_steps);
     board.setTanksNumShells(tanks_num_shells);
 }
 
-void BoardFactory::addObjectToBoard(GameBoard& board, const char object_char, int x, int y)
+void BoardFactory::addObjectToBoard(GameBoard &board, const char object_char, int x, int y)
 {
     unique_ptr<GameObject> ptr = createGameObjectOfType(board, (GameObjectType)object_char);
     board.addObject(std::move(ptr), {x, y});
