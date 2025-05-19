@@ -14,7 +14,12 @@ bool BoardCell::operator<(const BoardCell &other) const
 
 BoardCell BoardCell::operator+(Direction dir) const
 {
-    auto [dx, dy] = DirectionUtils::directionOffsets(dir);
+    return this + DirectionUtils::directionOffsets(dir);
+}
+
+BoardCell BoardCell::operator+(pair<int, int>& other) const
+{
+    auto [dx, dy] = other;
     return BoardCell(x + dx, y + dy);
 }
 

@@ -11,7 +11,7 @@ enum class Direction
     DOWNL = 5,
     LEFT = 6,
     UPL = 7
-    
+
 };
 
 namespace DirectionUtils
@@ -57,7 +57,21 @@ namespace DirectionUtils
         }
     }
 
-    constexpr inline Direction getOppositeDirection(Direction dir){
+    constexpr inline Direction getOppositeDirection(Direction dir)
+    {
         return rotateRight(dir, 4);
+    }
+
+    constexpr inline pair<int, int> operator*(int times, Direction dir)
+    {
+        pair<int, int> offsets = directionOffsets(dir);
+        offsets.first *= times;
+        offsets.second *= times;
+        return offsets;
+    }
+
+    constexpr inline pair<int, int> operator*(Direction dir, int times)
+    {
+        return times * dir;
     }
 }

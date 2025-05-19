@@ -24,6 +24,8 @@ public:
     // Overload + to add a Direction
     BoardCell operator+(const Direction dir) const;
 
+    BoardCell operator+(const pair<int, int> &other) const;
+
     // Overload - to subtract a Direction
     BoardCell operator-(const Direction dir) const;
 
