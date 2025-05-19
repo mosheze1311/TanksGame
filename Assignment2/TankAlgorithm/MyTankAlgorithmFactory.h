@@ -18,6 +18,6 @@ class MyTankAlgorithmFactory : public TankAlgorithmFactory{
         // Creates a new instance of MyTankAlgorithm
         unique_ptr<TankAlgorithm> create(int player_index, int tank_index) const override
         {
-            return std::make_unique<MyTankAlgorithm>(player_index, tank_index);
+            return std::make_unique<AggressiveTankAlgorithm>(player_index, tank_index);
         }
 };
