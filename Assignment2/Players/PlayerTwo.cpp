@@ -1,4 +1,4 @@
-#include "Player.h"
+#include "../common/Player.h"
 
 class PlayerTwo : public Player{
 public:
