@@ -1,5 +1,4 @@
-#include "GameBoard.h"
-#include "../GameObjects/GameObjects.h"
+#include "BoardCell.h"
 
 // === Constructors ===
 BoardCell::BoardCell():x(0), y(0) {};

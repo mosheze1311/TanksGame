@@ -1,6 +1,8 @@
 #include "GameBoard.h"
+
 #include "../GameObjects/GameObjects.h"
 #include "../Logger/Logger.h"
+
 #include <queue>
 #include <set>
 

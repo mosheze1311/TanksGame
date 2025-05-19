@@ -6,6 +6,8 @@
 #include <vector>
 #include <optional>
 #include "../GameObjects/GameObjects.h"
+#include "BoardCell.h"
+
 using namespace std;
 
 // Forward declarations
@@ -14,35 +16,6 @@ enum class GameObjectType;
 enum class Direction;
 
 // Classes declarations
-class BoardCell
-{
-private:
-    int x;
-    int y;
-
-public:
-    // Empty constructor - do not delete
-    BoardCell();
-
-    // Constructor
-    BoardCell(int x, int y);
-
-    // Overload < operator for using BoardCell as a key in a map
-    bool operator<(const BoardCell &other) const;
-
-    // Overload + to add a Direction
-    BoardCell operator+(const Direction dir) const;
-
-    // Overload - to subtract a Direction
-    BoardCell operator-(const Direction dir) const;
-
-    // == operator
-    bool operator==(const BoardCell &other) const;
-
-    // Getters
-    int getX() const;
-    int getY() const;
-};
 
 class GameBoard
 {
