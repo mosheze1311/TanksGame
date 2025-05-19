@@ -2,40 +2,46 @@
 
 #include "../common/TankAlgorithm.h"
 #include "../GameBoard/GameBoard.h"
-#include "../BattleInfo/MyBattleInfo.h"
+#include "../BattleInfo/BattleInfoAgent.h"
+#include "AbstractTankAlgorithm.h"
 
 // TODO: finish implementation
-class MyTankAlgorithm : public TankAlgorithm
+class AggressiveTankAlgorithm : public AbstractTankAlgorithm
 {
 
 private:
-
     // === Attributes === //
     int player_index;
     int tank_index;
     BoardCell current_cell;
     size_t remaining_shells;
 
+    int getTankIndex() const
+    {
+        return tank_index;
+    }
+    
 public:
+    
     // === Constructor === //
-    MyTankAlgorithm(int player_index, int tank_index)
+    AggressiveTankAlgorithm(int player_index, int tank_index)
         : player_index(player_index),
           tank_index(tank_index),
           current_cell(0, 0),
-          remaining_shells(0)
-    {
-    };
+          remaining_shells(0) {};
+    
     // === Destructor === //
-    ~MyTankAlgorithm() override = default;
+    ~AggressiveTankAlgorithm() override = default;
 
+
+    // === Public Interface === //
     ActionRequest getAction()
     {
-
     }
-    
+
     void updateBattleInfo(BattleInfo &info) override
     {
-        auto *current_info = dynamic_cast<MyBattleInfo *>(&info);
+        auto *current_info = dynamic_cast<BattleInfoAgent *>(&info);
         if (!current_info)
         {
             // Should never happen
