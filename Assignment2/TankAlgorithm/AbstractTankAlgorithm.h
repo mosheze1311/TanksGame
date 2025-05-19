@@ -54,5 +54,51 @@ private:
         // }
     }
 
+// TankAction Player::getTankEvasionAction(const GameBoard &board, const Tank *tank, const MovableObject *evade_from) const
+// {
+//     // try to escape from tank/bullet
+
+//     // --- bullet escape ---
+//     // if can step out of trajectory, move
+//     // if has time to turn around and then escape, turn
+//     // if can shoot the bullet, shoot
+//     // otherwise accept your faith
+
+//     if (auto opt_cell = board.getObjectLocation(tank))
+//     {
+//         BoardCell c = opt_cell.value();
+
+//         if (evade_from->getDirection() == tank->getDirection())
+//         {
+//             if (auto opt_escape_cell = getEscapingRoute(board, tank, c, evade_from->getDirection()))
+//             {
+//                 return adjustDirection(board, c, opt_escape_cell.value(), tank->getDirection());
+//             }
+//             return TankAction::FIRE;
+//         }
+//         else if (evade_from->getDirection() == DirectionUtils::getOppositeDirection(tank->getDirection()))
+//         {
+//             if (auto opt_escape_cell = getEscapingRoute(board, tank, c, evade_from->getDirection()))
+//             {
+//                 return adjustDirection(board, c, opt_escape_cell.value(), tank->getDirection());
+//             }
+//             return TankAction::FIRE;
+//         }
+//         else
+//         {
+//             return TankAction::FORWARD;
+//         }
+//     }
+
+//     // --- tank escape ---
+//     // (assuming can't shoot tank)
+//     // if can move from tank direction (sideways), move
+//     // if both in same direction and nothing in front, move
+//     // if facing each other and nothing behind, move backwards
+//     // otherwise accept your faith
+
+//     return TankAction::NOTHING; // should not get here - only if evade_from not on board.
+// }
+
 
 };
