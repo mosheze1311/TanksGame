@@ -9,73 +9,90 @@
 #include <queue>
 #include <optional>
 
+struct GameDetails
+{
+    size_t max_steps;
+    size_t board_rows;
+    size_t board_cols;
+    size_t max_num_of_shells;
+};
+
+struct TankToPlayerDetails
+{
+    size_t tank_index;
+    size_t current_step;
+    size_t remaining_shells;
+    BoardCell enemy_target_location;
+};
+
+struct PlayerToTankDetails
+{
+    BoardCell current_cell;
+    size_t estimated_enemy_remaining_shells;
+    size_t step_to_get_info;
+};
 
 class BattleInfoAgent : public BattleInfo
 {
 
 private:
-    // === Data sent from Player to TankAlgorithm === //
-    // Player to tank (game static data)
-    size_t max_steps;
-    size_t board_rows;
-    size_t board_cols;
-    size_t max_num_of_shells;
-    
-    // Player to tank (dynamically change mid game)
+    GameDetails game_details;
     SatelliteAnalyitcsView &advanced_sat_view;
-    BoardCell current_cell;
-    size_t estimated_enemy_remaining_shells;
-    size_t step_to_get_info;
 
-    // Tank to player
-    size_t &tank_index;
-    size_t &current_step;
-    size_t &remaining_shells;
-    BoardCell &enemy_target_location;
+    PlayerToTankDetails player_to_tank;
+    TankToPlayerDetails &tank_to_player;
 
 public:
     // === Constructor === //
-    BattleInfoAgent(SatelliteView &sat_view, BoardCell tank_location,
-                    size_t max_steps, size_t shells, size_t rows, size_t cols, size_t &tank_idx, size_t &current_step, size_t &remaining_shells)
-        : 
-        // d
-        advanced_sat_view(advanced_sat_view),
-        current_cell(tank_location),
+    BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, PlayerToTankDetails player_to_tank, GameDetails details, TankToPlayerDetails &tank_to_player)
+        : // dynamic data to tank
+          advanced_sat_view(advanced_sat_view),
+          player_to_tank(player_to_tank),
 
           // static data
-          max_steps(max_steps),
-          max_num_of_shells(shells),
-          board_rows(rows),
-          board_cols(cols),
+          game_details(details),
 
-          tank_index(tank_idx),
-          current_step(current_step),
-          remaining_shells(remaining_shells) {};
+          // dynamic data from tank
+          tank_to_player(tank_to_player) {};
 
     // === Destructor === //
     ~BattleInfoAgent() override = default;
 
-    // === Getters === //
-    BoardCell getCurrentCell() const { return current_cell; }
-    size_t getTankIndex() const { return tank_index; }
-    size_t getMaxSteps() const { return max_steps; }
-    size_t getCurrentStep() const { return current_step; }
-    size_t getRemainingShells() const { return remaining_shells; }
+// === Getters === //
+BoardCell getCurrentCell() const { return player_to_tank.current_cell ; }
+BoardCell getEnemyTargetLocation() const { return tank_to_player.enemy_target_location; }
+size_t getEstimatedEnemyRemainingShells() const { return player_to_tank.estimated_enemy_remaining_shells; }
+size_t getTankIndex() const { return tank_to_player.tank_index; }
+size_t getMaxSteps() const { return game_details.max_steps; }
+size_t getCurrentStep() const { return tank_to_player.current_step; }
+size_t getRemainingShells() const { return tank_to_player.remaining_shells; }
 
-    // === Setters === //
+// === Setters === //
 
-    void setRemainingShells(size_t shells)
-    {
-        remaining_shells = shells;
-    }
+void setCurrentCell(BoardCell cell)
+{
+    player_to_tank.current_cell = cell;
+}
 
-    void setCurrentStep(size_t step)
-    {
-        current_step = step;
-    }
+void setEnemyTargetLocation(BoardCell target)
+{
+    tank_to_player.enemy_target_location = target;
+}
 
-    // === Additional methods (rename later) === //
-    
+void setEstimatedEnemyRemainingShells(size_t shells)
+{
+    player_to_tank.estimated_enemy_remaining_shells = shells;
+}
 
-    // TODO: Rethink about functions that can be added here.
+void setCurrentStep(size_t step)
+{
+    tank_to_player.current_step = step;
+}
+
+void setRemainingShells(size_t shells)
+{
+    tank_to_player.remaining_shells = shells;
+}
+
+    // === INIT Analytics === //
 };
