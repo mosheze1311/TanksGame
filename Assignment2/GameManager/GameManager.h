@@ -21,6 +21,7 @@ private:
     GameBoard board;
     size_t remaining_steps;
     const size_t steps_after_shells_end = 40;
+    bool are_steps_limited_by_shells = false;
 
     const PlayerFactory &player_factory;
     const TankAlgorithmFactory &tank_algorithm_factory;
@@ -33,11 +34,15 @@ private:
 
     //=== Getters ===
     int getRemainingSteps() const; // private getter for readability
+    vector<GameObjectType> getActiveTankTypes(map<GameObjectType, size_t> players_tanks_count) const;
 
+    //=== Setters ===
+    void setRemainingSteps(int nnum_shells);
+    
     //=== Gameplay Function ===
     bool concludeGame(); // Checks if a game is finsihed in a specific turn
     void performActionsOnBoard(map<int, ActionRequest> actions);
-    void moveShellsOnce();                       // Move shells acoording to their direction
+    void moveShellsOnce();                   // Move shells acoording to their direction
     BoardSatelliteView TakeSatelliteImage(); // Returns an updated SatelliteView object at the start of the turn.
     void advanceStepsClock();
 
@@ -62,7 +67,7 @@ private:
 
     map<int, ActionRequest> requestAlgorithmsActions();
 
-    void moveShells(int times, GameCollisionHandler& c_handler, GameDrawer& d);
+    void moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d);
 
 public:
     //=== Constructors ===

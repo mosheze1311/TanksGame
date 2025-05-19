@@ -9,6 +9,23 @@ int GameManager::getRemainingSteps() const
     return this->remaining_steps;
 }
 
+vector<GameObjectType> GameManager::getActiveTankTypes(map<GameObjectType, size_t> players_tanks_count) const{
+
+    vector<GameObjectType> tanks_types_alive;
+    for (auto &[type, tank_count] : players_tanks_count)
+    {
+        if (tank_count > 0)
+            tanks_types_alive.push_back(type);
+    }
+
+    return tanks_types_alive;
+}
+
+//=== Setters ===
+void GameManager::setRemainingSteps(int num_steps){
+    this->remaining_steps = num_steps;
+}
+
 //=== Log Functions ===
 void GameManager::logWin(int winner, int remaining_tanks) const
 {
@@ -34,6 +51,11 @@ void GameManager::logMaxStepsTie() const
     }
 
     logTie(reason);
+}
+
+void GameManager::logZeroShellsTie() const
+{
+    logTie("both players have zero shells for " + std::to_string(this->steps_after_shells_end) + " steps");
 }
 
 void GameManager::logTie(string reason) const
@@ -110,22 +132,16 @@ void GameManager::performActionsOnBoard(map<int, ActionRequest> actions)
 
 bool GameManager::concludeGame()
 {
-    // TODO: check if remaining_shells is a condition to stop the game.
-    // TODO: if condition above is not required, remove reamining shells count from GameBoard (argument, references, getFunction)
     map<GameObjectType, size_t> players_tanks_count = board.getTanksCountPerType();
-    vector<GameObjectType> tanks_types_alive;
+    vector<GameObjectType> tanks_types_alive = this->getActiveTankTypes(players_tanks_count);
 
-    for (auto &[type, tank_count] : players_tanks_count)
-    {
-        if (tank_count > 0)
-        {
-            tanks_types_alive.push_back(type);
-        }
-    }
-    
     if (this->board.getTotalRemainingShells() == 0)
     {
-        remaining_steps = std::min(steps_after_shells_end, remaining_steps);
+        if (steps_after_shells_end < this->getRemainingSteps())
+        {
+            are_steps_limited_by_shells = true;
+            this->setRemainingSteps(steps_after_shells_end);
+        }
     }
 
     if (tanks_types_alive.size() == 1)
@@ -142,10 +158,10 @@ bool GameManager::concludeGame()
 
     if (this->getRemainingSteps() == 0)
     {
-        this->logMaxStepsTie();
+        this->are_steps_limited_by_shells ? this->logZeroShellsTie() : this->logMaxStepsTie();
         return true;
     }
-    
+
     return false;
 }
 
@@ -163,7 +179,7 @@ void GameManager::moveShellsOnce()
     }
 }
 
-void GameManager::moveShells(int times, GameCollisionHandler &c_handler, GameDrawer& d)
+void GameManager::moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d)
 {
     for (int i = 0; i < times; ++i)
     {
@@ -186,7 +202,7 @@ BoardSatelliteView GameManager::TakeSatelliteImage()
 map<int, ActionRequest> GameManager::requestAlgorithmsActions()
 {
     map<int, ActionRequest> actions;
-        for (size_t i = 0; i < tanks.size(); ++i)
+    for (size_t i = 0; i < tanks.size(); ++i)
     {
         Tank *tank = tanks[i];
         if (!board.isObjectOnBoard(tank))
@@ -208,7 +224,6 @@ GameManager::GameManager(const PlayerFactory &player_factory, const TankAlgorith
 
 void GameManager::run(DrawingType dt)
 {
-    // TODO: need to modify this function logic.
     GameCollisionHandler c_handler(this->board);
     GameDrawer d(this->board, dt);
 
@@ -231,9 +246,7 @@ void GameManager::run(DrawingType dt)
 
         // check for winner / tie
         if (this->concludeGame())
-        {
             break;
-        }
     }
 }
 
