@@ -139,6 +139,7 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObj
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, board, obj_type, c);
 }
 
+
 bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
 {
     auto objects_on_cell = board.getObjectsOnCell(c);
@@ -155,4 +156,35 @@ bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, c
     }
     
     return false;
+}
+
+// Overloaded functions for SatelliteView
+bool GameCollisionHandler::isObjectAllowedToStepOn(const SatelliteAnalyitcsView& sat_view, GameObjectType obj_type, BoardCell c)
+{
+    return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, sat_view, obj_type, c);
+}
+
+bool GameCollisionHandler::canObjectSafelyStepOn(const SatelliteAnalyitcsView& sat_view, GameObjectType obj_type, BoardCell c)
+{
+    if (!GameCollisionHandler::isObjectAllowedToStepOn(sat_view, obj_type, c))
+    {
+        return false;
+    }
+
+    return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, sat_view, obj_type, c);
+}
+
+bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
+{
+    char cell_obj_char = sat_view.getObjectAt(c.getX(), c.getY());
+    
+    // handle empty space and out of bounds case
+    if (!GameObjectTypeUtils::isValidObjectChar(cell_obj_char))
+        return false;
+
+    GameObjectType cell_obj_type = static_cast<GameObjectType>(cell_obj_char);
+    CollisionObjectType cell_obj_coll_type = CollisionObjectTypeUtils::fromGameObjectType(cell_obj_type);
+    const unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
+
+    return collidors.find(cell_obj_coll_type) != collidors.end();
 }

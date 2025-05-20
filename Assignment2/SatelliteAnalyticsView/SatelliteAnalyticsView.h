@@ -4,6 +4,7 @@
 #include "../GameObjects/Direction.h"
 #include "../GameObjects/GameObjectType.h"
 #include "../common/SatelliteView.h"
+#include "../SatelliteView/BoardSatelliteView.h"
 #include "../GameObjects/GameObjects.h"
 
 #include <vector>
@@ -155,4 +156,34 @@ public:
 
     //=== Destructor ===//
     ~SatelliteAnalyitcsView();
+
+    //=== Getters ===//
+
+    const size_t &getWidth() const
+    {
+        return this->width;
+    }
+
+    const size_t &getHeight() const
+    {
+        return this->height;
+    };
+
+
+    // TODO: improve function visibility
+    char getObjectAt(size_t x, size_t y) const
+{
+    if (x < 0 || x > this->width || y < 0 || y > this->height)
+    {
+        return '&';
+    }
+
+    auto iter = this->analytical_view.find(BoardCell(x, y));
+    if (iter == this->analytical_view.end())
+    {
+        return ' ';
+    }
+
+    return static_cast<char>(iter->second.first);
+}
 };

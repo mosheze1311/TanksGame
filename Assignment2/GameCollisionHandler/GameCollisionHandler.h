@@ -4,6 +4,8 @@
 #include "GameBoardShallowCopy.h"
 #include "CollisionObjectType.h"
 #include "../GameBoardUtils/GameBoardUtils.h"
+#include "../SatelliteView/BoardSatelliteView.h"
+#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 
 #include <unordered_set>
 #include <map>
@@ -41,6 +43,9 @@ private:
     // check for collisions regarding the collision map
     static bool isCollidingOnCell(CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c);
 
+    // Overloaded function for SatelliteView
+    static bool isCollidingOnCell(CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
+
     // explosion list
     static const unordered_set<CollisionObjectType> getCollidingTypes(CollisionMap collision_map, GameObjectType t);
 
@@ -66,4 +71,9 @@ private:
     static bool isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
 
     static bool canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
+
+    // Overloaded functions for SatelliteView
+    static bool isObjectAllowedToStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
+
+    static bool canObjectSafelyStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
 };
