@@ -25,6 +25,8 @@ enum class AssumedDirection
     UNKNOWN = 8
 };
 
+// TODO: the satellite images are taken before the beginning of the step. therefore, to accuratly represent the board, need to move shells another step?
+// TODO: if above todo is made, how to handle bullets with unkown location?
 class SatelliteAnalyitcsView
 {
 private:
@@ -186,4 +188,10 @@ public:
 
     return static_cast<char>(iter->second.first);
 }
+
+    std::optional<BoardCell> getObjectLocation(const GameObject *go) const
+{
+    
+}
+
 };

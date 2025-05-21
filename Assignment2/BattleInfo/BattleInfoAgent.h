@@ -23,6 +23,7 @@ struct TankToPlayerDetails
     size_t current_step;
     size_t remaining_shells;
     BoardCell enemy_target_location;
+    Direction dir;
 };
 
 struct PlayerToTankDetails
@@ -66,6 +67,7 @@ size_t getTankIndex() const { return tank_to_player.tank_index; }
 size_t getMaxSteps() const { return game_details.max_steps; }
 size_t getCurrentStep() const { return tank_to_player.current_step; }
 size_t getRemainingShells() const { return tank_to_player.remaining_shells; }
+Direction getTankDirection() const { return tank_to_player.dir; }
 
 // === Setters === //
 
@@ -92,6 +94,11 @@ void setCurrentStep(size_t step)
 void setRemainingShells(size_t shells)
 {
     tank_to_player.remaining_shells = shells;
+}
+
+void setTankDirection(Direction dir)
+{
+    tank_to_player.dir = dir;
 }
 
     // === INIT Analytics === //

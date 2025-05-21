@@ -1,6 +1,7 @@
 #pragma once
 #include "../GameObjects/Direction.h"
 
+
 // Forward declarations
 enum class Direction;
 
@@ -24,10 +25,12 @@ public:
     // Overload + to add a Direction
     BoardCell operator+(const Direction dir) const;
 
-    BoardCell operator+(const pair<int, int> &other) const;
+    BoardCell operator+(const std::pair<int, int> &other) const;
 
     // Overload - to subtract a Direction
     BoardCell operator-(const Direction dir) const;
+
+    BoardCell operator-(const pair<int, int> &other) const;
 
     // == operator
     bool operator==(const BoardCell &other) const;
