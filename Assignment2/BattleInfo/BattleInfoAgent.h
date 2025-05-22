@@ -1,14 +1,17 @@
 #pragma once
 
+#include "../common/ActionRequest.h"
 #include "../common/BattleInfo.h"
 #include "../common/SatelliteView.h"
-#include "../GameBoard/GameBoard.h"
-#include "../common/ActionRequest.h"
-#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
-#include <vector>
-#include <queue>
-#include <optional>
 
+#include "../GameBoard/GameBoard.h"
+#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
+
+#include <optional>
+#include <queue>
+#include <vector>
+
+// === Container Structs ===
 struct GameDetails
 {
     size_t max_steps;
@@ -19,11 +22,11 @@ struct GameDetails
 
 struct TankToPlayerDetails
 {
-    size_t tank_index;
-    size_t current_step;
-    size_t remaining_shells;
-    BoardCell enemy_target_location;
-    Direction dir;
+    size_t tank_index = 0;
+    size_t current_step = 0;
+    size_t remaining_shells = 0;
+    BoardCell enemy_target_location = BoardCell(0,0);
+    Direction dir = Direction::RIGHT; 
 };
 
 struct PlayerToTankDetails
@@ -33,73 +36,39 @@ struct PlayerToTankDetails
     size_t step_to_get_info;
 };
 
+// === Class Declaration ===
 class BattleInfoAgent : public BattleInfo
 {
-
 private:
+    // === Attributes ===
     GameDetails game_details;
     SatelliteAnalyitcsView &advanced_sat_view;
 
     PlayerToTankDetails player_to_tank;
-    TankToPlayerDetails &tank_to_player;
+    TankToPlayerDetails tank_to_player;
 
 public:
-    // === Constructor === //
-    BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, PlayerToTankDetails player_to_tank, GameDetails details, TankToPlayerDetails &tank_to_player)
-        : // dynamic data to tank
-          advanced_sat_view(advanced_sat_view),
-          player_to_tank(player_to_tank),
+    // === Constructor ===
+    BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, PlayerToTankDetails player_to_tank, GameDetails details);
 
-          // static data
-          game_details(details),
+    // === Destructor ===
+    ~BattleInfoAgent() override;
 
-          // dynamic data from tank
-          tank_to_player(tank_to_player) {};
+    // === Getters ===
+    BoardCell getCurrentCell() const;
+    BoardCell getEnemyTargetLocation() const;
+    size_t getEstimatedEnemyRemainingShells() const;
+    size_t getTankIndex() const;
+    size_t getMaxSteps() const;
+    size_t getCurrentStep() const;
+    size_t getRemainingShells() const;
+    Direction getTankDirection() const;
 
-    // === Destructor === //
-    ~BattleInfoAgent() override = default;
-
-// === Getters === //
-BoardCell getCurrentCell() const { return player_to_tank.current_cell ; }
-BoardCell getEnemyTargetLocation() const { return tank_to_player.enemy_target_location; }
-size_t getEstimatedEnemyRemainingShells() const { return player_to_tank.estimated_enemy_remaining_shells; }
-size_t getTankIndex() const { return tank_to_player.tank_index; }
-size_t getMaxSteps() const { return game_details.max_steps; }
-size_t getCurrentStep() const { return tank_to_player.current_step; }
-size_t getRemainingShells() const { return tank_to_player.remaining_shells; }
-Direction getTankDirection() const { return tank_to_player.dir; }
-
-// === Setters === //
-
-void setCurrentCell(BoardCell cell)
-{
-    player_to_tank.current_cell = cell;
-}
-
-void setEnemyTargetLocation(BoardCell target)
-{
-    tank_to_player.enemy_target_location = target;
-}
-
-void setEstimatedEnemyRemainingShells(size_t shells)
-{
-    player_to_tank.estimated_enemy_remaining_shells = shells;
-}
-
-void setCurrentStep(size_t step)
-{
-    tank_to_player.current_step = step;
-}
-
-void setRemainingShells(size_t shells)
-{
-    tank_to_player.remaining_shells = shells;
-}
-
-void setTankDirection(Direction dir)
-{
-    tank_to_player.dir = dir;
-}
-
-    // === INIT Analytics === //
+    // === Setters ===
+    void setCurrentCell(const BoardCell& cell);
+    void setEnemyTargetLocation(const BoardCell& target);
+    void setEstimatedEnemyRemainingShells(size_t shells);
+    void setCurrentStep(size_t step);
+    void setRemainingShells(size_t shells);
+    void setTankDirection(Direction dir);
 };
