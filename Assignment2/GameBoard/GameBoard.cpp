@@ -1,16 +1,20 @@
 #include "GameBoard.h"
 
 #include "../GameObjects/GameObjects.h"
-#include "../Logger/Logger.h"
 
 #include <queue>
 #include <set>
 
-using namespace std;
+// === BoardDetails Constructor ===
+GameBoard::BoardDetails::BoardDetails(int height, int width) : height(height), width(width),
+                                                               max_steps(0), tanks_num_shells(0),
+                                                               walls(0), mines(0), shells(0), tanks_count(),
+                                                               remaining_shells(0) {};
 
-// === Constructors ===
+// === Constructor ===
 GameBoard::GameBoard(int height, int width) : board_details(height, width) {}
 
+// === Destructor ===
 GameBoard::~GameBoard()
 {
     auto locs = this->objects_locations;
@@ -37,7 +41,7 @@ void GameBoard::removeObjectInternal(GameObject *obj, bool final)
         owned_objects.erase(obj);
 }
 
-void GameBoard::addObjectInternal(unique_ptr<GameObject> obj, const BoardCell &c)
+void GameBoard::addObjectInternal(std::unique_ptr<GameObject> obj, const BoardCell &c)
 {
     GameObject *raw_ptr = obj.get();
     this->owned_objects[raw_ptr] = std::move(obj);
@@ -98,6 +102,24 @@ BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c) const
     return this->createBoardCell(c.getX(), c.getY());
 }
 
+// === Init from File ===
+bool GameBoard::initFromFile(const std::string &input_file_path)
+{
+    auto setBoardDetails = [this](int width, int height, int max_steps, int tanks_num_shells)
+    {
+        this->setWidth(width);
+        this->setHeight(height);
+        this->setMaxSteps(max_steps);
+        this->setTanksNumShells(tanks_num_shells);
+    };
+    auto addObject = [this](std::unique_ptr<GameObject> ptr, const BoardCell &cell)
+    {
+        this->addObject(std::move(ptr), cell);
+    };
+
+    return GameBoardInitializer::initGameBoardFromFile(input_file_path, *this ,setBoardDetails, addObject);
+}
+
 // === Getters ===
 size_t GameBoard::getWidth() const
 {
@@ -119,7 +141,7 @@ size_t GameBoard::getTanksNumShells() const
     return this->board_details.tanks_num_shells;
 }
 
-map<GameObjectType, size_t> GameBoard::getTanksCountPerType() const
+std::map<GameObjectType, size_t> GameBoard::getTanksCountPerType() const
 {
     return this->board_details.tanks_count;
 }
@@ -162,9 +184,9 @@ int GameBoard::getTotalRemainingShells() const
     return this->board_details.remaining_shells;
 }
 
-vector<BoardCell> GameBoard::getOccupiedCells() const
+std::vector<BoardCell> GameBoard::getOccupiedCells() const
 {
-    vector<BoardCell> occupied_cells;
+    std::vector<BoardCell> occupied_cells;
     for (auto iter : this->board)
     {
         occupied_cells.push_back(iter.first);
@@ -183,20 +205,20 @@ std::unordered_set<GameObject *> GameBoard::getObjectsOnCell(const BoardCell &c)
     return {};
 }
 
-optional<BoardCell> GameBoard::getObjectLocation(const GameObject *obj) const
+std::optional<BoardCell> GameBoard::getObjectLocation(const GameObject *obj) const
 {
     auto iter = this->objects_locations.find(const_cast<GameObject *>(obj));
     if (iter == this->objects_locations.end())
     {
-        return nullopt;
+        return std::nullopt;
     }
     return iter->second;
 }
 
-vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
+std::vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
 {
     // Returns a vector of all instances if a specific GameObject
-    vector<GameObject *> res;
+    std::vector<GameObject *> res;
     for (const auto &iter : this->owned_objects)
     {
         if (iter.first->getObjectType() == t)
@@ -227,9 +249,9 @@ std::vector<Tank *> GameBoard::getTanks(GameObjectType t) const
     return tanks;
 }
 
-vector<GameObject *> GameBoard::getAllGameObjects() const
+std::vector<GameObject *> GameBoard::getAllGameObjects() const
 {
-    vector<GameObject *> res;
+    std::vector<GameObject *> res;
     for (const auto &obj : this->owned_objects)
     {
         res.push_back(obj.first);
@@ -245,6 +267,7 @@ bool GameBoard::isOccupiedCell(const BoardCell &c) const
 
 bool GameBoard::isObjectOnBoard(const GameObject *obj) const
 {
+    // TODO: const cast
     return this->objects_locations.find(const_cast<GameObject *>(obj)) != this->objects_locations.end();
 }
 
@@ -272,7 +295,7 @@ void GameBoard::setTanksNumShells(size_t tanks_num_shells)
 }
 
 //=== Modify Board Functions ===
-void GameBoard::addObject(unique_ptr<GameObject> obj, const BoardCell &c)
+void GameBoard::addObject(std::unique_ptr<GameObject> obj, const BoardCell &c)
 {
     this->updateObjectCount(obj.get(), 1);
     this->addObjectInternal(std::move(obj), this->createAdjustedBoardCell(c));
