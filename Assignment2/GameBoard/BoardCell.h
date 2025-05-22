@@ -1,6 +1,9 @@
 #pragma once
+
 #include "../GameObjects/Direction.h"
 
+#include <ostream>
+#include <utility>
 
 // Forward declarations
 enum class Direction;
@@ -9,33 +12,44 @@ enum class Direction;
 class BoardCell
 {
 private:
+    // === Atributes ===
+    // values are not const to allow assignment using operator=. cannot really change them - no setters.
     int x;
     int y;
 
 public:
-    // Empty constructor - do not delete
+    // === Constructors ===
+    // Empty constructor - do not delete, used in STL containers.
     BoardCell();
 
-    // Constructor
     BoardCell(int x, int y);
 
-    // Overload < operator for using BoardCell as a key in a map
-    bool operator<(const BoardCell &other) const;
+    // === Getters ===
+    [[nodiscard]] int getX() const;
 
-    // Overload + to add a Direction
-    BoardCell operator+(const Direction dir) const;
+    [[nodiscard]] int getY() const;
 
-    BoardCell operator+(const std::pair<int, int> &other) const;
+    // === Overloading Comparison Operators ===
+    // Allow using BoardCell as a key in a map
+    [[nodiscard]] bool operator<(const BoardCell &other) const;
 
-    // Overload - to subtract a Direction
-    BoardCell operator-(const Direction dir) const;
+    // Allow comparing cells (default compares all fields by value)
+    [[nodiscard]] bool operator==(const BoardCell &other) const = default;
 
-    BoardCell operator-(const pair<int, int> &other) const;
+    // === Overloading Arithmetic Operators ===
+    // Returns a new cell moved in the given direction
+    [[nodiscard]] BoardCell operator+(Direction dir) const;
+    
+    // Returns a new cell moved opposite to the given direction
+    [[nodiscard]] BoardCell operator-(Direction dir) const;
 
-    // == operator
-    bool operator==(const BoardCell &other) const;
+    // Returns a new cell offset by the given delta
+    [[nodiscard]] BoardCell operator+(const std::pair<int, int> &offsets) const;
 
-    // Getters
-    int getX() const;
-    int getY() const;
+    // Returns a new cell offset negatively by the given delta
+    [[nodiscard]] BoardCell operator-(const std::pair<int, int> &offsets) const;
+
 };
+
+// === Overloading << Operator for Printing ===
+std::ostream &operator<<(std::ostream &os, const BoardCell &cell);
