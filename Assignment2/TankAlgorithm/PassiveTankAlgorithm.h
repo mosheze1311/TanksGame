@@ -6,14 +6,14 @@
 
 #include "../BattleInfo/BattleInfoAgent.h"
 
-class AggressiveTankAlgorithm : public AbstractTankAlgorithm
+class PassiveTankAlgorithm : public AbstractTankAlgorithm
 {
 public:
     // === Constructor === //
-    AggressiveTankAlgorithm(size_t player_index, size_t tank_index);
+    PassiveTankAlgorithm(size_t player_index, size_t tank_index);
 
     // === Destructor === //
-    ~AggressiveTankAlgorithm() override;
+    ~PassiveTankAlgorithm() override;
 
     // === Public Interface === //
     ActionRequest getAction() override;
