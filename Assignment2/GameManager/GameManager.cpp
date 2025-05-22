@@ -4,7 +4,7 @@
 #include "../Utils/ActionRequestutils.h"
 
 //=== Getters ===
-int GameManager::getRemainingSteps() const
+size_t GameManager::getRemainingSteps() const
 {
     return this->remaining_steps;
 }
@@ -222,6 +222,11 @@ GameManager::GameManager(const PlayerFactory &player_factory, const TankAlgorith
 {
 }
 
+bool GameManager::readBoard(std::string input_file_path)
+{
+    return this->board.initFromFile(input_file_path);
+}
+
 void GameManager::run(DrawingType dt)
 {
     GameCollisionHandler c_handler(this->board);
@@ -248,9 +253,4 @@ void GameManager::run(DrawingType dt)
         if (this->concludeGame())
             break;
     }
-}
-
-bool GameManager::readBoard(std::string input_file_path)
-{
-    return BoardFactory::initGameBoardFromFile(this->board, input_file_path);
 }

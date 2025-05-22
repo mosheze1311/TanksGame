@@ -1,6 +1,9 @@
 #pragma once
+
 #include "../common/SatelliteView.h"
-#include "../GameCollisionHandler/GameCollisionHandler.h"
+
+#include "../GameBoard/GameBoard.h"
+
 #include <vector>
 #include <map>
 

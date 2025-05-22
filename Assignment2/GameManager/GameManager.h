@@ -2,7 +2,8 @@
 #include "../common/PlayerFactory.h"
 #include "../common/TankAlgorithmFactory.h"
 
-#include "../BoardFactory/BoardFactory.h"
+#include "../GameBoardInitializer/GameBoardInitializer.h"
+#include "../GameCollisionHandler/GameCollisionHandler.h"
 #include "../GameDrawer/GameDrawer.h"
 #include "../GameBoard/GameBoard.h"
 #include "../SatelliteView/BoardSatelliteView.h"
@@ -33,7 +34,7 @@ private:
     string output_file_name;
 
     //=== Getters ===
-    int getRemainingSteps() const; // private getter for readability
+    size_t getRemainingSteps() const; // private getter for readability
     vector<GameObjectType> getActiveTankTypes(map<GameObjectType, size_t> players_tanks_count) const;
 
     //=== Setters ===
