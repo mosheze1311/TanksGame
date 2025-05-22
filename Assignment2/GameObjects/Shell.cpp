@@ -18,7 +18,7 @@ void Shell::advance()
 }
 
 //=== Drawing ===
-string Shell::getDrawing(DrawingType t) const
+std::string Shell::getDrawing(DrawingType t) const
 {
     switch (t)
     {

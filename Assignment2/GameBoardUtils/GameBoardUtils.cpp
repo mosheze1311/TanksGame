@@ -3,14 +3,14 @@
 int GameBoardUtils::xDistance(const BoardCell &first, const BoardCell &second, size_t width)
 {
     size_t dx = abs(first.getX() - second.getX());
-    dx = min(dx, width - dx);
+    dx = std::min(dx, width - dx);
     return dx;
 }
 
 int GameBoardUtils::yDistance(const BoardCell &first, const BoardCell &second, size_t height)
 {
     size_t dy = abs(first.getY() - second.getY());
-    dy = min(dy, height - dy);
+    dy = std::min(dy, height - dy);
     return dy;
 }
 
@@ -46,7 +46,7 @@ BoardCell GameBoardUtils::getNextCellInStraightLine(BoardCell from, BoardCell to
     // int vertical_border_dx = this->getWidth() + min(from.getX(), to.getX()) - max(from.getX(), to.getX());
     // int horizontal_border_dy = this->getHeight() + min(from.getY(), to.getY()) - max(from.getY(), to.getY());
 
-    vector<BoardCell> neighbors = getAdjacentCells(from, width, height);
+    std::vector<BoardCell> neighbors = getAdjacentCells(from, width, height);
     int min_dist = distance(from, to, width, height);
     BoardCell next = from;
 
@@ -72,9 +72,9 @@ BoardCell GameBoardUtils::getNextCellInDirection(const BoardCell &c, const Direc
     return createAdjustedBoardCell(c + dir, width, height);
 }
 
-vector<BoardCell> GameBoardUtils::getAdjacentCells(const BoardCell &curr_cell, size_t width, size_t height)
+std::vector<BoardCell> GameBoardUtils::getAdjacentCells(const BoardCell &curr_cell, size_t width, size_t height)
 {
-    vector<BoardCell> res;
+    std::vector<BoardCell> res;
 
     for (int dir_number = 0; dir_number < 8; dir_number++)
     {

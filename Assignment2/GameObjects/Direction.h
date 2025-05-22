@@ -1,4 +1,5 @@
 #pragma once
+
 #include <utility>
 
 enum class Direction
@@ -54,7 +55,7 @@ namespace DirectionUtils
         default:
             // This should never happen
             return {0, 0};
-        }
+        };
     }
 
     constexpr inline Direction getOppositeDirection(Direction dir)
@@ -62,15 +63,15 @@ namespace DirectionUtils
         return rotateRight(dir, 4);
     }
 
-    constexpr inline pair<int, int> operator*(int times, Direction dir)
+    constexpr inline std::pair<int, int> operator*(int times, Direction dir)
     {
-        pair<int, int> offsets = directionOffsets(dir);
+        std::pair<int, int> offsets = directionOffsets(dir);
         offsets.first *= times;
         offsets.second *= times;
         return offsets;
     }
 
-    constexpr inline pair<int, int> operator*(Direction dir, int times)
+    constexpr inline std::pair<int, int> operator*(Direction dir, int times)
     {
         return times * dir;
     }

@@ -7,8 +7,8 @@ class GameBoardShallowCopy
 private:
     int width;
     int height;
-    unordered_map<GameObject *, BoardCell> objects_locations;
-    map<BoardCell, unordered_set<GameObject *>> board;
+    std::unordered_map<GameObject *, BoardCell> objects_locations;
+    std::map<BoardCell, std::unordered_set<GameObject *>> board;
 
 public:
     GameBoardShallowCopy(const GameBoard &b)
@@ -34,10 +34,10 @@ public:
     };
 
     // get all objects on the board
-    vector<GameObject *> getAllGameObjects() const
+    std::vector<GameObject *> getAllGameObjects() const
     {
-        vector<GameObject *> res;
-        for (const pair<GameObject *, BoardCell> iter : this->objects_locations)
+        std::vector<GameObject *> res;
+        for (const std::pair<GameObject *, BoardCell> iter : this->objects_locations)
         {
             res.push_back(iter.first);
         }
@@ -50,7 +50,7 @@ public:
         auto iter = this->objects_locations.find(const_cast<GameObject *>(go));
         if (iter == this->objects_locations.end())
         {
-            return nullopt;
+            return std::nullopt;
         }
         return iter->second;
     };

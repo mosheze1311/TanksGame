@@ -36,16 +36,16 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
     // a mid step collision occurs when two objects switch lcations between steps.
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
-        optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
-        optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
+        std::optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
+        std::optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
         if (!opt_current_loc || !opt_previous_loc) // object is no longer on board. TODO: think of new shells and how it effects them
             continue;
         
         BoardCell current_location = *opt_current_loc;
         BoardCell previous_location = *opt_previous_loc;
 
-        unordered_set<CollisionObjectType> colliders = this->getCollidingTypes(GameCollisionHandler::explosion_map, obj->getObjectType());
-        unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location); // potential mid step collisions
+        std::unordered_set<CollisionObjectType> colliders = this->getCollidingTypes(GameCollisionHandler::explosion_map, obj->getObjectType());
+        std::unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location); // potential mid step collisions
         for (GameObject *other : objects_that_were_on_my_current_cell)
         {
             if (!updated_board.isObjectOnBoard(other))
@@ -57,7 +57,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
             if (colliders.find(CollisionObjectTypeUtils::fromGameObjectType(obj->getObjectType())) == colliders.end())
                 continue;
 
-            optional<BoardCell> opt_other_current_loc = updated_board.getObjectLocation(other);
+            std::optional<BoardCell> opt_other_current_loc = updated_board.getObjectLocation(other);
             if (!opt_other_current_loc)
                 continue;
 
@@ -78,11 +78,11 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) c
     // each collision cause 1 hp hit
     for (BoardCell &cell : updated_board.getOccupiedCells())
     {
-        unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
+        std::unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
         for (auto iter = cell_objects.begin(); iter != cell_objects.end();)
         {
             GameObject *obj1 = *iter;
-            unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
+            std::unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
             for (auto iter2 = ++iter; iter2 != cell_objects.end(); ++iter2)
             {
                 GameObject *obj2 = *iter2;
@@ -100,7 +100,7 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) c
 
 void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard &updated_board)
 {
-    vector<GameObject *> all_shells = updated_board.getGameObjects(GameObjectType::SHELL);
+    std::vector<GameObject *> all_shells = updated_board.getGameObjects(GameObjectType::SHELL);
     for (GameObject *shell_obj : all_shells)
     {
         if (!(this->previous_board.isObjectOnBoard(shell_obj)))
@@ -113,7 +113,7 @@ void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard &upd
     }
 }
 
-const unordered_set<CollisionObjectType> GameCollisionHandler::getCollidingTypes(CollisionMap collision_map, GameObjectType objType)
+const std::unordered_set<CollisionObjectType> GameCollisionHandler::getCollidingTypes(CollisionMap collision_map, GameObjectType objType)
 {
     auto iter = collision_map.find(CollisionObjectTypeUtils::fromGameObjectType(objType));
     if (iter != collision_map.end())
@@ -143,7 +143,7 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObj
 bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
 {
     auto objects_on_cell = board.getObjectsOnCell(c);
-    const unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
+    const std::unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
 
     if (collidors.empty())
         return false;
@@ -176,7 +176,7 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const SatelliteAnalyitcsView& s
 
 bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
 {
-    char cell_obj_char = sat_view.getObjectAt(c.getX(), c.getY());
+    char cell_obj_char = sat_view.getObjectAt(c.getX(), c.getY()).first;
     
     // handle empty space and out of bounds case
     if (!GameObjectTypeUtils::isValidObjectChar(cell_obj_char))
@@ -184,7 +184,7 @@ bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, c
 
     GameObjectType cell_obj_type = static_cast<GameObjectType>(cell_obj_char);
     CollisionObjectType cell_obj_coll_type = CollisionObjectTypeUtils::fromGameObjectType(cell_obj_type);
-    const unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
+    const std::unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
 
     return collidors.find(cell_obj_coll_type) != collidors.end();
 }

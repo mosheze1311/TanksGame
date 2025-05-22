@@ -49,7 +49,7 @@ int Tank::getBackwardWait() const
 //=== Round Clock Management ===
 void Tank::tickBackwardsWait()
 {
-    turns_to_wait_for_backward = max(turns_to_wait_for_backward - 1, -2);
+    turns_to_wait_for_backward = std::max(turns_to_wait_for_backward - 1, -2);
     if (turns_to_wait_for_backward == 0)
     {
         if (auto opt_cell = board.getObjectLocation(this))
@@ -175,31 +175,31 @@ void Tank::moveToCell(BoardCell target)
     this->board.moveGameObject(this, target);
 }
 
-optional<BoardCell> Tank::getForwardCell() const
+std::optional<BoardCell> Tank::getForwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
         return GameBoardUtils::getNextCellInDirection(current_cell.value(), this->getDirection(), board.getWidth(), board.getHeight());
     }
-    return nullopt;
+    return std::nullopt;
 }
 
-optional<BoardCell> Tank::getCurrentCell() const
+std::optional<BoardCell> Tank::getCurrentCell() const
 {
     if (auto opt_cell = board.getObjectLocation(this))
     {
         return opt_cell.value();
     }
-    return nullopt;
+    return std::nullopt;
 }
 
-optional<BoardCell> Tank::getBackwardCell() const
+std::optional<BoardCell> Tank::getBackwardCell() const
 {
     if (auto current_cell = this->getCurrentCell())
     {
         return GameBoardUtils::getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()), board.getWidth(), board.getHeight());
     }
-    return nullopt;
+    return std::nullopt;
 }
 
 bool Tank::performBackwardAction()
@@ -311,7 +311,7 @@ void Tank::shoot()
 }
 
 //=== Drawing ===
-string Tank::getDrawing(DrawingType t) const
+std::string Tank::getDrawing(DrawingType t) const
 {
     bool is_t1 = this->getObjectType() == GameObjectType::TANK1;
 

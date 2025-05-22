@@ -1,17 +1,20 @@
 #pragma once
-#include "../GameBoard/GameBoard.h"
-#include "../GameObjects/GameObjects.h"
+
+
 #include "GameBoardShallowCopy.h"
 #include "CollisionObjectType.h"
+
+#include "../GameBoard/GameBoard.h"
+#include "../GameObjects/GameObjects.h"
 #include "../GameBoardUtils/GameBoardUtils.h"
 #include "../SatelliteView/BoardSatelliteView.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 
-#include <unordered_set>
 #include <map>
+#include <unordered_set>
 #include <vector>
 
-#define CollisionMap std::map<CollisionObjectType, const unordered_set<CollisionObjectType>>
+#define CollisionMap std::map<CollisionObjectType, const std::unordered_set<CollisionObjectType>>
 
 class GameCollisionHandler
 {
@@ -47,7 +50,7 @@ private:
     static bool isCollidingOnCell(CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
 
     // explosion list
-    static const unordered_set<CollisionObjectType> getCollidingTypes(CollisionMap collision_map, GameObjectType t);
+    static const std::unordered_set<CollisionObjectType> getCollidingTypes(CollisionMap collision_map, GameObjectType t);
 
     //=== Functions ===
     // check for collision mid step (went through each other)

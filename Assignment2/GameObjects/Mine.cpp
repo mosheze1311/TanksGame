@@ -12,7 +12,7 @@ GameObjectType Mine::getObjectType() const
 }
 
 //=== Drawing ===
-string Mine::getDrawing(DrawingType t) const
+std::string Mine::getDrawing(DrawingType t) const
 {
     switch (t)
     {

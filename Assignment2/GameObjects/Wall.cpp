@@ -9,7 +9,7 @@ Wall::Wall(GameBoard& b, int hp)
 GameObjectType Wall::getObjectType() const { return GameObjectType::WALL; }
 
 //=== Drawing ===
-string Wall::getDrawing(DrawingType t) const
+std::string Wall::getDrawing(DrawingType t) const
 {
     switch (t)
     {

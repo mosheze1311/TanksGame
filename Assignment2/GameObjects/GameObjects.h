@@ -7,8 +7,6 @@
 #include <string>
 #include <optional>
 
-using namespace std;
-
 // forward declaration
 class GameBoard;
 class BoardCell;
@@ -19,7 +17,7 @@ class BoardCell;
 class DrawableObject
 {
 public:
-    virtual string getDrawing(DrawingType t) const = 0;
+    virtual std::string getDrawing(DrawingType t) const = 0;
     virtual ~DrawableObject() {};
 };
 
@@ -38,7 +36,7 @@ public:
 
     //=== Type & Drawing ===
     virtual GameObjectType getObjectType() const = 0;
-    virtual string getDrawing(DrawingType t) const override = 0;
+    virtual std::string getDrawing(DrawingType t) const override = 0;
 
     //=== HP Management ===
     int getHP() const;
@@ -88,7 +86,7 @@ public:
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    string getDrawing(DrawingType t) const override;
+    std::string getDrawing(DrawingType t) const override;
 };
 
 class Wall : public StaticObject
@@ -98,7 +96,7 @@ public:
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    string getDrawing(DrawingType t) const override;
+    std::string getDrawing(DrawingType t) const override;
 };
 
 // ===========================
@@ -132,9 +130,9 @@ private:
 
     //=== Movement Support ===
     bool canMoveToCell(BoardCell target) const;
-    optional<BoardCell> getForwardCell() const;
-    optional<BoardCell> getBackwardCell() const;
-    optional<BoardCell> getCurrentCell() const;
+    std::optional<BoardCell> getForwardCell() const;
+    std::optional<BoardCell> getBackwardCell() const;
+    std::optional<BoardCell> getCurrentCell() const;
     void moveToCell(BoardCell c);
     bool canMoveBackwards() const;
     void moveBackwards();
@@ -157,7 +155,7 @@ public:
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    string getDrawing(DrawingType t) const override;
+    std::string getDrawing(DrawingType t) const override;
 
     //=== Tank-Specific Actions ===
     bool playTankRound(ActionRequest command);
@@ -174,7 +172,7 @@ public:
 
     //=== Type & Drawing ===
     GameObjectType getObjectType() const override;
-    string getDrawing(DrawingType t) const override;
+    std::string getDrawing(DrawingType t) const override;
 
     //=== Behavior ===
     void advance();
