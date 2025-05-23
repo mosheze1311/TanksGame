@@ -18,6 +18,33 @@ AggressiveTankAlgorithm::~AggressiveTankAlgorithm() = default;
 ActionRequest AggressiveTankAlgorithm::getAction()
 {
     // TODO: Implement actual behavior
+
+    // in first turn, get battle info
+    if (this->getCurrentStep() == 0)
+    {
+        return ActionRequest::GetBattleInfo;
+    }
+
+    // search for enemy tanks
+
+    // if enemy tank is in range and in line of sight, shoot
+
+    // if enemy tank is not in range and in line of sight, move towards it
+
+    // if enemy tank is not in range and not in line of sight, rotate towards it
+
+
+    // escape from enemy shells
+
+    // if enemy shell is in range and in line of sight, move away from it
+
+
+    // shells run out
+    if (this->getRemainingShells() == 0)
+    {
+        return ActionRequest::DoNothing;
+    }
+
     return ActionRequest::Shoot;
 }
 

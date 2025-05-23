@@ -57,6 +57,7 @@ public:
     ~SatelliteAnalyitcsView();
 
     // === Two-Steps Update View API ===
+    // TODO: move this logic to battle info boject so that SatelliteAnalyitcsView wont save SatelliteView refernce as an attribute
     void uploadSatelliteImage(SatelliteView &sat_view);
     void updateViewForStep(size_t steps_gap);
     

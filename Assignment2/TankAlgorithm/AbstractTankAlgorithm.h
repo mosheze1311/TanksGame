@@ -22,11 +22,14 @@ protected:
     Direction direction;
     size_t current_step;
     size_t shoot_cooldown;
+    
+
 
 public:
     // === Constructor ===
     AbstractTankAlgorithm(size_t tank_idx, size_t player_idx, size_t num_of_shells,
-                          BoardCell assumed_location, Direction direction, size_t current_step);
+                          BoardCell assumed_location, Direction direction, size_t current_step
+                        );
 
 protected:
 
@@ -61,6 +64,7 @@ protected:
     void setCurrentStep(size_t step);
     void setTankDirection(Direction dir);
     void setTankIndex(size_t idx);
+    
 
     
     // === Getters ===
