@@ -86,7 +86,8 @@ std::vector<BoardCell> GameBoardUtils::getAdjacentCells(const BoardCell &curr_ce
     return res;
 }
 
-BoardCell GameBoardUtils::createAdjustedBoardCell(const BoardCell &c, size_t width, size_t height)
+BoardCell GameBoardUtils::createAdjustedBoardCell(const BoardCell &c, int width, int height)
 {
+    // The width, height parameters are signed int to prevent implicit conversion of the X,Y cell attributes to unsigned when performing % operation
     return BoardCell(c.getX() % width, c.getY() % height);
 }

@@ -29,5 +29,5 @@ public:
 
     static BoardCell getNextCellInDirection(const BoardCell &c, const Direction dir, size_t width, size_t height);
 
-    static BoardCell createAdjustedBoardCell(const BoardCell &c, size_t width, size_t height);
+    static BoardCell createAdjustedBoardCell(const BoardCell &c, int width, int height);
 };
