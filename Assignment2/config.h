@@ -3,7 +3,7 @@
 // SPEED
 #define shell_speed 2
 
-// SPAWN DIRECTION
+// SPAWN DIRECTIONS
 #define tank1_initial_direction Direction::LEFT
 #define tank2_initial_direction Direction::RIGHT
 #define tank3_initial_direction Direction::RIGHT
@@ -23,6 +23,5 @@
 #define mine_damage 1
 #define collision_damage 1
 
-
-
-
+// steps after shell send
+#define steps_after_shells_end 40
