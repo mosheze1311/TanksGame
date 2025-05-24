@@ -1,38 +1,42 @@
+#include "../config.h"
 #include "SatelliteAnalyticsView.h"
 
 // === Constructor === //
-SatelliteAnalyitcsView::SatelliteAnalyitcsView(SatelliteView &sat_view, size_t height, size_t width, size_t max_steps_gap)
-    : width(width), height(height), new_satellite_image(sat_view), max_steps_gap(max_steps_gap)
-{
-    initAnalyticalView(sat_view);
-};
+SatelliteAnalyitcsView::SatelliteAnalyitcsView(size_t height, size_t width, size_t max_steps_gap, size_t player_idx)
+    : width(width), height(height), max_steps_gap(max_steps_gap), player_idx(player_idx) {};
 
 //=== Destructor ===//
 SatelliteAnalyitcsView ::~SatelliteAnalyitcsView() {}; // TODO: implement
 
-// === Init Helpers (Private)===
+// === Init Helpers (Private) === //
 void SatelliteAnalyitcsView::initAnalyticalView(SatelliteView &sat_view)
 {
-    shells_locations.erase(shells_locations.begin(), shells_locations.end());
+    shells_locations.clear();
+    enemies_locations.clear();
     for (size_t x = 0; x < width; ++x)
     {
         for (size_t y = 0; y < height; ++y)
         {
             char obj_char = sat_view.getObjectAt(x, y);
-            if (obj_char == ' ')
+            if (!GameObjectTypeUtils::isValidObjectChar(obj_char))
                 continue;
 
             GameObjectType obj_type = static_cast<GameObjectType>(obj_char);
             analytical_view[BoardCell(x, y)] = {obj_type, AssumedDirection::UNKNOWN};
+            
             if (obj_char == static_cast<char>(GameObjectType::SHELL))
                 shells_locations.push_back(BoardCell(x, y));
 
             if (GameObjectTypeUtils::isTankObject(obj_type) && obj_type != GameObjectTypeUtils::playerIndexToTankType(this->player_idx))
             {
-                enemies_location.push_back(BoardCell(x, y));
+                enemies_locations.push_back(BoardCell(x, y));
             }
+
+            if (obj_char == static_cast<char>(GameObjectType::MINE))
+                mines_locations.push_back(BoardCell(x, y));
         }
     }
+    enemy_estimate_tanks_num = enemies_locations.size();
 }
 
 BoardCell SatelliteAnalyitcsView::shellExpectedLocation(BoardCell &old_location, AssumedDirection assumed_dir, size_t steps_gap)
@@ -83,18 +87,66 @@ AssumedDirection SatelliteAnalyitcsView::findMatchingShellDirection(BoardCell &o
     return AssumedDirection::UNKNOWN;
 }
 
-// === Public Functions ===
-// === Two-Steps Update View API ===
-void SatelliteAnalyitcsView::uploadSatelliteImage(SatelliteView &sat_view)
+// === Public Functions === //
+// === Getters === //
+size_t SatelliteAnalyitcsView::getWidth() const
 {
-    this->new_satellite_image = sat_view;
+    return this->width;
 }
 
-void SatelliteAnalyitcsView::updateViewForStep(size_t steps_gap)
+size_t SatelliteAnalyitcsView::getHeight() const
 {
+    return this->height;
+};
+
+size_t SatelliteAnalyitcsView::getMaxStepGap() const{
+    return this->max_steps_gap;
+}
+
+std::vector<BoardCell> SatelliteAnalyitcsView::getEnemyTanksLocations() const
+{
+    return this->enemies_locations;
+}
+
+std::vector<BoardCell> SatelliteAnalyitcsView::getShellsLocations() const
+{
+    return this->shells_locations;
+}
+
+std::vector<BoardCell> SatelliteAnalyitcsView::getMinesLocations() const
+{
+    return this->mines_locations;
+}
+
+size_t SatelliteAnalyitcsView::getEnemyTanksNum() const
+{
+    return this->enemy_estimate_tanks_num;
+}
+
+// TODO: improve function visibility
+std::pair<char, AssumedDirection> SatelliteAnalyitcsView::getObjectAt(size_t x, size_t y) const
+{
+    if (x < 0 || x > this->width || y < 0 || y > this->height)
+    {
+        return {'&', AssumedDirection::UNKNOWN};
+    }
+
+    auto iter = this->analytical_view.find(BoardCell(x, y));
+    if (iter == this->analytical_view.end())
+    {
+        return {' ', AssumedDirection::UNKNOWN};
+    }
+
+    return {static_cast<char>(iter->second.first), iter->second.second};
+}
+
+void SatelliteAnalyitcsView::updateAnalyticalView(SatelliteView &sat_view, size_t current_step)
+{
+    size_t steps_gap = current_step - last_updated_step;
+    last_updated_step = current_step;
     if (steps_gap > max_steps_gap)
     {
-        initAnalyticalView(this->new_satellite_image);
+        this->initAnalyticalView(sat_view);
         return;
     }
 
@@ -103,7 +155,7 @@ void SatelliteAnalyitcsView::updateViewForStep(size_t steps_gap)
     // add all objects to analytical view, add direction to relevant objects (moved exactly (speed * steps) squares, no obstacles in the way)
     std::vector<BoardCell> old_shells_locations = this->shells_locations;
     AnalyticalViewMap old_map = this->analytical_view;
-    initAnalyticalView(new_satellite_image);
+    this->initAnalyticalView(sat_view);
 
     // iterate on all shells on old map.
     // if shell had direction, check if there is a shell in expected location and pass on the assumed direction
@@ -130,35 +182,41 @@ void SatelliteAnalyitcsView::updateViewForStep(size_t steps_gap)
     }
 }
 
-// === Getters ===
-size_t SatelliteAnalyitcsView::getWidth() const
-{
-    return this->width;
+void SatelliteAnalyitcsView::approxBoardChanges(){
+    advanceShells();
 }
 
-size_t SatelliteAnalyitcsView::getHeight() const
-{
-    return this->height;
-};
-
-std::vector<BoardCell> SatelliteAnalyitcsView::getEnemyTanksLocations() const
-{
-    return this->enemies_location;
+// === Move Objects on View === //
+void SatelliteAnalyitcsView::advanceShells(){
+    for (int i = 0; i < shell_speed; i++)
+    {
+        advanceShellsOnce();
+        // TODO: sheck for collisions and update map again.
+    }
 }
 
-// TODO: improve function visibility
-std::pair<char, AssumedDirection> SatelliteAnalyitcsView::getObjectAt(size_t x, size_t y) const
+void SatelliteAnalyitcsView::advanceShellsOnce()
 {
-    if (x < 0 || x > this->width || y < 0 || y > this->height)
+    std::vector<BoardCell> old_shells_locations = this->getShellsLocations();
+    this->shells_locations.clear();
+    for (size_t i = 0; i < old_shells_locations.size(); i++)
     {
-        return {'&', AssumedDirection::UNKNOWN};
-    }
+        BoardCell old_shell_location = old_shells_locations[i];
+        auto [obj_char, assumed_dir] = this->getObjectAt(old_shell_location.getX(), old_shell_location.getY());
 
-    auto iter = this->analytical_view.find(BoardCell(x, y));
-    if (iter == this->analytical_view.end())
-    {
-        return {' ', AssumedDirection::UNKNOWN};
-    }
+        if (obj_char != static_cast<char>(GameObjectType::SHELL))
+            continue; // should never happen
+        
+        AssumedDirection fixed_assumed_dir = assumed_dir;
+        if (fixed_assumed_dir == AssumedDirection::UNKNOWN)
+            fixed_assumed_dir = AssumedDirection::DOWN;
 
-    return {static_cast<char>(iter->second.first), iter->second.second};
+        Direction shell_dir = static_cast<Direction>(fixed_assumed_dir);
+        BoardCell new_shell_location = old_shell_location + shell_dir;
+
+        // actual movement
+        this->analytical_view.erase(old_shell_location);
+        this->analytical_view[new_shell_location] = {GameObjectType::SHELL, assumed_dir},
+        this->shells_locations.push_back(new_shell_location);
+    }
 }
