@@ -5,7 +5,7 @@
 #include "TankAlgorithmUtils.h"
 
 #include "../GameCollisionHandler/GameCollisionHandler.h"
-#include "../SatelliteView/BoardSatelliteView.h"
+#include "../BoardSatelliteView/BoardSatelliteView.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 
 #include <queue>
@@ -17,22 +17,24 @@ protected:
     // === Attributes ===
     size_t tank_idx;
     size_t player_idx;
-    size_t num_of_shells;
+    size_t num_of_shells=9;
     BoardCell assumed_location;
     Direction direction;
     size_t current_step;
     size_t shoot_cooldown;
+    SatelliteAnalyitcsView sat_view;
     
 
 
 public:
     // === Constructor ===
-    AbstractTankAlgorithm(size_t tank_idx, size_t player_idx, size_t num_of_shells,
-                          BoardCell assumed_location, Direction direction, size_t current_step
-                        );
+    AbstractTankAlgorithm(size_t tank_idx, size_t player_idx);
 
-protected:
+    ActionRequest getAction() override;
 
+protected :
+    virtual ActionRequest getActionLogic() = 0;
+    void adjustSelfToAction(ActionRequest action);
     // === Cooldown Management ===
     bool canTankShoot() const;
     void execute_shoot();
@@ -66,7 +68,6 @@ protected:
     void setTankIndex(size_t idx);
     
 
-    
     // === Getters ===
     size_t getRemainingShells() const;
     BoardCell getCurrentLocation() const;

@@ -16,7 +16,7 @@ public:
     ~PassiveTankAlgorithm() override;
 
     // === Public Interface === //
-    ActionRequest getAction() override;
+    ActionRequest getActionLogic() override;
 
     void updateBattleInfo(BattleInfo &info) override;
 };

@@ -4,35 +4,59 @@
 PassiveTankAlgorithm::PassiveTankAlgorithm(size_t player_index, size_t tank_index)
     : AbstractTankAlgorithm(
           tank_index,       // tank_idx
-          player_index,     // player_idx
-          0,                // num_of_shells
-          BoardCell(0, 0),  // assumed_location
-          Direction::RIGHT, // direction
-          0)                // current_step
-{
-}
+          player_index    // player_idx
+        )             
+{}
 
 // === Destructor === //
 PassiveTankAlgorithm::~PassiveTankAlgorithm() = default;
 
 // === Public Methods === //
-ActionRequest PassiveTankAlgorithm::getAction()
+ActionRequest PassiveTankAlgorithm::getActionLogic()
 {
-    return ActionRequest::MoveForward;
+    // TODO: Implement actual behavior
+
+    // in first turn, get battle info
+    this->advance_step();
+    if (this->getCurrentStep() == 1)
+    {
+        return ActionRequest::GetBattleInfo;
+    }
+
+    // Try to escape from incoming enemy shells
+    if (auto escape_shell_action = escapeShells(sat_view))
+    {
+        return escape_shell_action.value();
+    }
+
+    // If enemy in range, try to e
+    BoardCell approx_closet_enemy = this->approxClosestEnemyTankLocation(sat_view);
+    if (auto shoot_action_opt = this->attemptShoot(approx_closet_enemy, sat_view.getWidth(), sat_view.getHeight()))
+    {
+        return shoot_action_opt.value();
+    }
+
+    // shells run out
+    if (this->getRemainingShells() == 0)
+    {
+        return ActionRequest::DoNothing;
+    }
+
+    return ActionRequest::Shoot;
 }
 
 void PassiveTankAlgorithm::updateBattleInfo(BattleInfo &info)
 {
     auto *current_info = dynamic_cast<BattleInfoAgent *>(&info);
     if (!current_info)
-    {
-        // Should never happen
-        return;
-    }
+        return; // Should never happen
 
-    this->setCurrentLocation(current_info->getCurrentCell());
-    this->setRemainingShells(current_info->getRemainingShells());
-    this->setCurrentStep(current_info->getCurrentStep());
-    this->setTankDirection(current_info->getTankDirection());
-    this->setTankIndex(current_info->getTankIndex());
+    if (this->getCurrentStep() == 1){
+        this->setCurrentLocation(current_info->getCurrentCell());
+        this->setRemainingShells(current_info->getMaxShells());
+    }
+    // else{
+
+    // }
+
 }

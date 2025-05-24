@@ -1,19 +1,18 @@
 #include "AbstractTankAlgorithm.h"
 
+#include <iostream>
 // === Constructor === //
-AbstractTankAlgorithm::AbstractTankAlgorithm(size_t tank_idx, size_t player_idx, size_t num_of_shells, 
-                      BoardCell assumed_location, Direction direction, size_t current_step)
+AbstractTankAlgorithm::AbstractTankAlgorithm(size_t tank_idx, size_t player_idx)
     : tank_idx(tank_idx),
       player_idx(player_idx),
-      num_of_shells(num_of_shells),
-      assumed_location(assumed_location),
-      direction(direction),
-      current_step(current_step),
-      shoot_cooldown(0) 
-{}
+      sat_view(0, 0, 0,player_idx)
+{
+    // TODO: should later calculate based on config.h
+    direction = player_idx % 2 == 1 ? Direction::LEFT : Direction::RIGHT;
+}
 
 // === Setters === //
-void AbstractTankAlgorithm::setCurrentLocation(const BoardCell& loc)
+void AbstractTankAlgorithm::setCurrentLocation(const BoardCell &loc)
 {
     this->assumed_location = loc;
 }
@@ -44,9 +43,8 @@ BoardCell AbstractTankAlgorithm::getCurrentLocation() const { return assumed_loc
 Direction AbstractTankAlgorithm::getTankDirection() const { return direction; }
 size_t AbstractTankAlgorithm::getCurrentStep() const { return current_step; }
 size_t AbstractTankAlgorithm::getShootCooldown() const { return shoot_cooldown; }
-size_t AbstractTankAlgorithm::getTankIdx() const {return tank_idx; }
-GameObjectType AbstractTankAlgorithm::getTankType() const {return GameObjectTypeUtils::playerIndexToTankType(this->player_idx);}
-
+size_t AbstractTankAlgorithm::getTankIdx() const { return tank_idx; }
+GameObjectType AbstractTankAlgorithm::getTankType() const { return GameObjectTypeUtils::playerIndexToTankType(this->player_idx); }
 
 // === Shoot Cooldown Management === //
 bool AbstractTankAlgorithm::canTankShoot() const
@@ -137,7 +135,7 @@ ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const SatelliteAnalyitc
     {
         next_cell_in_path = parents[next_cell_in_path];
     }
-
+    Logger::runtime().logLine("attempting to advance to: " + std::to_string(next_cell_in_path.getX()) + "," + std::to_string(next_cell_in_path.getY()));
     // decisions - try to advance to next cell
     if (next_cell_in_path == GameBoardUtils::getNextCellInDirection(start, this->getTankDirection(), sat_view.getWidth(), sat_view.getHeight()))
     {
@@ -153,7 +151,6 @@ ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const SatelliteAnalyitc
 ActionRequest AbstractTankAlgorithm::adjustDirection(BoardCell to, size_t width, size_t height) const
 {
     // assumption: from, to are adjacent cells
-
     if (to == GameBoardUtils::getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 1), width, height))
     {
         return ActionRequest::RotateRight45;
@@ -182,6 +179,7 @@ ActionRequest AbstractTankAlgorithm::adjustDirection(BoardCell to, size_t width,
     {
         return ActionRequest::RotateLeft90; // will need additional 90 deg turn
     }
+    Logger::runtime().logLine("can't adjust direction to ..." + std::to_string(to.getX()) + "," + std::to_string(to.getY()));
     return ActionRequest::DoNothing; // in correct direction
 }
 
@@ -197,6 +195,7 @@ BoardCell AbstractTankAlgorithm::approxClosestEnemyTankLocation(const SatelliteA
     int closest_dist = -1;
     for (BoardCell enemy_loc : sat_view.getEnemyTanksLocations())
     {
+        Logger::runtime().logLine("checking enemy location " + std::to_string(enemy_loc.getX())+"," +std::to_string(enemy_loc.getY()));
         int curr_dist = GameBoardUtils::distance(closest, enemy_loc, sat_view.getWidth(), sat_view.getHeight());
         if (closest_dist == -1 || closest_dist > curr_dist)
         {
@@ -217,7 +216,8 @@ void AbstractTankAlgorithm::Dijkstra(const SatelliteAnalyitcsView &sat_view, Gam
         q;
     q.push({0, {start, start}});
     std::set<BoardCell> visited;
-
+    Logger::runtime().logLine("running dijkstra on board of " + std::to_string(sat_view.getWidth()) + "," + std::to_string(sat_view.getHeight()));
+    Logger::runtime().logLine("dijkstra to: (" + std::to_string(target.getX()) + "," +std::to_string(target.getY()) + ")");
     while (!q.empty())
     {
         // access and pop first item in heap
@@ -243,13 +243,15 @@ void AbstractTankAlgorithm::Dijkstra(const SatelliteAnalyitcsView &sat_view, Gam
         // adding neighbors to heap - only if tank can safely step there
         for (BoardCell neighbor : GameBoardUtils::getAdjacentCells(c, sat_view.getWidth(), sat_view.getHeight()))
         {
-            if (visited.find(neighbor) != visited.end())
-            {
-                continue;
+            // TODO: this is a test - delete it
+            if (sat_view.getObjectAt(neighbor.getX(), neighbor.getY()).first == static_cast<char>(GameObjectType::MINE)){
+                Logger::runtime().logLine("FOUND MINE on (" + std::to_string(neighbor.getX()) + "," + std::to_string(neighbor.getY()) + ")");
             }
-
             if (neighbor == target || GameCollisionHandler::canObjectSafelyStepOn(sat_view, tank_type, neighbor))
             {
+                // TODO: this is a test - delete it
+                Logger::runtime().logLine("adding neighbour (" + std::to_string(neighbor.getX()) + "," + std::to_string(neighbor.getY()) + ")");
+
                 q.push({dist + 1, {neighbor, c}});
             }
         }
@@ -283,7 +285,7 @@ std::optional<ActionRequest> AbstractTankAlgorithm::escapeShells(const Satellite
 {
     size_t step_dist = 3;
     step_dist = std::min(std::min(sat_view.getHeight(), sat_view.getWidth()), step_dist); // for small fields.
-    int shell_speed = 2;                                                        // TODO: add configured param
+    int shell_speed = 2;                                                                  // TODO: add configured param
     int proximitiy = step_dist * shell_speed;
 
     int left = this->assumed_location.getX() - proximitiy;
@@ -335,5 +337,53 @@ std::optional<BoardCell> AbstractTankAlgorithm::getEscapingRoute(SatelliteAnalyi
     return std::nullopt;
 }
 
+//=== Interface ===
+ActionRequest AbstractTankAlgorithm::getAction()
+{
+    ActionRequest request = this->getActionLogic();
+    Logger::runtime().logLine("assumed direction of player" +std::to_string(player_idx) +"before step is " + std::to_string(static_cast<int>(this->direction)));
+    this->adjustSelfToAction(request);
+    Logger::runtime().logLine("assumed direction of player" +std::to_string(player_idx) + "after step is " + std::to_string(static_cast<int>(this->direction)));
+    return request;
+}
 
+//=== Helper Functions ===
+void AbstractTankAlgorithm::adjustSelfToAction(ActionRequest action)
+{
+    switch (action)
+    {
+    case ActionRequest::MoveForward:
+        this->assumed_location = GameBoardUtils::getNextCellInDirection(this->assumed_location, this->getTankDirection(), sat_view.getWidth(), sat_view.getHeight());
+        break;
 
+    case ActionRequest::MoveBackward:
+        // TODO: fix the backwards logic with the wait
+        //  this->assumed_location = GameBoardUtils::getNextCellInDirection(this->assumed_location, DirectionUtils::getOppositeDirection(this->getTankDirection()), sat_view.getWidth(), sat_view.getHeight());
+        break;
+
+    case ActionRequest::RotateLeft45:
+        this->direction = DirectionUtils::rotateLeft(this->getTankDirection(), 1);
+        break;
+
+    case ActionRequest::RotateLeft90:
+        this->direction = DirectionUtils::rotateLeft(this->getTankDirection(), 2);
+        break;
+
+    case ActionRequest::RotateRight45:
+        this->direction = DirectionUtils::rotateRight(this->getTankDirection(), 1);
+        break;
+
+    case ActionRequest::RotateRight90:
+        this->direction = DirectionUtils::rotateRight(this->getTankDirection(), 2);
+        break;
+
+    case ActionRequest::Shoot:
+        // TODO:fix the execute shoot function to only change the coolodwn when can actually shoot
+        this->execute_shoot();
+        break;
+
+    case ActionRequest::DoNothing:
+    default:
+        break;
+    }
+}
