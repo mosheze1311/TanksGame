@@ -1,13 +1,12 @@
 #pragma once
 
-
 #include "GameBoardShallowCopy.h"
 #include "CollisionObjectType.h"
 
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
 #include "../GameBoardUtils/GameBoardUtils.h"
-#include "../SatelliteView/BoardSatelliteView.h"
+#include "../BoardSatelliteView/BoardSatelliteView.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 
 #include <map>

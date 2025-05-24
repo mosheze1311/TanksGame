@@ -82,15 +82,22 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) c
         for (auto iter = cell_objects.begin(); iter != cell_objects.end();)
         {
             GameObject *obj1 = *iter;
+            auto iter2 = ++iter;
+            if (!updated_board.isObjectOnBoard(obj1))
+                continue;
             std::unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
-            for (auto iter2 = ++iter; iter2 != cell_objects.end(); ++iter2)
+            for (;iter2 != cell_objects.end(); ++iter2)
             {
                 GameObject *obj2 = *iter2;
+                if (!updated_board.isObjectOnBoard(obj2))
+                    continue;
                 CollisionObjectType obj2_type = CollisionObjectTypeUtils::fromGameObjectType(obj2->getObjectType());
                 if (collide_with.find(obj2_type) != collide_with.end())
                 { 
                     // should explode each other
-                    obj1->gotHit(1);
+                    if (updated_board.isObjectOnBoard(obj1))
+                        obj1->gotHit(1);
+                        
                     obj2->gotHit(1);
                 }
             }
@@ -138,7 +145,6 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObj
 
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, board, obj_type, c);
 }
-
 
 bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
 {
