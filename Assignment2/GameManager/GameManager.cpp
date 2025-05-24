@@ -1,7 +1,49 @@
+#include "../config.h"
+
 #include "GameManager.h"
 
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include "../Utils/ActionRequestutils.h"
+
+//=== Prepare Run Functions ===
+void GameManager::prepareForRun()
+{
+    // set manager game parameters
+    this->tanks = board.getAllTanksOrderedByCell(); // TODO: make sure tanks are ordered correctly;
+    this->remaining_steps = this->board.getMaxSteps();
+    this->applyShellsLimitRuleOnRemainingSteps();
+
+    // initiate players and algorithms based on board
+    this->createPlayers();
+    this->createAlgorithms();
+}
+
+void GameManager::createPlayers()
+{
+    map<GameObjectType, size_t> tanks_counters = this->board.getTanksCountPerType();
+    for (int i = 1; i <= 9; ++i)
+    {
+        GameObjectType tank_type = GameObjectTypeUtils::playerIndexToTankType(i);
+        size_t tanks_count = tanks_counters[tank_type];
+        if (tanks_count == 0)
+            continue;
+
+        Logger::runtime().logLine("create player " + std::to_string(i));
+        players_map[i] = player_factory.create(i, this->board.getWidth(), board.getHeight(), board.getMaxSteps(), board.getTanksNumShells());
+    }
+}
+
+void GameManager::createAlgorithms()
+{
+    std::map<size_t, size_t> algorithm_indexes_tracker;
+    for (Tank *t : tanks)
+    {
+        size_t player_idx = GameObjectTypeUtils::tankTypeToPlayerIndex(t->getObjectType());
+        size_t algorithm_idx = algorithm_indexes_tracker[player_idx]++;
+        Logger::runtime().logLine("create algorithm " + std::to_string(algorithm_idx) + " for player " + std::to_string(player_idx));
+        algorithms.push_back(this->tank_algorithm_factory.create(player_idx, algorithm_idx));
+    }
+}
 
 //=== Getters ===
 size_t GameManager::getRemainingSteps() const
@@ -9,7 +51,8 @@ size_t GameManager::getRemainingSteps() const
     return this->remaining_steps;
 }
 
-vector<GameObjectType> GameManager::getActiveTankTypes(map<GameObjectType, size_t> players_tanks_count) const{
+vector<GameObjectType> GameManager::getActiveTankTypes(map<GameObjectType, size_t> players_tanks_count) const
+{
 
     vector<GameObjectType> tanks_types_alive;
     for (auto &[type, tank_count] : players_tanks_count)
@@ -22,11 +65,19 @@ vector<GameObjectType> GameManager::getActiveTankTypes(map<GameObjectType, size_
 }
 
 //=== Setters ===
-void GameManager::setRemainingSteps(int num_steps){
+void GameManager::setRemainingSteps(int num_steps)
+{
     this->remaining_steps = num_steps;
 }
 
 //=== Log Functions ===
+
+void GameManager::setOutputFile(std::string &input_file_path)
+{
+    std::string input_file_name = std::filesystem::path(input_file_path).stem().string(); // this is a standard library function the return the name of a file
+    this->output_file_name = "output_" + input_file_name + ".txt";
+}
+
 void GameManager::logWin(int winner, int remaining_tanks) const
 {
     string winning_text = "Player " + std::to_string(winner) + " won with " + std::to_string(remaining_tanks) + " tanks still alive";
@@ -55,7 +106,7 @@ void GameManager::logMaxStepsTie() const
 
 void GameManager::logZeroShellsTie() const
 {
-    logTie("both players have zero shells for " + std::to_string(this->steps_after_shells_end) + " steps");
+    logTie("both players have zero shells for " + std::to_string(steps_after_shells_end) + " steps");
 }
 
 void GameManager::logTie(string reason) const
@@ -96,37 +147,52 @@ void GameManager::logEndOfStep() const
 }
 
 //=== Gameplay Functions ===
-void GameManager::performActionsOnBoard(map<int, ActionRequest> actions)
+void GameManager::performActionsOnBoard(map<int, ActionRequest> actions, SatelliteView &sat_view)
 {
-    size_t n = tanks.size();
+    size_t n = tanks.size(); // TODO: tanks name should indicate that they are not changing from start and it may contain dead tanks
     for (size_t i = 0; i < n; ++i)
     {
         auto iter = actions.find(i);
 
         Tank *tank = tanks[i];
+        Logger::runtime().logLine("actual direction of tank " + std::to_string(GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())) +
+                                  " before action is " + std::to_string(static_cast<int>(tank->getDirection())));
         ActionRequest action = iter->second;
         bool is_killed;
-        bool coma = i != n - 1;
+        bool coma_in_log = i != n - 1;
 
         // if no action request -> tank was dead in the begining of turn
         if (iter == actions.end())
         {
-            this->logKilled(coma);
+            this->logKilled(coma_in_log);
             continue;
         }
 
         // log action: tank was killed during step (before performing action)
         if ((is_killed = !this->board.isObjectOnBoard(tank)))
         {
-            logAction(action, true, is_killed, coma);
+            logAction(action, true, is_killed, coma_in_log);
             continue;
         }
 
-        // log action: if tank has invalid request log (ignore); else, log normally.
-        bool is_valid = tank->playTankRound(action);
-        logAction(action, is_valid, is_killed, coma);
-    }
+        bool is_valid = true;
+        if (action == ActionRequest::GetBattleInfo)
+        {
+            Player *player = players_map[GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())].get();
+            TankAlgorithm &algorithm = *(algorithms[i]);
+            player->updateTankWithBattleInfo(algorithm, sat_view);
+        }
+        else
+        {
+            is_valid = tank->playTankRound(action);
+        }
 
+        // log action: if tank has invalid request log (ignore); else, log normally.
+        logAction(action, is_valid, is_killed, coma_in_log);
+        Logger::runtime().logLine("actual direction of tank " + std::to_string(GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())) +
+                                  " after action is " + std::to_string(static_cast<int>(tank->getDirection())));
+    }
+    
     this->logEndOfStep();
 }
 
@@ -135,14 +201,7 @@ bool GameManager::concludeGame()
     map<GameObjectType, size_t> players_tanks_count = board.getTanksCountPerType();
     vector<GameObjectType> tanks_types_alive = this->getActiveTankTypes(players_tanks_count);
 
-    if (this->board.getTotalRemainingShells() == 0)
-    {
-        if (steps_after_shells_end < this->getRemainingSteps())
-        {
-            are_steps_limited_by_shells = true;
-            this->setRemainingSteps(steps_after_shells_end);
-        }
-    }
+    this->applyShellsLimitRuleOnRemainingSteps();
 
     if (tanks_types_alive.size() == 1)
     {
@@ -215,6 +274,19 @@ map<int, ActionRequest> GameManager::requestAlgorithmsActions()
     return actions;
 }
 
+//=== Helper Functions ===
+void GameManager::applyShellsLimitRuleOnRemainingSteps()
+{
+    if (this->board.getTotalRemainingShells() == 0)
+    {
+        if (steps_after_shells_end < this->getRemainingSteps())
+        {
+            this->are_steps_limited_by_shells = true;
+            this->setRemainingSteps(steps_after_shells_end);
+        }
+    }
+}
+
 //=== Public Functions ===
 //=== Constructor ===
 GameManager::GameManager(const PlayerFactory &player_factory, const TankAlgorithmFactory &tank_algorithm_factory)
@@ -224,11 +296,19 @@ GameManager::GameManager(const PlayerFactory &player_factory, const TankAlgorith
 
 bool GameManager::readBoard(std::string input_file_path)
 {
-    return this->board.initFromFile(input_file_path);
+    // init board from file
+    bool success = this->board.initFromFile(input_file_path);
+
+    // set output to required file
+    this->setOutputFile(input_file_path);
+
+    return success;
 }
 
+// TODO: test for errors when calling 'run' before calling readBoard.
 void GameManager::run(DrawingType dt)
 {
+    this->prepareForRun();
     GameCollisionHandler c_handler(this->board);
     GameDrawer d(this->board, dt);
 
@@ -241,10 +321,10 @@ void GameManager::run(DrawingType dt)
         this->advanceStepsClock();
 
         // move shells - TODO: make speed a configured paramter instead of static number
-        this->moveShells(2, c_handler, d);
+        this->moveShells(shell_speed, c_handler, d);
 
         // perform algorithms action requests
-        this->performActionsOnBoard(actions);
+        this->performActionsOnBoard(actions, sat_view);
 
         c_handler.handleCollisions(board);
         d.draw();

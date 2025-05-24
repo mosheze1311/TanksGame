@@ -6,7 +6,7 @@
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include "../GameDrawer/GameDrawer.h"
 #include "../GameBoard/GameBoard.h"
-#include "../SatelliteView/BoardSatelliteView.h"
+#include "../BoardSatelliteView/BoardSatelliteView.h"
 #include "../Logger/Logger.h"
 
 #include <fstream>
@@ -21,7 +21,6 @@ private:
     //=== Attributes ===
     GameBoard board;
     size_t remaining_steps;
-    const size_t steps_after_shells_end = 40;
     bool are_steps_limited_by_shells = false;
 
     const PlayerFactory &player_factory;
@@ -39,15 +38,19 @@ private:
 
     //=== Setters ===
     void setRemainingSteps(int nnum_shells);
-    
+
     //=== Gameplay Function ===
     bool concludeGame(); // Checks if a game is finsihed in a specific turn
-    void performActionsOnBoard(map<int, ActionRequest> actions);
+    void performActionsOnBoard(map<int, ActionRequest> actions, SatelliteView& sat_view);
+    void moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d);
     void moveShellsOnce();                   // Move shells acoording to their direction
     BoardSatelliteView TakeSatelliteImage(); // Returns an updated SatelliteView object at the start of the turn.
+    map<int, ActionRequest> requestAlgorithmsActions();
     void advanceStepsClock();
 
     //=== Log Functions===
+    void setOutputFile(std::string &input_file_path);
+
     void logAction(ActionRequest action, bool is_valid, bool is_killed, bool coma) const;
     void logKilled(bool coma) const;
 
@@ -60,15 +63,13 @@ private:
     void logZeroShellsTie() const;
     void logMaxStepsTie() const;
 
-    //=== Factory Funcitons ===
-    void initiatePlayers();
-    void initiateAlgorithms();
+    //=== Prepare Run Functions ===
+    void prepareForRun();
+    void createPlayers();
+    void createAlgorithms();
 
-    map<int, int> exctractPlayerTanks(GameBoard &board);
-
-    map<int, ActionRequest> requestAlgorithmsActions();
-
-    void moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d);
+    //=== Helper Functions ===
+    void applyShellsLimitRuleOnRemainingSteps();
 
 public:
     //=== Constructors ===
@@ -80,4 +81,4 @@ public:
 
     // Runs the game
     void run(DrawingType dt = DrawingType::NONE);
-};
+    };
