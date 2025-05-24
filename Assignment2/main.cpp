@@ -1,27 +1,10 @@
 #include "GameManager/GameManager.h"
-#include "common/PlayerFactory.h"
+#include "PlayerFactory/MyPlayerFactory.h"
 #include "TankAlgorithmFactory/MyTankAlgorithmFactory.h"
 
-class TempPlayer : public Player{
-public:
-    TempPlayer(): Player(1,1,1,1,1){
-
-    }
-    void updateTankWithBattleInfo(TankAlgorithm &tank, SatelliteView &satellite_view) override{
-
-    }
-};
-class TempPlayerFactory : public PlayerFactory{
-    unique_ptr<Player> create(int player_index, size_t x, size_t y,
-                                      size_t max_steps, size_t num_shells)const override{
-        return std::make_unique<TempPlayer>();
-                                      };
-};
-
-
-TempPlayerFactory getPlayerFactory()
+MyPlayerFactory getPlayerFactory()
 {
-    return TempPlayerFactory();
+    return MyPlayerFactory();
 }
 
 MyTankAlgorithmFactory getTankAlgorithmFactory()
@@ -49,26 +32,28 @@ bool validateDrawingType (DrawingType& dt, int argc, char** argv){
         catch (...)
         {
             Logger::runtime().log(std::format("If given, 3rd argument must be a number"));
-            return 0;
+            return false;
         }
     }
+    return true;
 }
 
 int main(int argc, char **argv)
 {
     if(!validateArgc(argc))
-        return 0;
+        return EXIT_SUCCESS;
 
     const string file_path = argv[1];
 
     DrawingType dt = DrawingType::NONE; // default
     if (!validateDrawingType(dt, argc, argv))
-        return 0;
-    
+        return EXIT_SUCCESS;
+
     GameManager game(getPlayerFactory(), getTankAlgorithmFactory());
 
     if(!game.readBoard(file_path))
-        return 0;
+        return EXIT_SUCCESS;
 
     game.run(dt);
+    return EXIT_SUCCESS;
 }
