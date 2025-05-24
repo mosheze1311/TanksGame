@@ -22,7 +22,7 @@ int BoardCell::getY() const
 // Operator < overload for using BoardCell as a map key
 bool BoardCell::operator<(const BoardCell &other) const
 {
-    return (x < other.getX()) || (x == other.getX() && y < other.getY());
+    return (y < other.getY()) || (y == other.getY() && x < other.getX());
 }
 
 // === Overloading Arithmetic Operators ===
