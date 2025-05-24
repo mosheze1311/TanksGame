@@ -231,7 +231,7 @@ std::vector<GameObject *> GameBoard::getGameObjects(GameObjectType t) const
 
 std::vector<Tank *> GameBoard::getTanks(GameObjectType t) const
 {
-    if (t != GameObjectType::TANK1 && t != GameObjectType::TANK2)
+    if (!GameObjectTypeUtils::isTankObject(t))
         return {};
 
     std::vector<GameObject *> objects = this->getGameObjects(t);
@@ -259,8 +259,22 @@ std::vector<GameObject *> GameBoard::getAllGameObjects() const
     return res;
 }
 
-// === Board State ===
-bool GameBoard::isOccupiedCell(const BoardCell &c) const
+std::vector<Tank *> GameBoard::getAllTanksOrderedByCell() const
+{
+    std::vector<Tank*> res;
+    for (auto [cell, objects_set] : this->board){
+        for (GameObject* go: objects_set){
+            if (GameObjectTypeUtils::isTankObject(go->getObjectType()))
+            {
+                res.push_back(static_cast<Tank *>(go));
+            }
+        }
+    }
+    return res;
+}
+
+    // === Board State ===
+    bool GameBoard::isOccupiedCell(const BoardCell &c) const
 {
     return board.find(c) != board.end();
 }
@@ -274,13 +288,11 @@ bool GameBoard::isObjectOnBoard(const GameObject *obj) const
 //=== Setters ===
 void GameBoard::setWidth(size_t width)
 {
-    // TODO: maybe modify location to fit new board? maybe prevent using this after insertion to board.
     this->board_details.width = width;
 }
 
 void GameBoard::setHeight(size_t height)
 {
-    // TODO: maybe modify location to fit new board? maybe prevent using this after insertion to board.
     this->board_details.height = height;
 }
 

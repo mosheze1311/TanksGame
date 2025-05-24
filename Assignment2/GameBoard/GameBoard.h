@@ -126,6 +126,9 @@ public:
 
     // get all objects on the board
     std::vector<GameObject *> getAllGameObjects() const;
+    
+    // get all tanks in sacial order (left to right, up to down)
+    std::vector<Tank *> getAllTanksOrderedByCell() const;
 
     // get all tanks for a player
     std::vector<Tank *> getTanks(GameObjectType t) const;
