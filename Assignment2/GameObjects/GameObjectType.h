@@ -55,7 +55,7 @@ namespace GameObjectTypeUtils
 
     inline GameObjectType playerIndexToTankType(int playerId)
     {
-    int wrappedId = (playerId % 9 + 9) % 9; 
+    int wrappedId = ((playerId - 1) % 9 + 9) % 9;
     char playerChar = static_cast<char>('1' + wrappedId);
     return static_cast<GameObjectType>(playerChar);
     }
