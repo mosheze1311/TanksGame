@@ -22,13 +22,14 @@ private:
 
     map<size_t, BoardCell> tanks_locations; // maps tank id to its location
     size_t current_step;
+    SatelliteAnalyitcsView analytics_view;
 
 public:
     //=== Consturctor ===//
     PlayerOne(int player_index,
               size_t x, size_t y,
               size_t max_steps, size_t num_shells)
-        : Player(player_index, x, y, max_steps, num_shells) {}
+        : Player(player_index, x, y, max_steps, num_shells), analytics_view(y,x,0,player_index){}
 
     //=== Destructor ===//
     ~PlayerOne() override {}
@@ -40,25 +41,22 @@ public:
         size_t tank_idx;
         size_t current_step;
         size_t remaining_shells;
+        size_t enenmy_estimated_shells = analytics_view.getEnemyTanksNum();
+        size_t step_to_get_info = analytics_view.getMaxStepGap();
 
-        BoardCell tank_location = parseSatView(satellite_view);
+        BoardCell tank_location = parseSatViewLocation(satellite_view);
+        PlayerToTankDetails pttd(tank_location, enenmy_estimated_shells, step_to_get_info);
+        GameDetails game_details(this->max_steps,this->board_width, this->board_height, this->initial_num_of_shells);
+        BattleInfoAgent battle_info(analytics_view, satellite_view, pttd, game_details);
 
-        BattleInfoAgent a(
-            satellite_view,
-            tank_location,
+        tank_algo.updateBattleInfo(battle_info);
 
-            this->max_steps, this->initial_num_of_shells,
-            this->board_height, this->board_width,
-
-            tank_idx, current_step, remaining_shells);
-
-        tank_algo.updateBattleInfo(a);
         this->tanks_locations[tank_idx] = tank_location;
         this->current_step = current_step;
         
     }
 
-    BoardCell parseSatView(SatelliteView &satellite_view)
+    BoardCell parseSatViewLocation(SatelliteView &satellite_view)
     {
         // TODO: extract more data / return inside loop
         BoardCell caller_tank_location;
