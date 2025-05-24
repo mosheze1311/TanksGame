@@ -1,8 +1,9 @@
 #include "BattleInfoAgent.h"
 
 // === Constructor ===
-BattleInfoAgent::BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, PlayerToTankDetails player_to_tank, GameDetails details)
+BattleInfoAgent::BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, SatelliteView& sat_view ,PlayerToTankDetails player_to_tank, GameDetails details)
     : advanced_sat_view(advanced_sat_view),
+      new_satellite_image(sat_view),
       player_to_tank(player_to_tank),
       game_details(details) {}
 
@@ -27,6 +28,8 @@ size_t BattleInfoAgent::getTankIndex() const { return tank_to_player.tank_index;
 size_t BattleInfoAgent::getCurrentStep() const { return tank_to_player.current_step; }
 
 size_t BattleInfoAgent::getRemainingShells() const { return tank_to_player.remaining_shells; }
+
+size_t BattleInfoAgent::getMaxShells() const { return game_details.max_num_of_shells; }
 
 Direction BattleInfoAgent::getTankDirection() const { return tank_to_player.dir; }
 
@@ -61,4 +64,15 @@ void BattleInfoAgent::setCurrentCell(BoardCell const& cell)
 void BattleInfoAgent::setEstimatedEnemyRemainingShells(size_t shells)
 {
     player_to_tank.estimated_enemy_remaining_shells = shells;
+}
+
+// === Two-Steps Update View API ===
+void BattleInfoAgent::updateViewForStep(size_t current_step)
+{
+    this->advanced_sat_view.updateAnalyticalView(this->new_satellite_image ,current_step);
+}
+
+SatelliteAnalyitcsView BattleInfoAgent::getAnalyticsView() const
+{
+    return this->advanced_sat_view;
 }
