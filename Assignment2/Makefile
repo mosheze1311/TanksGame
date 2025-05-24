@@ -17,7 +17,7 @@ SRCS = \
     GameBoardInitializer/GameBoardInitializer.cpp \
     GameBoard/BoardCell.cpp \
     GameBoard/GameBoard.cpp \
-    SatelliteView/BoardSatelliteView.cpp \
+    BoardSatelliteView/BoardSatelliteView.cpp \
     GameCollisionHandler/GameCollisionHandler.cpp \
     GameBoardUtils/GameBoardUtils.cpp \
     GameObjects/GameObject.cpp \
