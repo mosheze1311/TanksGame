@@ -18,12 +18,16 @@ private:
     size_t width;
 
     static const char empty_space = ' ';
+    static const char caller_tank = '%';
     static const char out_of_bounds = '&';
-    
+
 public:
+    BoardCell caller_tank_location;
+
     //=== Constructor ===
     explicit BoardSatelliteView(GameBoard &board);
-    
+    BoardSatelliteView(BoardSatelliteView& other, BoardCell caller_tank_location);
+
     //=== Interface Implementation ===
     char getObjectAt(size_t x, size_t y) const override;
 };
