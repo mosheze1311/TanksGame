@@ -18,7 +18,7 @@ ActionRequest PassiveTankAlgorithm::getActionLogic()
 
     // in first turn, get battle info
     this->advance_step();
-    if (this->getCurrentStep() == 1)
+    if (this->getCurrentStep() == this->step_to_get_info)
     {
         return ActionRequest::GetBattleInfo;
     }
@@ -31,7 +31,7 @@ ActionRequest PassiveTankAlgorithm::getActionLogic()
 
     // If enemy in range, try to e
     BoardCell approx_closet_enemy = this->approxClosestEnemyTankLocation(sat_view);
-    if (auto shoot_action_opt = this->attemptShoot(approx_closet_enemy, sat_view.getWidth(), sat_view.getHeight()))
+    if (auto shoot_action_opt = this->evaluateShootingOpportunity(approx_closet_enemy, sat_view.getWidth(), sat_view.getHeight()))
     {
         return shoot_action_opt.value();
     }
@@ -43,20 +43,4 @@ ActionRequest PassiveTankAlgorithm::getActionLogic()
     }
 
     return ActionRequest::Shoot;
-}
-
-void PassiveTankAlgorithm::updateBattleInfo(BattleInfo &info)
-{
-    auto *current_info = dynamic_cast<BattleInfoAgent *>(&info);
-    if (!current_info)
-        return; // Should never happen
-
-    if (this->getCurrentStep() == 1){
-        this->setCurrentLocation(current_info->getCurrentCell());
-        this->setRemainingShells(current_info->getMaxShells());
-    }
-    // else{
-
-    // }
-
 }

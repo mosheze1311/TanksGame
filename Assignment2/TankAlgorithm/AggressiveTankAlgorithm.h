@@ -8,6 +8,10 @@
 
 class AggressiveTankAlgorithm : public AbstractTankAlgorithm
 {
+private:
+    // inner logic function for the getAction interface
+    ActionRequest getActionLogic() override;
+
 public:
     // === Constructor === //
     AggressiveTankAlgorithm(size_t player_index, size_t tank_index);
@@ -15,8 +19,4 @@ public:
     // === Destructor === //
     ~AggressiveTankAlgorithm() override;
 
-    // === Public Interface === //
-    ActionRequest getActionLogic() override;
-
-    void updateBattleInfo(BattleInfo &info) override;
 };

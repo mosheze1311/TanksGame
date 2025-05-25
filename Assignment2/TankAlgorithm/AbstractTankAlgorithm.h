@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../config.h"
 #include "../common/TankAlgorithm.h"
 
 #include "TankAlgorithmUtils.h"
@@ -7,6 +7,7 @@
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 #include "../BoardSatelliteView/BoardSatelliteView.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
+#include "../BattleInfo/BattleInfoAgent.h"
 
 #include <queue>
 #include <set>
@@ -17,23 +18,27 @@ protected:
     // === Attributes ===
     size_t tank_idx;
     size_t player_idx;
-    size_t num_of_shells=9;
+
     BoardCell assumed_location;
     Direction direction;
-    size_t current_step;
+    size_t num_of_shells;
     size_t shoot_cooldown;
+
+    size_t current_step;
+    size_t max_steps;
+    
     SatelliteAnalyitcsView sat_view;
     
-
+    size_t step_to_get_info;
 
 public:
     // === Constructor ===
     AbstractTankAlgorithm(size_t tank_idx, size_t player_idx);
 
     ActionRequest getAction() override;
+    void updateBattleInfo(BattleInfo &info) override;
 
-protected :
-    virtual ActionRequest getActionLogic() = 0;
+    protected : virtual ActionRequest getActionLogic() = 0;
     void adjustSelfToAction(ActionRequest action);
     // === Cooldown Management ===
     bool canTankShoot() const;
@@ -49,7 +54,7 @@ protected :
     ActionRequest adjustDirection(BoardCell to, size_t width, size_t height) const;
 
     // === Target Evaluation ===
-    std::optional<ActionRequest> attemptShoot(BoardCell target, size_t width, size_t height) const;
+    std::optional<ActionRequest> evaluateShootingOpportunity(BoardCell target, size_t width, size_t height) const;
     std::optional<ActionRequest> escapeShells(const SatelliteAnalyitcsView &sat_view) const;
     std::optional<BoardCell> getEscapingRoute(SatelliteAnalyitcsView sat_view, Direction enemy_dir) const;
 
@@ -66,7 +71,7 @@ protected :
     void setCurrentStep(size_t step);
     void setTankDirection(Direction dir);
     void setTankIndex(size_t idx);
-    
+    void setMaxSteps(size_t max_steps);
 
     // === Getters ===
     size_t getRemainingShells() const;

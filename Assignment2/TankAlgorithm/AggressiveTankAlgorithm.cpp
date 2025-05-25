@@ -18,7 +18,7 @@ ActionRequest AggressiveTankAlgorithm::getActionLogic()
 
     // in first turn, get battle info
     this->advance_step();
-    if (this->getCurrentStep() == 1)
+    if (this->getCurrentStep() == this->step_to_get_info)
     {
         return ActionRequest::GetBattleInfo;
     }
@@ -31,23 +31,4 @@ ActionRequest AggressiveTankAlgorithm::getActionLogic()
 
     // Make aggresive action
     return this->getTankAggressiveAction(this->sat_view);
-}
-
-void AggressiveTankAlgorithm::updateBattleInfo(BattleInfo &info)
-{
-    auto *current_info = dynamic_cast<BattleInfoAgent *>(&info);
-    if (!current_info)
-        return; // Should never happen
-
-    if (this->getCurrentStep() == 1)
-    {
-        this->setCurrentLocation(current_info->getCurrentCell());
-        this->setRemainingShells(current_info->getMaxShells());
-        
-        current_info->updateViewForStep(this->getCurrentStep());
-        this->sat_view = current_info->getAnalyticsView();
-    }
-    // else{
-
-    // }
 }
