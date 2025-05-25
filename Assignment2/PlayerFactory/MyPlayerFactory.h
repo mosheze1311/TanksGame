@@ -6,6 +6,7 @@
 #include "../common/PlayerFactory.h"
 #include "../Players/PlayerOne.h" // Make sure this header defines the PlayerOne class
 
+// TODO: change to create multiple types of Players not just PlayerOne
 class MyPlayerFactory : public PlayerFactory
 {
 public:
