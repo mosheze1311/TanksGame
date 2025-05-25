@@ -26,7 +26,7 @@ private:
     const PlayerFactory &player_factory;
     const TankAlgorithmFactory &tank_algorithm_factory;
 
-    vector<Tank *> tanks;
+    vector<Tank *> game_total_tanks;
     vector<unique_ptr<TankAlgorithm>> algorithms;
     map<int, unique_ptr<Player>> players_map;
 
@@ -41,7 +41,7 @@ private:
 
     //=== Gameplay Function ===
     bool concludeGame(); // Checks if a game is finsihed in a specific turn
-    void performActionsOnBoard(map<int, ActionRequest> actions, SatelliteView& sat_view);
+    void performActionsOnBoard(map<int, ActionRequest> actions, BoardSatelliteView &sat_view);
     void moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d);
     void moveShellsOnce();                   // Move shells acoording to their direction
     BoardSatelliteView TakeSatelliteImage(); // Returns an updated SatelliteView object at the start of the turn.

@@ -9,7 +9,7 @@
 void GameManager::prepareForRun()
 {
     // set manager game parameters
-    this->tanks = board.getAllTanksOrderedByCell(); // TODO: make sure tanks are ordered correctly;
+    this->game_total_tanks = board.getAllTanksOrderedByCell(); // TODO: make sure tanks are ordered correctly;
     this->remaining_steps = this->board.getMaxSteps();
     this->applyShellsLimitRuleOnRemainingSteps();
 
@@ -36,7 +36,7 @@ void GameManager::createPlayers()
 void GameManager::createAlgorithms()
 {
     std::map<size_t, size_t> algorithm_indexes_tracker;
-    for (Tank *t : tanks)
+    for (Tank *t : game_total_tanks)
     {
         size_t player_idx = GameObjectTypeUtils::tankTypeToPlayerIndex(t->getObjectType());
         size_t algorithm_idx = algorithm_indexes_tracker[player_idx]++;
@@ -147,16 +147,14 @@ void GameManager::logEndOfStep() const
 }
 
 //=== Gameplay Functions ===
-void GameManager::performActionsOnBoard(map<int, ActionRequest> actions, SatelliteView &sat_view)
+void GameManager::performActionsOnBoard(map<int, ActionRequest> actions, BoardSatelliteView &sat_view)
 {
-    size_t n = tanks.size(); // TODO: tanks name should indicate that they are not changing from start and it may contain dead tanks
+    size_t n = game_total_tanks.size(); // TODO: tanks name should indicate that they are not changing from start and it may contain dead tanks
     for (size_t i = 0; i < n; ++i)
     {
         auto iter = actions.find(i);
 
-        Tank *tank = tanks[i];
-        Logger::runtime().logLine("actual direction of tank " + std::to_string(GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())) +
-                                  " before action is " + std::to_string(static_cast<int>(tank->getDirection())));
+        Tank *tank = game_total_tanks[i];
         ActionRequest action = iter->second;
         bool is_killed;
         bool coma_in_log = i != n - 1;
@@ -180,7 +178,10 @@ void GameManager::performActionsOnBoard(map<int, ActionRequest> actions, Satelli
         {
             Player *player = players_map[GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())].get();
             TankAlgorithm &algorithm = *(algorithms[i]);
-            player->updateTankWithBattleInfo(algorithm, sat_view);
+            BoardCell tank_location = *(board.getObjectLocation(tank));
+
+            BoardSatelliteView sat_view_for_algo(sat_view, tank_location);
+            player->updateTankWithBattleInfo(algorithm, sat_view_for_algo);
         }
         else
         {
@@ -189,8 +190,6 @@ void GameManager::performActionsOnBoard(map<int, ActionRequest> actions, Satelli
 
         // log action: if tank has invalid request log (ignore); else, log normally.
         logAction(action, is_valid, is_killed, coma_in_log);
-        Logger::runtime().logLine("actual direction of tank " + std::to_string(GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())) +
-                                  " after action is " + std::to_string(static_cast<int>(tank->getDirection())));
     }
     
     this->logEndOfStep();
@@ -261,9 +260,9 @@ BoardSatelliteView GameManager::TakeSatelliteImage()
 map<int, ActionRequest> GameManager::requestAlgorithmsActions()
 {
     map<int, ActionRequest> actions;
-    for (size_t i = 0; i < tanks.size(); ++i)
+    for (size_t i = 0; i < game_total_tanks.size(); ++i)
     {
-        Tank *tank = tanks[i];
+        Tank *tank = game_total_tanks[i];
         if (!board.isObjectOnBoard(tank))
             continue;
 
