@@ -1,7 +1,5 @@
 #include "BoardCell.h"
 
-using std::pair;
-
 // === Constructors ===
 BoardCell::BoardCell() : x(0), y(0) {};
 
