@@ -1,5 +1,20 @@
 #include "../config.h"
 #include "SatelliteAnalyticsView.h"
+#include "../GameBoardUtils/GameBoardUtils.h"
+
+#include <iostream>
+
+/*
+    TODO: this class contains logic errors.
+    need to fix the following (and maybe more): 
+        1. mix TankAlgorithm's object with Player's object on the GetBattleInfo situation
+        2. moving shells on board should die when colliding with other objects
+        3. allowing multiple objects on the same cell
+        4. I added a printing function for debugging - it should be deleted when done
+        5. should use ajusted boardcells
+
+    should test this class carefully
+*/
 
 // === Constructor === //
 SatelliteAnalyitcsView::SatelliteAnalyitcsView(size_t height, size_t width, size_t max_steps_gap, size_t player_idx)
@@ -9,10 +24,16 @@ SatelliteAnalyitcsView::SatelliteAnalyitcsView(size_t height, size_t width, size
 SatelliteAnalyitcsView ::~SatelliteAnalyitcsView() {}; // TODO: implement
 
 // === Init Helpers (Private) === //
-void SatelliteAnalyitcsView::initAnalyticalView(SatelliteView &sat_view)
+void SatelliteAnalyitcsView ::clearView()
 {
     shells_locations.clear();
     enemies_locations.clear();
+    mines_locations.clear();
+    analytical_view.clear();
+}
+void SatelliteAnalyitcsView::initAnalyticalView(SatelliteView &sat_view)
+{
+    this->clearView();
     for (size_t x = 0; x < width; ++x)
     {
         for (size_t y = 0; y < height; ++y)
@@ -23,7 +44,7 @@ void SatelliteAnalyitcsView::initAnalyticalView(SatelliteView &sat_view)
 
             GameObjectType obj_type = static_cast<GameObjectType>(obj_char);
             analytical_view[BoardCell(x, y)] = {obj_type, AssumedDirection::UNKNOWN};
-            
+
             if (obj_char == static_cast<char>(GameObjectType::SHELL))
                 shells_locations.push_back(BoardCell(x, y));
 
@@ -99,7 +120,8 @@ size_t SatelliteAnalyitcsView::getHeight() const
     return this->height;
 };
 
-size_t SatelliteAnalyitcsView::getMaxStepGap() const{
+size_t SatelliteAnalyitcsView::getMaxStepGap() const
+{
     return this->max_steps_gap;
 }
 
@@ -121,6 +143,13 @@ std::vector<BoardCell> SatelliteAnalyitcsView::getMinesLocations() const
 size_t SatelliteAnalyitcsView::getEnemyTanksNum() const
 {
     return this->enemy_estimate_tanks_num;
+}
+
+void SatelliteAnalyitcsView::addShell(BoardCell &location, Direction dir)
+{
+    location = GameBoardUtils::createAdjustedBoardCell(location, this->getWidth(), this->getHeight());
+    this->analytical_view[location] = {GameObjectType::SHELL, static_cast<AssumedDirection>(dir)};
+    this->shells_locations.push_back(location);
 }
 
 // TODO: improve function visibility
@@ -182,12 +211,14 @@ void SatelliteAnalyitcsView::updateAnalyticalView(SatelliteView &sat_view, size_
     }
 }
 
-void SatelliteAnalyitcsView::approxBoardChanges(){
+void SatelliteAnalyitcsView::approxBoardChanges()
+{
     advanceShells();
 }
 
 // === Move Objects on View === //
-void SatelliteAnalyitcsView::advanceShells(){
+void SatelliteAnalyitcsView::advanceShells()
+{
     for (int i = 0; i < shell_speed; i++)
     {
         advanceShellsOnce();
@@ -206,17 +237,81 @@ void SatelliteAnalyitcsView::advanceShellsOnce()
 
         if (obj_char != static_cast<char>(GameObjectType::SHELL))
             continue; // should never happen
-        
+
         AssumedDirection fixed_assumed_dir = assumed_dir;
         if (fixed_assumed_dir == AssumedDirection::UNKNOWN)
             fixed_assumed_dir = AssumedDirection::DOWN;
 
         Direction shell_dir = static_cast<Direction>(fixed_assumed_dir);
-        BoardCell new_shell_location = old_shell_location + shell_dir;
+        std::cout << "sat view of " << this->player_idx << " thinks shell number " << i << " is going " << static_cast<int>(shell_dir) << std::endl;
+        BoardCell new_shell_location = GameBoardUtils::createAdjustedBoardCell(old_shell_location + shell_dir, this->getWidth(), this->getHeight());
 
         // actual movement
         this->analytical_view.erase(old_shell_location);
         this->analytical_view[new_shell_location] = {GameObjectType::SHELL, assumed_dir},
         this->shells_locations.push_back(new_shell_location);
     }
+}
+
+// === DEBUGGING === //
+#include <iostream> // TODO: delete include
+#include <thread>   // TODO: delete include
+#include <chrono>   // TODO: delete include
+// TODO: this is temp function - delete or atleast move to SatelliteAnalyitcsView
+void SatelliteAnalyitcsView::print()
+{
+    for (int y = 0; y < this->getHeight(); ++y)
+    {
+        for (int x = 0; x < this->getWidth(); ++x)
+        {
+            auto [object_type_char, object_assumed_direction] = this->getObjectAt(x, y);
+            std::cout << object_type_char;
+
+            if (object_type_char == static_cast<char>(GameObjectType::SHELL))
+            {
+                switch (object_assumed_direction)
+                {
+                case AssumedDirection::UNKNOWN:
+                    std::cout << "??";
+                    break;
+                case AssumedDirection::UP:
+                    std::cout << "^^";
+                    break;
+                case AssumedDirection::UPR:
+                    std::cout << "^>";
+                    break;
+                case AssumedDirection::RIGHT:
+                    std::cout << ">>";
+                    break;
+                case AssumedDirection::DOWNR:
+                    std::cout << "v>";
+                    break;
+                case AssumedDirection::DOWN:
+                    std::cout << "vv";
+                    break;
+                case AssumedDirection::DOWNL:
+                    std::cout << "<v";
+                    break;
+                case AssumedDirection::LEFT:
+                    std::cout << "<<";
+                    break;
+                case AssumedDirection::UPL:
+                    std::cout << "<^";
+                    break;
+                default:
+                    break;
+                };
+            }
+            else
+            {
+                std::cout << "  ";
+            }
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }

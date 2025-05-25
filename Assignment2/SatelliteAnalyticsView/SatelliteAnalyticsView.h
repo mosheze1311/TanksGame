@@ -53,6 +53,7 @@ private:
 
     // === INIT === //
     void initAnalyticalView(SatelliteView &sat_view);
+    void clearView();
 
     // === Move Objects on View === //
     void advanceShells();
@@ -78,7 +79,11 @@ public:
 
     // === UPDATE === //
     void updateAnalyticalView(SatelliteView &sat_view, size_t current_step);
-
+    
     // this function moves objects on board to allow algorithm to use the view in current step.
     void approxBoardChanges();
+    void addShell(BoardCell &location, Direction dir);
+
+    // === DEBUGGING === //
+    void print();
 };
