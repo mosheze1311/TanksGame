@@ -40,7 +40,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
         std::optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
         if (!opt_current_loc || !opt_previous_loc) // object is no longer on board. TODO: think of new shells and how it effects them
             continue;
-        
+
         BoardCell current_location = *opt_current_loc;
         BoardCell previous_location = *opt_previous_loc;
 
@@ -54,7 +54,7 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
             if (obj == other)
                 continue;
 
-            if (colliders.find(CollisionObjectTypeUtils::fromGameObjectType(obj->getObjectType())) == colliders.end())
+            if (colliders.find(CollisionObjectTypeUtils::fromGameObjectType(other->getObjectType())) == colliders.end())
                 continue;
 
             std::optional<BoardCell> opt_other_current_loc = updated_board.getObjectLocation(other);
@@ -86,18 +86,18 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) c
             if (!updated_board.isObjectOnBoard(obj1))
                 continue;
             std::unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
-            for (;iter2 != cell_objects.end(); ++iter2)
+            for (; iter2 != cell_objects.end(); ++iter2)
             {
                 GameObject *obj2 = *iter2;
                 if (!updated_board.isObjectOnBoard(obj2))
                     continue;
                 CollisionObjectType obj2_type = CollisionObjectTypeUtils::fromGameObjectType(obj2->getObjectType());
                 if (collide_with.find(obj2_type) != collide_with.end())
-                { 
+                {
                     // should explode each other
                     if (updated_board.isObjectOnBoard(obj1))
                         obj1->gotHit(1);
-                        
+
                     obj2->gotHit(1);
                 }
             }
@@ -154,23 +154,23 @@ bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, c
     if (collidors.empty())
         return false;
 
-    for (GameObject* object : objects_on_cell)
+    for (GameObject *object : objects_on_cell)
     {
         CollisionObjectType t = CollisionObjectTypeUtils::fromGameObjectType(object->getObjectType());
         if (collidors.find(t) != collidors.end())
             return true;
     }
-    
+
     return false;
 }
 
 // Overloaded functions for SatelliteView
-bool GameCollisionHandler::isObjectAllowedToStepOn(const SatelliteAnalyitcsView& sat_view, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::isObjectAllowedToStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
 {
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, sat_view, obj_type, c);
 }
 
-bool GameCollisionHandler::canObjectSafelyStepOn(const SatelliteAnalyitcsView& sat_view, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::canObjectSafelyStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
 {
     if (!GameCollisionHandler::isObjectAllowedToStepOn(sat_view, obj_type, c))
     {
@@ -183,7 +183,7 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const SatelliteAnalyitcsView& s
 bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
 {
     char cell_obj_char = sat_view.getObjectAt(c.getX(), c.getY()).first;
-    
+
     // handle empty space and out of bounds case
     if (!GameObjectTypeUtils::isValidObjectChar(cell_obj_char))
         return false;
