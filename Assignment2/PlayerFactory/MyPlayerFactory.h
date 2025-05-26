@@ -12,9 +12,9 @@ class MyPlayerFactory : public PlayerFactory
 public:
     virtual ~MyPlayerFactory() {}
 
-    virtual unique_ptr<Player> create(int player_index, size_t x, size_t y,
+    virtual std::unique_ptr<Player> create(int player_index, size_t x, size_t y,
                                       size_t max_steps, size_t num_shells) const override
     {
-        return make_unique<PlayerOne>(player_index, x, y, max_steps, num_shells);
+        return std::make_unique<PlayerOne>(player_index, x, y, max_steps, num_shells);
     }
 };

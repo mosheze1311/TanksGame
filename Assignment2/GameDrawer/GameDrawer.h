@@ -17,14 +17,14 @@ private:
     const DrawingType appearence;
 
     // ===Functions===
-    string decideCellImage(BoardCell c)
+    std::string decideCellImage(BoardCell c)
     {
-        vector<string> empty_blocks({"⬜", "⬜"});
+        std::vector<std::string> empty_blocks({"⬜", "⬜"});
 
         if (this->board.isOccupiedCell(c))
         {
-            unordered_set<GameObject *> objects = this->board.getObjectsOnCell(c);
-            GameObject *first = *(objects.begin());
+            std::unordered_set<GameObject *> objects = this->board.getObjectsOnCell(c);
+        GameObject *first = *(objects.begin());
             return first->getDrawing(this->appearence);
         }
         return empty_blocks[(c.getX() + c.getY()) % 2];
@@ -41,8 +41,8 @@ public:
             return;
 
         
-        string board_drawing = ""; // board drawing result
-        static const string game_border_portal = "🌀";
+        std::string board_drawing = ""; // board drawing result
+        static const std::string game_border_portal = "🌀";
         int border_width = this->board.getWidth() + 2;
 
         // upper border border
@@ -68,7 +68,7 @@ public:
         {
             board_drawing += game_border_portal;
         }
-        cout << board_drawing << endl;
+        std::cout << board_drawing << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000 / FPS));
     };
 };
