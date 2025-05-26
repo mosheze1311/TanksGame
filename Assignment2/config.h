@@ -25,3 +25,7 @@
 
 // steps after shell send
 #define steps_after_shells_end 40
+
+// wait and cooldown
+#define shoot_cooldown_steps 4
+#define backward_wait_steps = 2
