@@ -50,7 +50,7 @@ size_t AbstractTankAlgorithm::getShootCooldown() const { return shoot_cooldown; 
 size_t AbstractTankAlgorithm::getTankIdx() const { return tank_idx; }
 GameObjectType AbstractTankAlgorithm::getTankType() const { return GameObjectTypeUtils::playerIndexToTankType(this->player_idx); }
 
-// === Shoot Cooldown Management === //
+// === Cooldown / Wait Management ===
 bool AbstractTankAlgorithm::canTankShoot() const
 {
     return (this->shoot_cooldown == 0 && this->getRemainingShells() > 0);

@@ -23,6 +23,7 @@ protected:
     Direction direction;
     size_t num_of_shells = 0;
     size_t shoot_cooldown = 0;
+    int backwards_wait = -2;
 
     size_t current_step = 0; // this means that actual first step is 1
     size_t max_steps = 0;
@@ -40,8 +41,17 @@ public:
 
     protected : virtual ActionRequest getActionLogic() = 0;
     void adjustSelfToAction(ActionRequest action);
-    // === Cooldown Management ===
+    
+    // === Cooldown / Wait Management ===
+    void tickShootCooldown();
+    void tickBackwardsWait();
+    bool isPendingBackwards() const;
+    bool canImmediateBackwards() const;
+    void extendBackwardsStreak();
+    void cancelBackwardsWait();
+    void startBackwardsWait();
     bool canTankShoot() const;
+    
     void execute_shoot();
 
     // === Step Logic ===
