@@ -4,6 +4,7 @@
 #include "../GameObjects/GameObjects.h"
 #include "../Logger/Logger.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 
