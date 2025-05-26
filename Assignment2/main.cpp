@@ -3,6 +3,7 @@
 #include "TankAlgorithmFactory/MyTankAlgorithmFactory.h"
 
 #include <memory>
+// TODO: maybe change to unique?
 std::shared_ptr<PlayerFactory> getPlayerFactory()
 {
     return std::make_shared<MyPlayerFactory>();
