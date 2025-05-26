@@ -20,30 +20,16 @@ BoardSatelliteView::BoardSatelliteView(GameBoard &board) : width(board.getWidth(
     }
 }
 
-// TODO: this function exists to avoid a public setter - can we simply add a setter?
-BoardSatelliteView::BoardSatelliteView(BoardSatelliteView &other, BoardCell caller_tank_location)
-{
-    this->height = other.height;
-    this->width = other.width;
-    this->caller_tank_location = caller_tank_location;
-    for (size_t x = 0; x < other.width; ++x)
-    {
-        for (size_t y = 0; y < other.height; ++y)
-        {
-            BoardCell c(x, y);
-            char object_type_char = other.getObjectAt(x, y);
-
-            if (!GameObjectTypeUtils::isValidObjectChar(object_type_char))
-                continue;
-            this->sat_view[c] = static_cast<GameObjectType>(object_type_char);
-        }
-    }
+// TODO: is this public setter valid even though not part of interface?
+void BoardSatelliteView::setCallerTankLocation (const BoardCell& c){
+    this->caller_tank_location = c;
 }
 
 //=== Interface Implementation ===
 char BoardSatelliteView::getObjectAt(size_t x, size_t y) const
 {
-    if (x < 0 || x > this->width || y < 0 || y > this->height)
+
+    if (x > this->width || y > this->height) // not checking < 0 since size_t is unsigned
         return this->out_of_bounds;
     
     if (BoardCell(x,y) == caller_tank_location)
