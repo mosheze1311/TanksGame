@@ -131,12 +131,12 @@ const std::unordered_set<CollisionObjectType> GameCollisionHandler::getColliding
 }
 
 //=== Static Functions ===
-bool GameCollisionHandler::isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::isObjectAllowedToStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c)
 {
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, board, obj_type, c);
 }
 
-bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c)
 {
     if (!GameCollisionHandler::isObjectAllowedToStepOn(board, obj_type, c))
     {
@@ -146,51 +146,19 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoard &board, GameObj
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, board, obj_type, c);
 }
 
-bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoardView &board, GameObjectType obj_type, BoardCell c)
 {
-    auto objects_on_cell = board.getObjectsOnCell(c);
     const std::unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
-
     if (collidors.empty())
         return false;
 
-    for (GameObject *object : objects_on_cell)
+    auto objects_types_on_cell = board.getObjectsTypesOnCell(c);
+    for (GameObjectType object_type : objects_types_on_cell)
     {
-        CollisionObjectType t = CollisionObjectTypeUtils::fromGameObjectType(object->getObjectType());
+        CollisionObjectType t = CollisionObjectTypeUtils::fromGameObjectType(object_type);
         if (collidors.find(t) != collidors.end())
             return true;
     }
 
     return false;
-}
-
-// Overloaded functions for SatelliteView
-bool GameCollisionHandler::isObjectAllowedToStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
-{
-    return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, sat_view, obj_type, c);
-}
-
-bool GameCollisionHandler::canObjectSafelyStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
-{
-    if (!GameCollisionHandler::isObjectAllowedToStepOn(sat_view, obj_type, c))
-    {
-        return false;
-    }
-
-    return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, sat_view, obj_type, c);
-}
-
-bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c)
-{
-    char cell_obj_char = sat_view.getObjectAt(c.getX(), c.getY()).first;
-
-    // handle empty space and out of bounds case
-    if (!GameObjectTypeUtils::isValidObjectChar(cell_obj_char))
-        return false;
-
-    GameObjectType cell_obj_type = static_cast<GameObjectType>(cell_obj_char);
-    CollisionObjectType cell_obj_coll_type = CollisionObjectTypeUtils::fromGameObjectType(cell_obj_type);
-    const std::unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
-
-    return collidors.find(cell_obj_coll_type) != collidors.end();
 }

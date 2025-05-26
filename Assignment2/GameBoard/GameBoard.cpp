@@ -204,6 +204,14 @@ std::unordered_set<GameObject *> GameBoard::getObjectsOnCell(const BoardCell &c)
     return {};
 }
 
+std::unordered_set<GameObjectType> GameBoard::getObjectsTypesOnCell(const BoardCell &c) const {
+    std::unordered_set < GameObjectType> res;
+    for ( GameObject* go :this->getObjectsOnCell(c)){
+        res.insert(go->getObjectType());
+    }
+    return res;
+}
+
 std::optional<BoardCell> GameBoard::getObjectLocation(const GameObject *obj) const
 {
     auto iter = this->objects_locations.find(const_cast<GameObject *>(obj));

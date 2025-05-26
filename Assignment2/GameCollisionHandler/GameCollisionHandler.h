@@ -8,6 +8,7 @@
 #include "../GameBoardUtils/GameBoardUtils.h"
 #include "../BoardSatelliteView/BoardSatelliteView.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
+#include "../GameBoardView/GameBoardView.h"
 
 #include <map>
 #include <unordered_set>
@@ -15,7 +16,7 @@
 
 #define CollisionMap std::map<CollisionObjectType, const std::unordered_set<CollisionObjectType>>
 
-class GameCollisionHandler
+class GameCollisionHandler 
 {
     /*
     ===== COLLISION POLICY =====
@@ -43,10 +44,7 @@ private:
 
     //=== Static Functions ===
     // check for collisions regarding the collision map
-    static bool isCollidingOnCell(CollisionMap collision_map, const GameBoard &board, GameObjectType obj_type, BoardCell c);
-
-    // Overloaded function for SatelliteView
-    static bool isCollidingOnCell(CollisionMap collision_map, const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
+    static bool isCollidingOnCell(CollisionMap collision_map, const GameBoardView &board, GameObjectType obj_type, BoardCell c);
 
     // explosion list
     static const std::unordered_set<CollisionObjectType> getCollidingTypes(CollisionMap collision_map, GameObjectType t);
@@ -70,12 +68,8 @@ private:
     void handleCollisions(GameBoard& updatedBoard);
 
     //=== Static Functions ===
-    static bool isObjectAllowedToStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
+    static bool isObjectAllowedToStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c);
 
-    static bool canObjectSafelyStepOn(const GameBoard &board, GameObjectType obj_type, BoardCell c);
+    static bool canObjectSafelyStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c);
 
-    // Overloaded functions for SatelliteView
-    static bool isObjectAllowedToStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
-
-    static bool canObjectSafelyStepOn(const SatelliteAnalyitcsView &sat_view, GameObjectType obj_type, BoardCell c);
 };

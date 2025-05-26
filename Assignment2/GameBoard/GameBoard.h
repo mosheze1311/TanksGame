@@ -1,10 +1,13 @@
 #pragma once
 
-#include "../GameObjects/GameObjects.h"
-#include "../GameBoardInitializer/GameBoardInitializer.h"
 #include "BoardCell.h"
 
+#include "../GameBoardInitializer/GameBoardInitializer.h"
+#include "../GameBoardView/GameBoardView.h"
+#include "../GameObjects/GameObjects.h"
+
 #include <map>
+#include <memory>
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
@@ -19,7 +22,7 @@ class GameBoardInitializer;
 
 // Classes declarations
 
-class GameBoard
+class GameBoard : public GameBoardView
 {
 private:
     // === Nested class to store board details ===
@@ -122,6 +125,9 @@ public:
 
     // get a set of all objects on the cell
     std::unordered_set<GameObject *> getObjectsOnCell(const BoardCell &c) const;
+
+    // get a set of all objects on the cell
+    std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const;
 
     // get all objects of a certain GameObjectType that exist on board
     std::vector<GameObject *> getGameObjects(GameObjectType t) const;
