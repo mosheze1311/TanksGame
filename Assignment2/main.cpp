@@ -2,14 +2,15 @@
 #include "PlayerFactory/MyPlayerFactory.h"
 #include "TankAlgorithmFactory/MyTankAlgorithmFactory.h"
 
-MyPlayerFactory getPlayerFactory()
+#include <memory>
+std::shared_ptr<PlayerFactory> getPlayerFactory()
 {
-    return MyPlayerFactory();
+    return std::make_shared<MyPlayerFactory>();
 }
 
-MyTankAlgorithmFactory getTankAlgorithmFactory()
+std::shared_ptr<TankAlgorithmFactory> getTankAlgorithmFactory()
 {
-    return MyTankAlgorithmFactory();
+    return std::make_shared<MyTankAlgorithmFactory>();
 }
 
 bool validateArgc(int argc)
@@ -43,7 +44,7 @@ int main(int argc, char **argv)
     if(!validateArgc(argc))
         return EXIT_SUCCESS;
 
-    const string file_path = argv[1];
+    const std::string file_path = argv[1];
 
     DrawingType dt = DrawingType::NONE; // default
     if (!validateDrawingType(dt, argc, argv))
