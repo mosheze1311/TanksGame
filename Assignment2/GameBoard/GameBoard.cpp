@@ -89,6 +89,7 @@ void GameBoard::updateObjectCount(const GameObject *obj, int incremental = 1)
     }
 }
 
+// TODO: maybe include GameBoardUtils and call function from there
 BoardCell GameBoard::createBoardCell(int x, int y) const
 {
     return BoardCell(
@@ -96,6 +97,7 @@ BoardCell GameBoard::createBoardCell(int x, int y) const
         (y + this->board_details.height) % this->board_details.height);
 }
 
+// TODO: maybe include GameBoardUtils and call function from there
 BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c) const
 {
     return this->createBoardCell(c.getX(), c.getY());
