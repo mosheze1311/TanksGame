@@ -49,7 +49,7 @@ private:
     // === Attributes === //
     GameDetails game_details;
 
-    SatelliteAnalyitcsView &advanced_sat_view;
+    SatelliteAnalyticsView &advanced_sat_view;
     SatelliteView &new_satellite_image;
 
     PlayerToTankDetails player_to_tank;
@@ -57,7 +57,7 @@ private:
 
 public:
     // === Constructor === //
-    BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, SatelliteView &sat_view, PlayerToTankDetails player_to_tank, GameDetails details);
+    BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, SatelliteView &sat_view, PlayerToTankDetails player_to_tank, GameDetails details);
 
     // === Destructor === //
     ~BattleInfoAgent() override;
@@ -76,7 +76,7 @@ public:
     BoardCell getTankLocation() const;
 
     size_t getStepToGetInfo(size_t current_step) const;
-    SatelliteAnalyitcsView getAnalyticsView() const;
+    SatelliteAnalyticsView getAnalyticsView() const;
 
     // === Setters (for Player) === //
     // currently none: all setters are through the constructor

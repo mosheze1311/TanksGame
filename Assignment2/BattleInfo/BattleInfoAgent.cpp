@@ -1,7 +1,7 @@
 #include "BattleInfoAgent.h"
 
 // === Constructor ===
-BattleInfoAgent::BattleInfoAgent(SatelliteAnalyitcsView &advanced_sat_view, SatelliteView &sat_view, PlayerToTankDetails player_to_tank, GameDetails details)
+BattleInfoAgent::BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, SatelliteView &sat_view, PlayerToTankDetails player_to_tank, GameDetails details)
     : game_details(details),
 
       advanced_sat_view(advanced_sat_view),
@@ -62,7 +62,7 @@ void BattleInfoAgent::updateViewForStep(size_t current_step)
     this->advanced_sat_view.updateAnalyticalView(this->new_satellite_image, current_step);
 }
 
-SatelliteAnalyitcsView BattleInfoAgent::getAnalyticsView() const
+SatelliteAnalyticsView BattleInfoAgent::getAnalyticsView() const
 {
     return this->advanced_sat_view;
 }

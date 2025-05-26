@@ -12,17 +12,15 @@ class PlayerOne : public Player
 {
 
 private:
-    int player_index;
+    // int player_index;
     size_t board_width;
     size_t board_height;
     size_t max_steps;
     size_t initial_num_of_shells;
 
-    size_t live_tanks_count;
-
     map<size_t, BoardCell> tanks_locations; // maps tank id to its location
     size_t current_step;
-    SatelliteAnalyitcsView analytics_view;
+    SatelliteAnalyticsView analytics_view;
 
     //=== Helper Functions ===
     BoardCell parseTankLocation(SatelliteView &satellite_view)
@@ -40,7 +38,7 @@ private:
     }
     PlayerToTankDetails createPlayerToTankDetails(SatelliteView &satellite_view)
     {
-        size_t steps_gap_for_get_info = 100; // TODO: this is the new version - it is not exactly what we need...
+        size_t steps_gap_for_get_info = 5; // TODO: this is the new version - it is not exactly what we need...
         // size_t steps_gap_for_get_info = analytics_view.getMaxStepGap(); // TODO: this is the old version - it is not exactly what we need
         BoardCell caller_tank_location = parseTankLocation(satellite_view);
         PlayerToTankDetails pttd(caller_tank_location, steps_gap_for_get_info);
@@ -74,7 +72,8 @@ public:
         this->tanks_locations[tank_idx] = pttd.caller_tank_location;
         this->current_step = battle_info.getCurrentStep();
         // TODO: decide on what to do with following values
+        // specific for each tank, dicide how to imform play about this specific tank
         battle_info.getRemainingShells(); 
-        battle_info.getTankDirection();
+        battle_info.getTankDirection(); 
     }
 };
