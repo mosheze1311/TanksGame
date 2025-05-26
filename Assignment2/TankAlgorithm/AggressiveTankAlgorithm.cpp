@@ -17,7 +17,6 @@ ActionRequest AggressiveTankAlgorithm::getActionLogic()
     // TODO: Implement actual behavior
 
     // in first turn, get battle info
-    this->advance_step();
     if (this->getCurrentStep() == this->step_to_get_info)
     {
         return ActionRequest::GetBattleInfo;

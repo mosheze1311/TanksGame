@@ -17,7 +17,6 @@ ActionRequest PassiveTankAlgorithm::getActionLogic()
     // TODO: Implement actual behavior
 
     // in first turn, get battle info
-    this->advance_step();
     if (this->getCurrentStep() == this->step_to_get_info)
     {
         return ActionRequest::GetBattleInfo;
@@ -29,7 +28,7 @@ ActionRequest PassiveTankAlgorithm::getActionLogic()
         return escape_shell_action.value();
     }
 
-    // If enemy in range, try to e
+    // If enemy in range, try to escape
     BoardCell approx_closet_enemy = this->approxClosestEnemyTankLocation(sat_view);
     if (auto shoot_action_opt = this->evaluateShootingOpportunity(approx_closet_enemy, sat_view.getWidth(), sat_view.getHeight()))
     {

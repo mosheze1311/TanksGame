@@ -1,10 +1,10 @@
 #include "AbstractTankAlgorithm.h"
-
+#include <iostream>
 // === Constructor === //
 AbstractTankAlgorithm::AbstractTankAlgorithm(size_t tank_idx, size_t player_idx)
-    : tank_idx(tank_idx),
-      player_idx(player_idx),
-      sat_view(0, 0, 0, player_idx), step_to_get_info(1)
+    : tank_idx(tank_idx), player_idx(player_idx),
+      sat_view(0, 0, 0, player_idx)
+
 {
     // TODO: should later calculate based on config.h
     direction = player_idx % 2 == 1 ? Direction::LEFT : Direction::RIGHT;
@@ -53,28 +53,33 @@ GameObjectType AbstractTankAlgorithm::getTankType() const { return GameObjectTyp
 // === Shoot Cooldown Management === //
 bool AbstractTankAlgorithm::canTankShoot() const
 {
-    return (this->shoot_cooldown == 0);
+    return (this->shoot_cooldown == 0 && this->getRemainingShells() > 0);
 }
 
 void AbstractTankAlgorithm::execute_shoot()
 {
-    if (canTankShoot()){
-        shoot_cooldown = 4;
-
+    if (canTankShoot())
+    {
         BoardCell shell_location = this->assumed_location + this->direction;
         this->sat_view.addShell(shell_location, this->direction);
+
+        shoot_cooldown = 5;
+        this->setRemainingShells(this->getRemainingShells() - 1);
     }
 }
 
 // === Steps Logic === //
-void AbstractTankAlgorithm::advance_step()
+void AbstractTankAlgorithm::advanceStep()
 {
     current_step++;
-    shoot_cooldown = std::min(0UL, shoot_cooldown-1);
+    shoot_cooldown = (shoot_cooldown == 0) ? 0 : shoot_cooldown - 1;
+    this->sat_view.approxBoardChanges();
+
+    Logger::output("output_input1.txt").logLine("shoot colldown: " + std::to_string(shoot_cooldown));
 }
 
 // === Action Planning ===
-ActionRequest AbstractTankAlgorithm::getTankEvasionAction(const SatelliteAnalyitcsView &sat_view, BoardCell chaser_location, Direction chaser_direction) const
+ActionRequest AbstractTankAlgorithm::getTankEvasionAction(const SatelliteAnalyticsView &sat_view, Direction chaser_direction) const
 {
     if (chaser_direction == this->getTankDirection())
     {
@@ -98,7 +103,7 @@ ActionRequest AbstractTankAlgorithm::getTankEvasionAction(const SatelliteAnalyit
     }
 }
 
-ActionRequest AbstractTankAlgorithm::getTankAggressiveAction(const SatelliteAnalyitcsView &sat_view) const
+ActionRequest AbstractTankAlgorithm::getTankAggressiveAction(const SatelliteAnalyticsView &sat_view) const
 {
     // try to chase the enemy tank or shoot at it.
 
@@ -125,7 +130,7 @@ ActionRequest AbstractTankAlgorithm::getTankAggressiveAction(const SatelliteAnal
     return advanceTankToTarget(sat_view, target);
 }
 
-ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const SatelliteAnalyitcsView &sat_view, BoardCell target) const
+ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const SatelliteAnalyticsView &sat_view, BoardCell target) const
 {
     BoardCell start = this->assumed_location;
     map<BoardCell, int> distances;
@@ -192,7 +197,7 @@ ActionRequest AbstractTankAlgorithm::adjustDirection(BoardCell to, size_t width,
 }
 
 // === Target Estimation ===
-BoardCell AbstractTankAlgorithm::approxClosestEnemyTankLocation(const SatelliteAnalyitcsView &sat_view) const
+BoardCell AbstractTankAlgorithm::approxClosestEnemyTankLocation(const SatelliteAnalyticsView &sat_view) const
 {
     /*  this function gives an approximation of the closest enemy tank location.
         to be clear, the approximation is regarding the closest tank identity. the location is not an approximation.
@@ -215,7 +220,7 @@ BoardCell AbstractTankAlgorithm::approxClosestEnemyTankLocation(const SatelliteA
 }
 
 // === Pathfinding ===
-void AbstractTankAlgorithm::Dijkstra(const SatelliteAnalyitcsView &sat_view, GameObjectType tank_type, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents) const
+void AbstractTankAlgorithm::Dijkstra(const SatelliteAnalyticsView &sat_view, GameObjectType tank_type, BoardCell start, BoardCell target, map<BoardCell, int> &distances, map<BoardCell, BoardCell> &parents) const
 {
     std::priority_queue<
         std::pair<int, std::pair<BoardCell, BoardCell>>,
@@ -281,7 +286,7 @@ std::optional<ActionRequest> AbstractTankAlgorithm::evaluateShootingOpportunity(
     return std::nullopt;
 }
 
-std::optional<ActionRequest> AbstractTankAlgorithm::escapeShells(const SatelliteAnalyitcsView &sat_view) const
+std::optional<ActionRequest> AbstractTankAlgorithm::escapeShells(const SatelliteAnalyticsView &sat_view) const
 {
     size_t step_dist = 5;
     step_dist = std::min(std::min(sat_view.getHeight(), sat_view.getWidth()), step_dist); // for small fields.
@@ -298,18 +303,22 @@ std::optional<ActionRequest> AbstractTankAlgorithm::escapeShells(const Satellite
         {
             BoardCell cell = GameBoardUtils::createAdjustedBoardCell(BoardCell(x, y), sat_view.getWidth(), sat_view.getWidth());
 
-            auto [object_type_char, object_assumed_direction] = sat_view.getObjectAt(cell.getX(), cell.getY());
-            if (object_type_char != static_cast<char>(GameObjectType::SHELL))
-                continue;
-
-            if (object_assumed_direction == AssumedDirection::UNKNOWN)
-                continue;
-
-            Direction obj_direction = static_cast<Direction>(object_assumed_direction);
-
-            if (GameBoardUtils::isDirectionMatch(cell, this->assumed_location, obj_direction, sat_view.getWidth(), sat_view.getHeight()))
+            auto objects = sat_view.getObjectsAt(cell);
+            for (auto [object_type_char, object_assumed_direction] : objects)
             {
-                return getTankEvasionAction(sat_view, cell, obj_direction);
+
+                if (object_type_char != static_cast<char>(GameObjectType::SHELL))
+                    continue;
+
+                if (object_assumed_direction == AssumedDirection::UNKNOWN)
+                    continue;
+
+                Direction obj_direction = static_cast<Direction>(object_assumed_direction);
+
+                if (GameBoardUtils::isDirectionMatch(cell, this->assumed_location, obj_direction, sat_view.getWidth(), sat_view.getHeight()))
+                {
+                    return getTankEvasionAction(sat_view, obj_direction);
+                }
             }
         }
     }
@@ -317,7 +326,7 @@ std::optional<ActionRequest> AbstractTankAlgorithm::escapeShells(const Satellite
     return std::nullopt;
 }
 
-std::optional<BoardCell> AbstractTankAlgorithm::getEscapingRoute(SatelliteAnalyitcsView sat_view, Direction enemy_dir) const
+std::optional<BoardCell> AbstractTankAlgorithm::getEscapingRoute(SatelliteAnalyticsView sat_view, Direction enemy_dir) const
 {
     std::vector<BoardCell> neighbors = GameBoardUtils::getAdjacentCells(this->assumed_location, sat_view.getHeight(), sat_view.getWidth());
     for (BoardCell neighbor : neighbors)
@@ -339,10 +348,16 @@ std::optional<BoardCell> AbstractTankAlgorithm::getEscapingRoute(SatelliteAnalyi
 //=== Interface ===
 ActionRequest AbstractTankAlgorithm::getAction()
 {
-    this->sat_view.approxBoardChanges();
-    this->sat_view.print();
+    this->advanceStep();
     ActionRequest request = this->getActionLogic();
     this->adjustSelfToAction(request);
+
+    // TODO: this is for debugging the sat_view, delete later
+    if (request == ActionRequest::Shoot)
+    {
+        this->sat_view.print();
+    }
+
     return request;
 }
 
@@ -366,6 +381,7 @@ void AbstractTankAlgorithm::updateBattleInfo(BattleInfo &info)
 
     // get sat_view from BattleInfo
     current_info.updateViewForStep(this->getCurrentStep());
+    // TODO: here there should be some function that uses the algorithm analytics map to update the player one (using the battle info)
     this->sat_view = current_info.getAnalyticsView();
 
     // update BattleInfo with algorithm data (tank_to_player_details)
@@ -377,9 +393,14 @@ void AbstractTankAlgorithm::updateBattleInfo(BattleInfo &info)
 //=== Helper Functions ===
 void AbstractTankAlgorithm::adjustSelfToAction(ActionRequest action)
 {
+    // TODO: fix all logic to match waiting conditions of tanks
     switch (action)
     {
+    case ActionRequest::GetBattleInfo:
+        // TODO: fix GetBattleInfoLogic according to Moodle forum
+        break;
     case ActionRequest::MoveForward:
+        // TODO: fix the forward logic with cancel wait
         this->assumed_location = GameBoardUtils::getNextCellInDirection(this->assumed_location, this->getTankDirection(), sat_view.getWidth(), sat_view.getHeight());
         break;
 

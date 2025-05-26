@@ -21,15 +21,15 @@ protected:
 
     BoardCell assumed_location;
     Direction direction;
-    size_t num_of_shells;
-    size_t shoot_cooldown;
+    size_t num_of_shells = 0;
+    size_t shoot_cooldown = 0;
 
-    size_t current_step;
-    size_t max_steps;
-    
-    SatelliteAnalyitcsView sat_view;
-    
-    size_t step_to_get_info;
+    size_t current_step = 0; // this means that actual first step is 1
+    size_t max_steps = 0;
+        
+    size_t step_to_get_info = 1; // get info on first step
+
+    SatelliteAnalyticsView sat_view;
 
 public:
     // === Constructor ===
@@ -45,25 +45,25 @@ public:
     void execute_shoot();
 
     // === Step Logic ===
-    void advance_step();
+    void advanceStep();
 
     // === Action Planning ===
-    ActionRequest getTankEvasionAction(const SatelliteAnalyitcsView &sat_view, BoardCell chaser_location, Direction chaser_direction) const;
-    ActionRequest getTankAggressiveAction(const SatelliteAnalyitcsView &sat_view) const;
-    ActionRequest advanceTankToTarget(const SatelliteAnalyitcsView &sat_view, BoardCell target) const;
+    ActionRequest getTankEvasionAction(const SatelliteAnalyticsView &sat_view, Direction chaser_direction) const;
+    ActionRequest getTankAggressiveAction(const SatelliteAnalyticsView &sat_view) const;
+    ActionRequest advanceTankToTarget(const SatelliteAnalyticsView &sat_view, BoardCell target) const;
     ActionRequest adjustDirection(BoardCell to, size_t width, size_t height) const;
 
     // === Target Evaluation ===
     std::optional<ActionRequest> evaluateShootingOpportunity(BoardCell target, size_t width, size_t height) const;
-    std::optional<ActionRequest> escapeShells(const SatelliteAnalyitcsView &sat_view) const;
-    std::optional<BoardCell> getEscapingRoute(SatelliteAnalyitcsView sat_view, Direction enemy_dir) const;
+    std::optional<ActionRequest> escapeShells(const SatelliteAnalyticsView &sat_view) const;
+    std::optional<BoardCell> getEscapingRoute(SatelliteAnalyticsView sat_view, Direction enemy_dir) const;
 
     // === Pathfinding ===
-    void Dijkstra(const SatelliteAnalyitcsView &sat_view, GameObjectType tank_type, BoardCell start, BoardCell target,
+    void Dijkstra(const SatelliteAnalyticsView &sat_view, GameObjectType tank_type, BoardCell start, BoardCell target,
                   std::map<BoardCell, int> &distances, std::map<BoardCell, BoardCell> &parents) const;
 
     // === Target Estimation ===
-    BoardCell approxClosestEnemyTankLocation(const SatelliteAnalyitcsView &sat_view) const;
+    BoardCell approxClosestEnemyTankLocation(const SatelliteAnalyticsView &sat_view) const;
 
     // === Setters === //
     void setCurrentLocation(const BoardCell& loc);
