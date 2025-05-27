@@ -8,6 +8,7 @@
 #include "../BoardSatelliteView/BoardSatelliteView.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 #include "../BattleInfo/BattleInfoAgent.h"
+#include "../Utils/TankCooldownHandler.h"
 
 #include <queue>
 #include <set>
@@ -22,12 +23,11 @@ protected:
     BoardCell assumed_location;
     Direction direction;
     size_t num_of_shells = 0;
-    size_t shoot_cooldown = 0;
-    int backwards_wait = -2;
+    CooldownHandler cooldowns; 
 
     size_t current_step = 0; // this means that actual first step is 1
     size_t max_steps = 0;
-        
+
     size_t step_to_get_info = 1; // get info on first step
 
     SatelliteAnalyticsView sat_view;
@@ -39,9 +39,10 @@ public:
     ActionRequest getAction() override;
     void updateBattleInfo(BattleInfo &info) override;
 
-    protected : virtual ActionRequest getActionLogic() = 0;
+protected:
+    virtual ActionRequest getActionLogic() = 0;
     void adjustSelfToAction(ActionRequest action);
-    
+
     // === Cooldown / Wait Management ===
     void tickShootCooldown();
     void tickBackwardsWait();
@@ -51,11 +52,13 @@ public:
     void cancelBackwardsWait();
     void startBackwardsWait();
     bool canTankShoot() const;
-    
-    void execute_shoot();
+
+    bool hasShells() const;
+    void executeShoot();
 
     // === Step Logic ===
     void advanceStep();
+    void handlePendingBackwards();
 
     // === Action Planning ===
     ActionRequest getTankEvasionAction(const SatelliteAnalyticsView &sat_view, Direction chaser_direction) const;
@@ -76,7 +79,7 @@ public:
     BoardCell approxClosestEnemyTankLocation(const SatelliteAnalyticsView &sat_view) const;
 
     // === Setters === //
-    void setCurrentLocation(const BoardCell& loc);
+    void setCurrentLocation(const BoardCell &loc);
     void setRemainingShells(size_t shells);
     void setCurrentStep(size_t step);
     void setTankDirection(Direction dir);
@@ -91,4 +94,6 @@ public:
     size_t getShootCooldown() const;
     size_t getTankIdx() const;
     GameObjectType getTankType() const;
+
+    bool canMoveToCell (const BoardCell &cell) const;
 };

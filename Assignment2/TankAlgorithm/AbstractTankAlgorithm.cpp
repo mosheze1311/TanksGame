@@ -46,25 +46,52 @@ size_t AbstractTankAlgorithm::getRemainingShells() const { return num_of_shells;
 BoardCell AbstractTankAlgorithm::getCurrentLocation() const { return assumed_location; }
 Direction AbstractTankAlgorithm::getTankDirection() const { return direction; }
 size_t AbstractTankAlgorithm::getCurrentStep() const { return current_step; }
-size_t AbstractTankAlgorithm::getShootCooldown() const { return shoot_cooldown; }
 size_t AbstractTankAlgorithm::getTankIdx() const { return tank_idx; }
 GameObjectType AbstractTankAlgorithm::getTankType() const { return GameObjectTypeUtils::playerIndexToTankType(this->player_idx); }
 
 // === Cooldown / Wait Management ===
+bool AbstractTankAlgorithm::hasShells() const
+{
+    return this->getRemainingShells() > 0;
+}
 bool AbstractTankAlgorithm::canTankShoot() const
 {
-    return (this->shoot_cooldown == 0 && this->getRemainingShells() > 0);
+    return !cooldowns.isPendingBackwards() && cooldowns.isDoneShootCooldown() && hasShells();
 }
 
-void AbstractTankAlgorithm::execute_shoot()
+void AbstractTankAlgorithm::executeShoot()
 {
     if (canTankShoot())
     {
         BoardCell shell_location = this->assumed_location + this->direction;
         this->sat_view.addShell(shell_location, this->direction);
 
-        shoot_cooldown = 5;
+        this->cooldowns.beginShoot();
         this->setRemainingShells(this->getRemainingShells() - 1);
+    }
+}
+
+bool AbstractTankAlgorithm::canMoveToCell(const BoardCell &cell) const
+{
+    return !sat_view.isWallOnCell(cell);
+}
+void AbstractTankAlgorithm::handlePendingBackwards()
+{
+    // this function moves the tank backwards on the end of cooldown.
+    // if movement is not possible, cancel the backwards wait
+
+    if (cooldowns.isDoneBackwardWait())
+    {
+        // if can move backwards - move
+        BoardCell backwards_cell = GameBoardUtils::createAdjustedBoardCell(this->getCurrentLocation() - this->getTankDirection(), this->sat_view.getWidth(), this->sat_view.getHeight());
+        if (canMoveToCell(backwards_cell))
+        {
+            this->setCurrentLocation(backwards_cell);
+        }
+        else
+        {
+            cooldowns.cancelBackwardWait();
+        }
     }
 }
 
@@ -72,10 +99,10 @@ void AbstractTankAlgorithm::execute_shoot()
 void AbstractTankAlgorithm::advanceStep()
 {
     current_step++;
-    shoot_cooldown = (shoot_cooldown == 0) ? 0 : shoot_cooldown - 1;
-    this->sat_view.approxBoardChanges();
+    cooldowns.tickCooldowns();
+    handlePendingBackwards();
 
-    Logger::output("output_input1.txt").logLine("shoot colldown: " + std::to_string(shoot_cooldown));
+    this->sat_view.approxBoardChanges();
 }
 
 // === Action Planning ===
@@ -192,7 +219,6 @@ ActionRequest AbstractTankAlgorithm::adjustDirection(BoardCell to, size_t width,
     {
         return ActionRequest::RotateLeft90; // will need additional 90 deg turn
     }
-    Logger::runtime().logLine("can't adjust direction to ..." + std::to_string(to.getX()) + "," + std::to_string(to.getY()));
     return ActionRequest::DoNothing; // in correct direction
 }
 
@@ -208,7 +234,6 @@ BoardCell AbstractTankAlgorithm::approxClosestEnemyTankLocation(const SatelliteA
     int closest_dist = -1;
     for (BoardCell enemy_loc : sat_view.getEnemyTanksLocations())
     {
-        Logger::runtime().logLine("checking enemy location " + std::to_string(enemy_loc.getX()) + "," + std::to_string(enemy_loc.getY()));
         int curr_dist = GameBoardUtils::distance(closest, enemy_loc, sat_view.getWidth(), sat_view.getHeight());
         if (closest_dist == -1 || closest_dist > curr_dist)
         {
@@ -229,8 +254,6 @@ void AbstractTankAlgorithm::Dijkstra(const SatelliteAnalyticsView &sat_view, Gam
         q;
     q.push({0, {start, start}});
     std::set<BoardCell> visited;
-    Logger::runtime().logLine("running dijkstra on board of " + std::to_string(sat_view.getWidth()) + "," + std::to_string(sat_view.getHeight()));
-    Logger::runtime().logLine("dijkstra to: (" + std::to_string(target.getX()) + "," + std::to_string(target.getY()) + ")");
     while (!q.empty())
     {
         // access and pop first item in heap
@@ -393,41 +416,77 @@ void AbstractTankAlgorithm::updateBattleInfo(BattleInfo &info)
 //=== Helper Functions ===
 void AbstractTankAlgorithm::adjustSelfToAction(ActionRequest action)
 {
-    // TODO: fix all logic to match waiting conditions of tanks
+    // === Adjust self to action ===
     switch (action)
     {
     case ActionRequest::GetBattleInfo:
-        // TODO: fix GetBattleInfoLogic according to Moodle forum
         break;
+
     case ActionRequest::MoveForward:
-        // TODO: fix the forward logic with cancel wait
-        this->assumed_location = GameBoardUtils::getNextCellInDirection(this->assumed_location, this->getTankDirection(), sat_view.getWidth(), sat_view.getHeight());
+
+        if (cooldowns.isPendingBackwards())
+        {
+            cooldowns.cancelBackwardWait();
+        }
+        else
+        {
+
+            BoardCell forward_cell = GameBoardUtils::getNextCellInDirection(
+                this->assumed_location,
+                this->direction,
+                sat_view.getWidth(),
+                sat_view.getHeight());
+
+            if (canMoveToCell(forward_cell))
+            {
+                this->setCurrentLocation(forward_cell);
+            }
+        }
         break;
 
     case ActionRequest::MoveBackward:
-        // TODO: fix the backwards logic with the wait
-        //  this->assumed_location = GameBoardUtils::getNextCellInDirection(this->assumed_location, DirectionUtils::getOppositeDirection(this->getTankDirection()), sat_view.getWidth(), sat_view.getHeight());
+        if (cooldowns.isPendingBackwards())
+        {
+            break;
+        }
+        else if (cooldowns.canImmediateBackwards())
+        {
+            BoardCell backward_cell = GameBoardUtils::getNextCellInDirection(
+                this->assumed_location,
+                DirectionUtils::getOppositeDirection(this->direction),
+                sat_view.getWidth(),
+                sat_view.getHeight());
+            if (canMoveToCell(backward_cell)){
+                this->assumed_location = backward_cell;
+                cooldowns.extendBackwardsStreak();
+            }
+            else{
+                cooldowns.cancelBackwardWait();
+            }
+        }
+        else
+        {
+            cooldowns.startBackwardWait();
+        }
         break;
 
+    // TODO: extract this to a function
     case ActionRequest::RotateLeft45:
-        this->direction = DirectionUtils::rotateLeft(this->getTankDirection(), 1);
-        break;
-
     case ActionRequest::RotateLeft90:
-        this->direction = DirectionUtils::rotateLeft(this->getTankDirection(), 2);
-        break;
-
     case ActionRequest::RotateRight45:
-        this->direction = DirectionUtils::rotateRight(this->getTankDirection(), 1);
-        break;
-
     case ActionRequest::RotateRight90:
-        this->direction = DirectionUtils::rotateRight(this->getTankDirection(), 2);
+        if (!cooldowns.isPendingBackwards())
+        {
+            int steps = (action == ActionRequest::RotateLeft45 || action == ActionRequest::RotateRight45) ? 1 : 2;
+            bool isLeft = (action == ActionRequest::RotateLeft45 || action == ActionRequest::RotateLeft90);
+            this->direction = isLeft
+                                  ? DirectionUtils::rotateLeft(this->direction, steps)
+                                  : DirectionUtils::rotateRight(this->direction, steps);
+        }
         break;
 
     case ActionRequest::Shoot:
-        // TODO:fix the execute shoot function to only change the coolodwn when can actually shoot
-        this->execute_shoot();
+        this->executeShoot();
         break;
 
     case ActionRequest::DoNothing:
