@@ -242,7 +242,7 @@ bool GameManager::concludeGame()
 
 void GameManager::moveShellsOnce()
 {
-    const auto &gameObjs = board.getGameObjects(GameObjectType::SHELL);
+    const auto gameObjs = board.getGameObjects(GameObjectType::SHELL);
     std::vector<Shell *> shells;
     std::transform(gameObjs.begin(), gameObjs.end(), std::back_inserter(shells),
                    [](GameObject *obj)
