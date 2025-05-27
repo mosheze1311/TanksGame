@@ -46,17 +46,35 @@ int Tank::getBackwardWait() const
     return turns_to_wait_for_backward;
 }
 
+void Tank::extendBackwardsStreak()
+{
+    turns_to_wait_for_backward = 0; // Stay in ready state for chained backwards
+}
+
+void Tank::cancelBackwardsWait()
+{
+    this->turns_to_wait_for_backward = -2;
+}
+
+void Tank::startBackwardsWait()
+{
+    this->turns_to_wait_for_backward = 2;
+}
+
+bool Tank::canImmediateBackwards() const
+{
+    return this->turns_to_wait_for_backward == -1;
+}
+
+bool Tank::isPendingBackwards() const
+{
+    return turns_to_wait_for_backward >= 0;
+}
+
 //=== Round Clock Management ===
 void Tank::tickBackwardsWait()
 {
     turns_to_wait_for_backward = std::max(turns_to_wait_for_backward - 1, -2);
-    if (turns_to_wait_for_backward == 0)
-    {
-        if (auto opt_cell = board.getObjectLocation(this))
-        {
-            board.moveGameObject(this, opt_cell.value() - this->getDirection());
-        }
-    }
 }
 
 void Tank::tickShootCooldown()
@@ -88,11 +106,22 @@ bool Tank::playTankRound(ActionRequest command)
     tickShootCooldown();
     tickBackwardsWait();
 
+    if (turns_to_wait_for_backward == 0)
+    {
+        if (canMoveBackwards())
+        {
+            moveBackwards(); // this will also extend the backwards streak
+        }
+        else
+        {
+            cancelBackwardsWait();
+        }
+    }
+
     // validate and perform the action
     return validateAndPerformAction(command);
 }
 
-//=== Action Validation ===
 bool Tank::validateAndPerformAction(ActionRequest command)
 {
     switch (command)
@@ -121,27 +150,34 @@ bool Tank::validateAndPerformAction(ActionRequest command)
     }
 }
 
-void Tank::cancelBackwardsWait()
-{
-    this->turns_to_wait_for_backward = -2;
-}
-
-void Tank::startBackwardsWait()
-{
-    this->turns_to_wait_for_backward = 2;
-}
-
-bool Tank::canImmediateBackwards() const
-{
-    return this->turns_to_wait_for_backward == -1;
-}
-
-bool Tank::isPendingBackwards() const
-{
-    return turns_to_wait_for_backward >= 0;
-}
-
 //=== Movement ===
+std::optional<BoardCell> Tank::getForwardCell() const
+{
+    if (auto current_cell = this->getCurrentCell())
+    {
+        return GameBoardUtils::getNextCellInDirection(current_cell.value(), this->getDirection(), board.getWidth(), board.getHeight());
+    }
+    return std::nullopt;
+}
+
+std::optional<BoardCell> Tank::getCurrentCell() const
+{
+    if (auto opt_cell = board.getObjectLocation(this))
+    {
+        return opt_cell.value();
+    }
+    return std::nullopt;
+}
+
+std::optional<BoardCell> Tank::getBackwardCell() const
+{
+    if (auto current_cell = this->getCurrentCell())
+    {
+        return GameBoardUtils::getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()), board.getWidth(), board.getHeight());
+    }
+    return std::nullopt;
+}
+
 bool Tank::performForwardAction()
 {
     // cancel backwards if relevant
@@ -175,33 +211,6 @@ void Tank::moveToCell(BoardCell target)
     this->board.moveGameObject(this, target);
 }
 
-std::optional<BoardCell> Tank::getForwardCell() const
-{
-    if (auto current_cell = this->getCurrentCell())
-    {
-        return GameBoardUtils::getNextCellInDirection(current_cell.value(), this->getDirection(), board.getWidth(), board.getHeight());
-    }
-    return std::nullopt;
-}
-
-std::optional<BoardCell> Tank::getCurrentCell() const
-{
-    if (auto opt_cell = board.getObjectLocation(this))
-    {
-        return opt_cell.value();
-    }
-    return std::nullopt;
-}
-
-std::optional<BoardCell> Tank::getBackwardCell() const
-{
-    if (auto current_cell = this->getCurrentCell())
-    {
-        return GameBoardUtils::getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()), board.getWidth(), board.getHeight());
-    }
-    return std::nullopt;
-}
-
 bool Tank::performBackwardAction()
 {
     // can't backward while waiting
@@ -226,11 +235,6 @@ bool Tank::performBackwardAction()
         startBackwardsWait();
         return true;
     }
-}
-
-void Tank::extendBackwardsStreak()
-{
-    turns_to_wait_for_backward = 0; // Stay in ready state for chained backwards
 }
 
 bool Tank::canMoveBackwards() const
