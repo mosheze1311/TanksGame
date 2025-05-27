@@ -85,8 +85,10 @@ public:
     std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const;
     std::optional<AssumedDirection> getDirectionOfObjectAt(GameObjectType t, const BoardCell& c) const;
     
+    // === Movement validation === //
+    bool isWallOnCell (const BoardCell &cell) const;
 
-    // === UPDATE === //
+    // === Update View Functions === //
     void updateAnalyticalView(const SatelliteView &sat_view, size_t current_step);
 
     void approxBoardChanges(); // this function should be called at the beginning of each step to update the view

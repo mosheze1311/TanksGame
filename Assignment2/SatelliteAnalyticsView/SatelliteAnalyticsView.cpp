@@ -105,20 +105,6 @@ void SatelliteAnalyticsView::advanceShellsOnce()
             if shell collides with tank, none are removed (assuming tank evaded shell)
     */
 
-    /*
-        TODO: this function logic is dangerous, bad case:
-            shell a in location (1,1), shell b in location (2,1) going right.
-
-            assume loop is handling a and then b, the following will happen:
-                shells_locations.remove(1,1)
-                shells_locations.insert(2,1)
-                shells_locations.remove(2,1)
-                shells_locations.insert(3,1)
-
-                --> shells_locations = {(3,1)}
-
-        fixing idea: remove all from shells_locations, insert new locations to temp set, copy temp set to shells_locations.
-     */
     std::set<BoardCell> old_shells_locations = this->getShellsLocations();
     AssumedDirection assumed_dir;
     std::vector<std::pair<BoardCell, AssumedDirection>> temp;
@@ -147,7 +133,14 @@ void SatelliteAnalyticsView::advanceShellsOnce()
         addObjectInternal(shell_loc, GameObjectType::SHELL, ass_dir);
     }
 
-    // TODO: handle end of step collisions
+    // handle end of step collisions with walls
+    for (BoardCell new_shell_location : this->getShellsLocations()){
+        auto types_on_cell = this->getObjectsTypesOnCell(new_shell_location);
+        if(types_on_cell.find(GameObjectType::WALL) != types_on_cell.end()){
+            this->removeObjectInternal(new_shell_location, GameObjectType::SHELL);
+            this->removeObjectInternal(new_shell_location, GameObjectType::WALL);
+        }
+    }
 }
 
 // === Init Helpers (Private) === //
@@ -255,16 +248,6 @@ size_t SatelliteAnalyticsView::getEnemyTanksNum() const
     return this->enemies_locations.size();
 }
 
-void SatelliteAnalyticsView::addShell(const BoardCell &location, Direction dir)
-{
-    BoardCell adjusted_location = this->createAdjustedCell(location);
-    addObjectInternal(adjusted_location, GameObjectType::SHELL, static_cast<AssumedDirection>(dir));
-
-    Logger::runtime().logLine("adding shell in " +
-                              std::to_string(adjusted_location.getX()) + "," + std::to_string(adjusted_location.getY()) + 
-                              " direction is " + std::to_string(static_cast<char>(dir)));
-}
-
 std::vector<std::pair<char, AssumedDirection>> SatelliteAnalyticsView::getObjectsAt(const BoardCell &c) const
 {
     BoardCell adjusted_cell = GameBoardUtils::createAdjustedBoardCell(c, this->getWidth(), this->getHeight());
@@ -283,6 +266,29 @@ std::unordered_set<GameObjectType> SatelliteAnalyticsView::getObjectsTypesOnCell
     }
 
     return object_types_on_cell;
+}
+
+std::optional<AssumedDirection> SatelliteAnalyticsView::getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const
+{
+    BoardCell adjusted_cell = createAdjustedCell(c);
+    auto objects = this->getObjectsAt(adjusted_cell);
+
+    for (auto [object_char, assumed_dir] : objects)
+    {
+        if (object_char == static_cast<char>(t))
+            return assumed_dir;
+    }
+
+    return std::nullopt;
+}
+
+// === Movement validation === //
+
+bool SatelliteAnalyticsView::isWallOnCell(const BoardCell &cell) const
+{    
+    std::unordered_set<GameObjectType> objects_on_cell = this->getObjectsTypesOnCell(cell);
+
+    return objects_on_cell.find(GameObjectType::WALL) != objects_on_cell.end(); 
 }
 
 // === Update View Functions === //
@@ -356,25 +362,22 @@ void SatelliteAnalyticsView::advanceShells()
     }
 }
 
-std::optional<AssumedDirection> SatelliteAnalyticsView::getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const
+void SatelliteAnalyticsView::addShell(const BoardCell &location, Direction dir)
 {
-    BoardCell adjusted_cell = createAdjustedCell(c);
-    auto objects = this->getObjectsAt(adjusted_cell);
+    BoardCell adjusted_location = this->createAdjustedCell(location);
+    addObjectInternal(adjusted_location, GameObjectType::SHELL, static_cast<AssumedDirection>(dir));
 
-    for (auto [object_char, assumed_dir] : objects)
-    {
-        if (object_char == static_cast<char>(t))
-            return assumed_dir;
-    }
-
-    return std::nullopt;
+    Logger::runtime().logLine("adding shell in " +
+                              std::to_string(adjusted_location.getX()) + "," + std::to_string(adjusted_location.getY()) + 
+                              " direction is " + std::to_string(static_cast<char>(dir)));
 }
+
 
 // === DEBUGGING === //
 #include <iostream> // TODO: delete include
 #include <thread>   // TODO: delete include
 #include <chrono>   // TODO: delete include
-// TODO: this is temp function - delete or atleast move to SatelliteAnalyitcsView
+// TODO: this is temp function - delete
 void SatelliteAnalyticsView::print()
 {
     for (int y = 0; y < (int)this->getHeight(); ++y)
