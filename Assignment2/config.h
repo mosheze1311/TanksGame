@@ -28,4 +28,4 @@
 
 // wait and cooldown
 #define shoot_cooldown_steps 4
-#define backward_wait_steps = 2
+#define backward_wait_steps 2
