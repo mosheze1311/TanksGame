@@ -7,7 +7,8 @@
 Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, int spd, int hp)
     : MovableObject(b, dir, spd, hp), type(t) {}
 
-//=== Getters ===
+
+    //=== Getters ===
 GameObjectType Tank::getObjectType() const
 {
     return type;
@@ -52,9 +53,11 @@ void Tank::tickBackwardsWait()
     turns_to_wait_for_backward = max(turns_to_wait_for_backward - 1, -2);
     if (turns_to_wait_for_backward == 0)
     {
-        if (auto opt_cell = board.getObjectLocation(this))
-        {
-            board.moveGameObject(this, opt_cell.value() - this->getDirection());
+        if (canMoveBackwards()){
+            moveBackwards();
+        }
+        else{
+            cancelBackwardsWait();
         }
     }
 }
