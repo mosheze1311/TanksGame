@@ -42,7 +42,7 @@ struct game_general_params
 {
     string name;
     int max_steps, num_shells;
-    int h, w, tanks, walls, mines;
+    int h, w, players, tanks, walls, mines;
 };
 
 
@@ -73,8 +73,9 @@ public:
     {
         this->gp = gp;
         add_game_objects(gp.mines, GameObjectType::MINE);
-        add_game_objects(gp.tanks, GameObjectType::TANK1);
-        add_game_objects(gp.tanks, GameObjectType::TANK2);
+        for (int i = 0; i < std::min(gp.players,9); i++){
+            add_game_objects(gp.tanks, static_cast<GameObjectType>('1' + i));
+        }
         add_game_objects(gp.walls, GameObjectType::WALL);
     }
 
@@ -147,6 +148,8 @@ void request_game_params(game_general_params &g)
     cin >> g.h;
     cout << "width: ";
     cin >> g.w;
+    cout << "players: ";
+    cin >> g.players;
     cout << "tanks per player: ";
     cin >> g.tanks;
     cout << "walls: ";
