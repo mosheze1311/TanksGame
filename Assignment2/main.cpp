@@ -3,15 +3,15 @@
 #include "TankAlgorithmFactory/MyTankAlgorithmFactory.h"
 
 #include <memory>
-// TODO: maybe change to unique?
-std::shared_ptr<PlayerFactory> getPlayerFactory()
+
+std::unique_ptr<PlayerFactory> getPlayerFactory()
 {
-    return std::make_shared<MyPlayerFactory>();
+    return std::make_unique<MyPlayerFactory>();
 }
 
-std::shared_ptr<TankAlgorithmFactory> getTankAlgorithmFactory()
+std::unique_ptr<TankAlgorithmFactory> getTankAlgorithmFactory()
 {
-    return std::make_shared<MyTankAlgorithmFactory>();
+    return std::make_unique<MyTankAlgorithmFactory>();
 }
 
 bool validateArgc(int argc)

@@ -8,13 +8,10 @@ PassiveTankAlgorithm::PassiveTankAlgorithm(size_t player_index, size_t tank_inde
         )             
 {}
 
-// === Destructor === //
-PassiveTankAlgorithm::~PassiveTankAlgorithm() = default;
-
 // === Public Methods === //
-ActionRequest PassiveTankAlgorithm::getActionLogic()
+ActionRequest PassiveTankAlgorithm::getActionLogic() const
 {
-    // TODO: Implement actual behavior
+    // TODO: Improve behavior
 
     // in first turn, get battle info
     if (this->getCurrentStep() == this->step_to_get_info)
@@ -23,13 +20,13 @@ ActionRequest PassiveTankAlgorithm::getActionLogic()
     }
 
     // Try to escape from incoming enemy shells
-    if (auto escape_shell_action = escapeShells(sat_view))
+    if (auto escape_shell_action = escapeShells())
     {
         return escape_shell_action.value();
     }
 
     // If enemy in range, try to escape
-    BoardCell approx_closet_enemy = this->approxClosestEnemyTankLocation(sat_view);
+    BoardCell approx_closet_enemy = this->approxClosestEnemyTankLocation();
     if (auto shoot_action_opt = this->evaluateShootingOpportunity(approx_closet_enemy, sat_view.getWidth(), sat_view.getHeight()))
     {
         return shoot_action_opt.value();

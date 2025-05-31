@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GameBoard/GameBoard.h"
+#include "../GameBoard/BoardCell.h"
 
 class GameBoardUtils
 {
@@ -9,6 +9,7 @@ private:
     ~GameBoardUtils() = delete;
 
 public:
+    // === Distance Functions === //
     // get distance of 2 cells
     static int distance(const BoardCell &first, const BoardCell &second, size_t width, size_t height);
 
@@ -18,16 +19,18 @@ public:
     // finds y distance
     static int yDistance(const BoardCell &first, const BoardCell &second, size_t height);
 
-    static bool isStraightLine(BoardCell from, BoardCell to, size_t width, size_t height); // maybe add modulo
+    // === Line, Direction and Neighbors Logic === //
+    static bool isStraightLine(const BoardCell &from, const BoardCell &to, size_t width, size_t height);
 
-    static bool isDirectionMatch(BoardCell from, BoardCell to, Direction dir, size_t width, size_t height);
+    static bool isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir, size_t width, size_t height);
 
-    static BoardCell getNextCellInStraightLine(BoardCell from, BoardCell to, size_t width, size_t height);
+    static BoardCell getNextCellInStraightLine(const BoardCell& from, const BoardCell& to, size_t width, size_t height);
+
+    static BoardCell getNextCellInDirection(const BoardCell &c, Direction dir, size_t width, size_t height);
 
     // get neigbhor cells
     static std::vector<BoardCell> getAdjacentCells(const BoardCell &curr_cell, size_t width, size_t height);
 
-    static BoardCell getNextCellInDirection(const BoardCell &c, const Direction dir, size_t width, size_t height);
-
+    // === BoardCell Normalization === //
     static BoardCell createAdjustedBoardCell(const BoardCell &c, int width, int height);
 };

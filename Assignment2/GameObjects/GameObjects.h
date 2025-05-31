@@ -1,44 +1,43 @@
 #pragma once
 
 #include "../common/ActionRequest.h"
+
+#include "../config.h"
+
 #include "Direction.h"
 #include "GameObjectType.h"
+
+#include "../GameBoard/BoardCell.h"
+#include "../GameDrawer/DrawableObject.h"
 #include "../GameDrawer/DrawingTypes.h"
+
 #include <string>
 #include <optional>
 
+// TODO: how to handle copying of derived classes? how will this work: GameObject go1 = Tank(); GameObject go2 = go1;
 // forward declaration
 class GameBoard;
-class BoardCell;
 
 // ===========================
 // Base Class
 // ===========================
-class DrawableObject
-{
-public:
-    virtual std::string getDrawing(DrawingType t) const = 0;
-    virtual ~DrawableObject() {};
-};
-
 class GameObject : public DrawableObject
 {
 protected:
-    //=== Attributes ===
+    // === Attributes === //
     int hp;
     GameBoard &board;
 
 public:
-    //=== Constructors ===
-    explicit GameObject(GameBoard &b);
+    // === Constructors === //
     GameObject(GameBoard &b, int hp);
-    virtual ~GameObject();
+    virtual ~GameObject() override = default;
 
-    //=== Type & Drawing ===
+    // === Type & Drawing === //
     virtual GameObjectType getObjectType() const = 0;
     virtual std::string getDrawing(DrawingType t) const override = 0;
 
-    //=== HP Management ===
+    // === HP Management === //
     int getHP() const;
     void setHP(int new_hp);
     void gotHit(int dmg = 1);
@@ -51,6 +50,7 @@ class StaticObject : public GameObject
 {
 public:
     StaticObject(GameBoard &b, int hp);
+    virtual ~StaticObject() override = default;
 };
 
 // ===========================
@@ -59,19 +59,19 @@ public:
 class MovableObject : public GameObject
 {
 protected:
-    //=== Attributes ===
+    // === Attributes === //
     Direction direction;
     int speed;
 
-    //=== Protected Movement Properties ===
+    // === Protected Movement Properties === //
     void setDirection(Direction new_dir);
     void setSpeed(int new_speed);
 
 public:
-    MovableObject(GameBoard &b, Direction dir, int spd);
     MovableObject(GameBoard &b, Direction dir, int spd, int hp);
+    virtual ~MovableObject() override = default;
 
-    //=== Movement Properties ===
+    // === Movement Properties === //
     Direction getDirection() const;
     int getSpeed() const;
 };
@@ -82,9 +82,10 @@ public:
 class Mine : public StaticObject
 {
 public:
-    explicit Mine(GameBoard &b, int hp = 1);
+    Mine(GameBoard &b);
+    ~Mine() override = default;
 
-    //=== Type & Drawing ===
+    // === Type & Drawing === //
     GameObjectType getObjectType() const override;
     std::string getDrawing(DrawingType t) const override;
 };
@@ -92,9 +93,10 @@ public:
 class Wall : public StaticObject
 {
 public:
-    explicit Wall(GameBoard &b, int hp = 2);
+    explicit Wall(GameBoard &b);
+    ~Wall() override = default;
 
-    //=== Type & Drawing ===
+    // === Type & Drawing === //
     GameObjectType getObjectType() const override;
     std::string getDrawing(DrawingType t) const override;
 };
@@ -105,14 +107,13 @@ public:
 class Tank : public MovableObject
 {
 private:
-    // TODO: need to change the number of shells so it would read from file instead of static 16.
-    //=== Attributes ===
+    // === Attributes === //
     const GameObjectType type;
     int shells;
     int turns_to_wait_for_backward = -2;
     int shoot_cooldown = 0;
 
-    //=== Cooldown / Wait Management ===
+    // === Cooldown / Wait Management === //
     void tickShootCooldown();
     void tickBackwardsWait();
     bool isPendingBackwards() const;
@@ -121,14 +122,15 @@ private:
     void cancelBackwardsWait();
     void startBackwardsWait();
 
-    //=== Action Validation & Execution ===
+    // === Action Validation & Execution === //
     bool validateAndPerformAction(ActionRequest action);
     bool performBackwardAction();
     bool performForwardAction();
     bool performTurnAction(ActionRequest command);
     bool performShootAction();
+    bool performBattleInfoAction();
 
-    //=== Movement Support ===
+    // === Movement Support === //
     bool canMoveToCell(BoardCell target) const;
     std::optional<BoardCell> getForwardCell() const;
     std::optional<BoardCell> getBackwardCell() const;
@@ -138,7 +140,7 @@ private:
     void moveBackwards();
     void turn(ActionRequest command);
 
-    //=== Shooting Support ===
+    // === Shooting Support === //
     void shoot();
     void setShells(int new_shells);
     void reload(int amount); // currently not in use
@@ -146,21 +148,19 @@ private:
     int getBackwardWait() const;
 
 public:
-    Tank(GameBoard &b,
-         GameObjectType t = GameObjectType::TANK1,
-         Direction dir = Direction::UP,
-         size_t tank_num_shells = 16,
-         int spd = 1,
-         int hp = 1);
+    Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells);
 
-    //=== Type & Drawing ===
+    // === Desturctor=== //
+    ~Tank() override = default;
+
+    // === Type & Drawing === //
     GameObjectType getObjectType() const override;
     std::string getDrawing(DrawingType t) const override;
 
-    //=== Tank-Specific Actions ===
+    // === Tank-Specific Actions === //
     bool playTankRound(ActionRequest command);
 
-    //=== Shells Management ===
+    // === Shells Management === //
     int getShells() const;
     bool canShoot() const;
 };
@@ -168,12 +168,15 @@ public:
 class Shell : public MovableObject
 {
 public:
-    Shell(GameBoard &b, Direction dir, int spd = 2, int hp = 1);
+    Shell(GameBoard &b, Direction dir);
 
-    //=== Type & Drawing ===
+    // === Desturctor=== //
+    ~Shell() override = default;
+
+    // === Type & Drawing === //
     GameObjectType getObjectType() const override;
     std::string getDrawing(DrawingType t) const override;
 
-    //=== Behavior ===
+    // === Behavior === //
     void advance();
 };

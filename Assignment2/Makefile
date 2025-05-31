@@ -8,10 +8,10 @@ TARGET = tanks_game
 # List of source files
 SRCS = \
     GameManager/GameManager.cpp \
+    Players/AbstractPlayer.cpp \
 	TankAlgorithm/AbstractTankAlgorithm.cpp \
 	TankAlgorithm/AggressiveTankAlgorithm.cpp \
 	TankAlgorithm/PassiveTankAlgorithm.cpp \
-	TankAlgorithm/TankAlgorithmUtils.cpp \
 	BattleInfo/BattleInfoAgent.cpp \
 	SatelliteAnalyticsView/SatelliteAnalyticsView.cpp \
     GameBoardInitializer/GameBoardInitializer.cpp \
@@ -19,7 +19,6 @@ SRCS = \
     GameBoard/GameBoard.cpp \
     BoardSatelliteView/BoardSatelliteView.cpp \
     GameCollisionHandler/GameCollisionHandler.cpp \
-    GameBoardUtils/GameBoardUtils.cpp \
     GameObjects/GameObject.cpp \
     GameObjects/MovableObject.cpp \
     GameObjects/StaticObject.cpp \
@@ -27,6 +26,7 @@ SRCS = \
     GameObjects/Shell.cpp \
     GameObjects/Tank.cpp \
     GameObjects/Wall.cpp \
+    Utils/GameBoardUtils.cpp \
     Logger/Logger.cpp \
     main.cpp
 

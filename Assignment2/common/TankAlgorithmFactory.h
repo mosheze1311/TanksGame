@@ -1,6 +1,6 @@
 #pragma once
-#include <memory>
 #include "TankAlgorithm.h"
+#include <memory>
 
 class TankAlgorithmFactory
 {

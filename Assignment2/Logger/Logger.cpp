@@ -2,8 +2,8 @@
 
 using std::string;
 
-//===  Constructors ===
-Logger::Logger(const std::string &filename)
+// ===  Constructors === //
+Logger::Logger(const string &filename)
 {
     logFile.open(filename, std::ios::app);
 }
@@ -16,7 +16,7 @@ Logger::~Logger()
     }
 }
 
-//=== Singleton Accessors ===
+// === Singleton Accessors === //
 Logger &Logger::input()
 {
     static Logger instance("input_errors.txt");
@@ -35,7 +35,7 @@ Logger &Logger::output(const string &file_name)
     return instance;
 }
 
-//=== Logging Methods ===
+// === Logging Methods === //
 void Logger::logInternal(const string &message, bool newline)
 {
     std::lock_guard<std::mutex> lock(logMutex);

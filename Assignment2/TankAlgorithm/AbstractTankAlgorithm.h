@@ -1,14 +1,15 @@
 #pragma once
+
 #include "../config.h"
+
 #include "../common/TankAlgorithm.h"
 
-#include "TankAlgorithmUtils.h"
-
-#include "../GameCollisionHandler/GameCollisionHandler.h"
-#include "../BoardSatelliteView/BoardSatelliteView.h"
-#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 #include "../BattleInfo/BattleInfoAgent.h"
+#include "../BoardSatelliteView/BoardSatelliteView.h"
+#include "../GameCollisionHandler/GameCollisionHandler.h"
+#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 #include "../Utils/TankCooldownHandler.h"
+#include "../Utils/GameObjectTypeUtils.h"
 
 #include <queue>
 #include <set>
@@ -16,7 +17,8 @@
 class AbstractTankAlgorithm : public TankAlgorithm
 {
 protected:
-    // === Attributes ===
+
+    // === Attributes === //
     size_t tank_idx;
     size_t player_idx;
 
@@ -31,52 +33,41 @@ protected:
     size_t step_to_get_info = 1; // get info on first step
 
     SatelliteAnalyticsView sat_view;
-
-public:
-    // === Constructor ===
-    AbstractTankAlgorithm(size_t tank_idx, size_t player_idx);
-
-    ActionRequest getAction() override;
-    void updateBattleInfo(BattleInfo &info) override;
-
+    
 protected:
-    virtual ActionRequest getActionLogic() = 0;
+
+    // Determines the tank's next action based on the current game state.
+    // Must be implemented by derived classes to define tank behavior logic.
+    // Called internally by getAction(), which also handles state adjustments before and after getActionLogic().
+    virtual ActionRequest getActionLogic() const = 0;
+    
     void adjustSelfToAction(ActionRequest action);
 
-    // === Cooldown / Wait Management ===
-    void tickShootCooldown();
-    void tickBackwardsWait();
-    bool isPendingBackwards() const;
-    bool canImmediateBackwards() const;
-    void extendBackwardsStreak();
-    void cancelBackwardsWait();
-    void startBackwardsWait();
+    // === Manage Shooting === //
     bool canTankShoot() const;
-
     bool hasShells() const;
     void executeShoot();
 
-    // === Step Logic ===
+    // === Step Logic === //
     void advanceStep();
     void handlePendingBackwards();
 
-    // === Action Planning ===
-    ActionRequest getTankEvasionAction(const SatelliteAnalyticsView &sat_view, Direction chaser_direction) const;
-    ActionRequest getTankAggressiveAction(const SatelliteAnalyticsView &sat_view) const;
-    ActionRequest advanceTankToTarget(const SatelliteAnalyticsView &sat_view, BoardCell target) const;
-    ActionRequest adjustDirection(BoardCell to, size_t width, size_t height) const;
+    // === Action Planning === //
+    ActionRequest getTankEvasionAction(Direction chaser_direction) const; // TODO: should we move it to Aggressive Algorithm?
+    ActionRequest advanceTankToTarget(const BoardCell& target) const;
+    ActionRequest adjustDirection(const BoardCell &to, size_t width, size_t height) const;
 
-    // === Target Evaluation ===
-    std::optional<ActionRequest> evaluateShootingOpportunity(BoardCell target, size_t width, size_t height) const;
-    std::optional<ActionRequest> escapeShells(const SatelliteAnalyticsView &sat_view) const;
-    std::optional<BoardCell> getEscapingRoute(SatelliteAnalyticsView sat_view, Direction enemy_dir) const;
+    // === Target Evaluation === //
+    std::optional<ActionRequest> evaluateShootingOpportunity(const BoardCell& target, size_t width, size_t height) const;
+    std::optional<ActionRequest> escapeShells() const;
+    std::optional<BoardCell> getEscapingRoute(Direction enemy_dir) const;
 
-    // === Pathfinding ===
-    void Dijkstra(const SatelliteAnalyticsView &sat_view, GameObjectType tank_type, BoardCell start, BoardCell target,
+    // === Pathfinding === //
+    void Dijkstra(GameObjectType tank_type, const BoardCell& start,const  BoardCell& target,
                   std::map<BoardCell, int> &distances, std::map<BoardCell, BoardCell> &parents) const;
 
-    // === Target Estimation ===
-    BoardCell approxClosestEnemyTankLocation(const SatelliteAnalyticsView &sat_view) const;
+    // === Target Estimation === //
+    BoardCell approxClosestEnemyTankLocation() const;
 
     // === Setters === //
     void setCurrentLocation(const BoardCell &loc);
@@ -86,7 +77,7 @@ protected:
     void setTankIndex(size_t idx);
     void setMaxSteps(size_t max_steps);
 
-    // === Getters ===
+    // === Getters === //
     size_t getRemainingShells() const;
     BoardCell getCurrentLocation() const;
     Direction getTankDirection() const;
@@ -96,4 +87,21 @@ protected:
     GameObjectType getTankType() const;
 
     bool canMoveToCell (const BoardCell &cell) const;
+
+    // === Manage Shooting Range === //
+    bool isShellChasingTank(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const;
+    bool inShootRange(const BoardCell &to) const;
+
+public:
+    // === Constructor === //
+    AbstractTankAlgorithm(size_t tank_idx, size_t player_idx);
+    
+    // === Destructor === //
+    virtual ~AbstractTankAlgorithm() override = default;
+
+    // === Interface Implementation === //
+    ActionRequest getAction() override;
+    void updateBattleInfo(BattleInfo &info) override;
+
+
 };

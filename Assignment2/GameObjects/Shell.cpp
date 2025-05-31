@@ -1,9 +1,11 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
 
+#define shell_hp 1 // not in config because should not be changed
+
 //=== Constructor ===
-Shell::Shell(GameBoard &b, Direction dir, int spd, int hp)
-    : MovableObject(b, dir, spd, hp) {}
+Shell::Shell(GameBoard &b, Direction dir)
+    : MovableObject(b, dir, shell_speed, shell_hp) {}
 
 //=== Type Info ===
 GameObjectType Shell::getObjectType() const { return GameObjectType::SHELL; }

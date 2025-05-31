@@ -1,46 +1,49 @@
 #pragma once
-#include <iostream>
+
+#include "DrawingTypes.h"
+
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
-#include "DrawingTypes.h"
-#include <optional>
 
+#include <iostream>
+#include <optional>
 #include <thread>
 #include <chrono>
+
 #define FPS 30
 
 class GameDrawer
 {
 private:
-    // ===Attributes===
+    // === Attributes === //
     const GameBoard &board;
     const DrawingType appearence;
 
-    // ===Functions===
-    std::string decideCellImage(BoardCell c)
+    // === Functions === //
+    std::string decideCellImage(const BoardCell &c)
     {
         std::vector<std::string> empty_blocks({"⬜", "⬜"});
+        // std::vector<std::string> empty_blocks({"🟧", "⬜"}); // for chess pattern
 
         if (this->board.isOccupiedCell(c))
         {
             std::unordered_set<GameObject *> objects = this->board.getObjectsOnCell(c);
-        GameObject *first = *(objects.begin());
+            GameObject *first = *(objects.begin());
             return first->getDrawing(this->appearence);
         }
         return empty_blocks[(c.getX() + c.getY()) % 2];
     }
 
 public:
-    // ===Constructor===
-    GameDrawer(const GameBoard &board, DrawingType dt=DrawingType::NONE) : board(board), appearence(dt) {};
-    
-    // ===Functions===
+    // === Constructor === //
+    GameDrawer(const GameBoard &board, DrawingType dt = DrawingType::NONE) : board(board), appearence(dt) {};
+
+    // === Functions === //
     void draw()
     {
-        if(this->appearence == DrawingType::NONE)
+        if (this->appearence == DrawingType::NONE)
             return;
 
-        
         std::string board_drawing = ""; // board drawing result
         static const std::string game_border_portal = "🌀";
         int border_width = this->board.getWidth() + 2;

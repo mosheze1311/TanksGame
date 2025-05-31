@@ -9,27 +9,24 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <queue>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <queue>
-#include <set>
 
 // Forward declarations
 class GameObject;
-class GameBoardInitializer;
-// TODO: probably need the forward declaration of GameBoardInitializer for the initFromFile impl - check
 
 // Classes declarations
-
 class GameBoard : public GameBoardView
 {
 private:
-    // === Nested class to store board details ===
+    // === Nested class to store board details === //
     class BoardDetails
     {
     public:
-        // === Attributes ===
+        // === Attributes === //
         // board properties
         size_t height;
         size_t width;
@@ -45,11 +42,11 @@ private:
         // remaining shells to fire (for concluding game)
         size_t remaining_shells;
 
-        // === Constructor ===
+        // === Constructor === //
         BoardDetails(int height, int width);
     };
 
-    // === Attributes ===
+    // === Attributes === //
     BoardDetails board_details;
     std::unordered_map<GameObject *, BoardCell> objects_locations;
     std::map<BoardCell, std::unordered_set<GameObject *>> board;
@@ -58,7 +55,7 @@ private:
     std::unordered_map<GameObject *, std::unique_ptr<GameObject>> owned_objects;
 
 
-    // === Functions ===
+    // === Functions === //
     // create a board cell that fits the board without overflowing
     BoardCell createBoardCell(int x, int y) const;
 
@@ -77,7 +74,7 @@ private:
     // Updates the count of a specific object type on the board by adding incremental
     void updateObjectCount(const GameObject *obj, int incremental);
 
-    // === Setters ===
+    // === Setters === //
     void setWidth(size_t width);
 
     void setHeight(size_t height);
@@ -86,27 +83,39 @@ private:
 
     void setTanksNumShells(size_t tanks_num_shells);
 
+    // === Modify Board Functions === //
+    // Add an object to the board on the requested cell
+    void addObject(std::unique_ptr<GameObject> obj, const BoardCell &c);
+
+    // tank API to inform that a shell was shot and the board need to update it's remaining shell count
+    void useTankShell();
+
 public:
-    // Constructor
+    // === Constructor === //
     GameBoard(int height, int width);
 
-    // Copy Constructor (DELETED)
+    // === Destructor === //
+    ~GameBoard() override = default;
+
+    // === Copy Constructor (DELETED) === //
     GameBoard(const GameBoard &board) = delete;
 
-    ~GameBoard();
-
-    // Assignment Operator (DELETED)
+    // === Move Constructor (DELETED) === //
+    GameBoard(const GameBoard &&board) = delete;
+    
+    // === Assignment Operator (DELETED) === //
     GameBoard &operator=(const GameBoard &other) = delete;
 
-    // TODO: do we need Rule of 5?
+    //  === Move Assignment Operator (DELETED) === //
+    GameBoard &operator=(const GameBoard &&other) = delete;
 
-    // === Initiate from File ===
+    // === Initiate from File === //
     bool initFromFile(const std::string &input_file_path);
 
-    //=== Getters ===
-    size_t getWidth() const;
+    // === Getters === //
+    size_t getWidth() const override;
 
-    size_t getHeight() const;
+    size_t getHeight() const override;
 
     size_t getMaxSteps() const;
 
@@ -127,7 +136,7 @@ public:
     std::unordered_set<GameObject *> getObjectsOnCell(const BoardCell &c) const;
 
     // get a set of all objects on the cell
-    std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const;
+    std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const override;
 
     // get all objects of a certain GameObjectType that exist on board
     std::vector<GameObject *> getGameObjects(GameObjectType t) const;
@@ -144,11 +153,14 @@ public:
     // get an optional cell location of an object on board. if object not on board, return nullopt.
     std::optional<BoardCell> getObjectLocation(const GameObject *go) const;
 
-    //=== Modify Board Functions ===
-    // Add an object to the board on the requested cell
-    // TODO: Tank uses this to add shells to game. do we need it to be public or simply allow tank to access it somehow? maybe just add a request shoot that will do it instead of tank?
-    void addObject(std::unique_ptr<GameObject> obj, const BoardCell &c);
+    // === Board State Functions === //
+    // Check if there is any object on the cell
+    bool isOccupiedCell(const BoardCell &c) const;
 
+    // Check if the specific object exists on board
+    bool isObjectOnBoard(const GameObject *obj) const;
+
+    // === Modify Board Functions === //
     // moves an object on the board from its current cell to new position. ignores if object not on board
     // TODO: this is used by moving objects to handle their movements - keep public or allow acces to moving objects only?
     void moveGameObject(GameObject *obj, const BoardCell &new_position);
@@ -157,14 +169,5 @@ public:
     // TODO: used by all objects in death - choose access specifiers
     void removeObject(GameObject *obj);
 
-    // tank API to inform that a shell was shot and the board need to update it's remaining shell count
-    // TODO: used by tank objects when shooting - choose access specifiers
-    void useTankShell();
-
-    //=== Board State Functions ===
-    // Check if there is any object on the cell
-    bool isOccupiedCell(const BoardCell &c) const;
-
-    // Check if the specific object exists on board
-    bool isObjectOnBoard(const GameObject *obj) const;
+    void addTankShell(std::unique_ptr<Shell> shell, const BoardCell &shell_initial_cell);
 };

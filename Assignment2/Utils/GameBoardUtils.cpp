@@ -1,5 +1,11 @@
 #include "GameBoardUtils.h"
 
+// === Distance Functions === //
+int GameBoardUtils::distance(const BoardCell &first, const BoardCell &second, size_t width, size_t height)
+{
+    return std::max(xDistance(first, second, width), yDistance(first, second, height));
+}
+
 int GameBoardUtils::xDistance(const BoardCell &first, const BoardCell &second, size_t width)
 {
     size_t dx = abs(first.getX() - second.getX());
@@ -14,12 +20,8 @@ int GameBoardUtils::yDistance(const BoardCell &first, const BoardCell &second, s
     return dy;
 }
 
-int GameBoardUtils::distance(const BoardCell &first, const BoardCell &second, size_t width, size_t height)
-{
-    return std::max(xDistance(first, second, width), yDistance(first, second, height));
-}
-
-bool GameBoardUtils::isStraightLine(BoardCell from, BoardCell to, size_t width, size_t height)
+// === Line, Direction and Neighbors Logic === //
+bool GameBoardUtils::isStraightLine(const BoardCell &from, const BoardCell &to, size_t width, size_t height)
 {
     int x_diff = xDistance(from, to, width);
     int y_diff = yDistance(from, to, height);
@@ -36,7 +38,12 @@ bool GameBoardUtils::isStraightLine(BoardCell from, BoardCell to, size_t width, 
     return false;
 }
 
-BoardCell GameBoardUtils::getNextCellInStraightLine(BoardCell from, BoardCell to, size_t width, size_t height)
+bool GameBoardUtils::isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir, size_t width, size_t height)
+{
+    return getNextCellInDirection(from, dir, width, height) == getNextCellInStraightLine(from, to, width, height);
+}
+
+BoardCell GameBoardUtils::getNextCellInStraightLine(const BoardCell &from, const BoardCell &to, size_t width, size_t height)
 {
     // assuming that from, to form a straight line in some direction.
     // TODO: try to write it in a algebraic form
@@ -62,11 +69,6 @@ BoardCell GameBoardUtils::getNextCellInStraightLine(BoardCell from, BoardCell to
     return next;
 }
 
-bool GameBoardUtils::isDirectionMatch(BoardCell from, BoardCell to, Direction dir, size_t width, size_t height)
-{
-    return getNextCellInDirection(from, dir, width, height) == getNextCellInStraightLine(from, to, width, height);
-}
-
 BoardCell GameBoardUtils::getNextCellInDirection(const BoardCell &c, const Direction dir, size_t width, size_t height)
 {
     return createAdjustedBoardCell(c + dir, width, height);
@@ -86,6 +88,7 @@ std::vector<BoardCell> GameBoardUtils::getAdjacentCells(const BoardCell &curr_ce
     return res;
 }
 
+// === BoardCell Normalization === //
 BoardCell GameBoardUtils::createAdjustedBoardCell(const BoardCell &c, int width, int height)
 {
     // The width, height parameters are signed int to prevent implicit conversion of the X,Y cell attributes to unsigned when performing % operation

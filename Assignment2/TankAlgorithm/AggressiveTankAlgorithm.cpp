@@ -8,11 +8,8 @@ AggressiveTankAlgorithm::AggressiveTankAlgorithm(size_t player_index, size_t tan
     )
 {}
 
-// === Destructor === //
-AggressiveTankAlgorithm::~AggressiveTankAlgorithm() = default;
-
 // === Public Methods === //
-ActionRequest AggressiveTankAlgorithm::getActionLogic()
+ActionRequest AggressiveTankAlgorithm::getActionLogic() const
 {
     // TODO: Implement actual behavior
 
@@ -23,11 +20,40 @@ ActionRequest AggressiveTankAlgorithm::getActionLogic()
     }
 
     // Try to escape from incoming enemy shells
-    if (auto escape_shell_action = escapeShells(sat_view))
+    if (auto escape_shell_action = escapeShells())
     {
         return escape_shell_action.value();
     }
 
     // Make aggresive action
-    return this->getTankAggressiveAction(this->sat_view);
+    return this->getTankAggressiveAction();
 }
+
+// === Aggresive Algorithm === //
+ActionRequest AggressiveTankAlgorithm::getTankAggressiveAction() const
+{
+    // try to chase the enemy tank or shoot at it.
+
+    // dijkstra to closest tank
+    // if can shoot it - shoot
+    // if can't shoot it - chase
+
+    BoardCell start = this->assumed_location;
+    BoardCell target = this->approxClosestEnemyTankLocation();
+
+    // try to shoot enemy
+    if (auto shoot_action_opt = this->evaluateShootingOpportunity(target, sat_view.getWidth(), sat_view.getHeight()))
+    {
+        return shoot_action_opt.value();
+    }
+
+    // if will be able to shoot in the future, wait
+    if (this->inShootRange(target) &&
+        GameBoardUtils::isStraightLine(start, target, sat_view.getWidth(), sat_view.getHeight()) && this->getRemainingShells() > 0)
+    {
+        return ActionRequest::DoNothing;
+    }
+
+    return advanceTankToTarget(target);
+}
+

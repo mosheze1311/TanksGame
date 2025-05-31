@@ -3,13 +3,12 @@
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
 #include "../Logger/Logger.h"
+#include "../Utils/GameObjectTypeUtils.h"
+
 
 #include <functional>
 #include <memory>
 #include <string>
-
-class GameBoard;
-// TODO: probably need the forward declaration of GameBoard for the class impl - check
 
 class GameBoardInitializer
 {
@@ -22,18 +21,18 @@ class GameBoardInitializer
     input file processing to GameBoardInitializer, maintaining separation of concerns.
     */
 private:
-    GameBoardInitializer(/* args */) = delete;
+    GameBoardInitializer() = delete;
     ~GameBoardInitializer() = delete;
 
-    //=== Logger ===
+    // === Logger === //
     static void logInputError(const std::string &error_message);
 
-    //=== Parse Input Functions ===
+    // === Parse Input Functions === //
     static bool parseKeyLine(const std::string &line, size_t line_number, const std::string &expected_key, size_t &out_value);
     static bool parseBoardLine(const std::string &line, size_t expected_width, size_t row, GameBoard &board,
                                std::function<void(std::unique_ptr<GameObject>, const BoardCell &)> addObjectToBoard);
 
-    //=== Helper Functions ===
+    // === Helper Functions === //
     static std::unique_ptr<GameObject> createGameObjectOfType(GameBoard &board, GameObjectType type);
 
 public:

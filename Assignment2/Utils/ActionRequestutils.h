@@ -3,7 +3,6 @@
 
 #include <string>
 
-// No covrage for kill or ignored commands. should address later. 
 namespace ActionRequestUtils{
     std::string actionToString(const ActionRequest tank_action)
     {

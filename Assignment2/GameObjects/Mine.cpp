@@ -1,9 +1,11 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
 
+#define mine_hp 1 // not in config because should not be changed
+
 //=== Constructor ===
-Mine::Mine(GameBoard &b, int hp)
-    : StaticObject(b, hp) {}
+Mine::Mine(GameBoard &b)
+    : StaticObject(b, mine_hp) {}
 
 //=== Type Information ===
 GameObjectType Mine::getObjectType() const

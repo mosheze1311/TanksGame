@@ -2,10 +2,10 @@
 
 #include "SatelliteAnalyticsView.h"
 
-#include "../GameBoardUtils/GameBoardUtils.h"
-#include "../GameCollisionHandler/GameCollisionHandler.h"
+#include "../Utils/GameBoardUtils.h"
 
-#include <iostream>
+
+using namespace DirectionUtils; // for multiplying direction by a const
 
 /*
     TODO: this class contains logic errors.
@@ -22,9 +22,6 @@
 // === Constructor === //
 SatelliteAnalyticsView::SatelliteAnalyticsView(size_t height, size_t width, size_t max_steps_gap, int player_idx)
     : player_idx(player_idx), max_steps_gap(max_steps_gap), width(width), height(height) {};
-
-//=== Destructor ===//
-SatelliteAnalyticsView ::~SatelliteAnalyticsView() {}; // TODO: implement
 
 // === Private Functions === //
 // === Internal Logic === //
@@ -120,7 +117,6 @@ void SatelliteAnalyticsView::advanceShellsOnce()
 
         Direction shell_dir = static_cast<Direction>(assumed_dir);
         BoardCell new_shell_location = this->createAdjustedCell(old_shell_location + shell_dir);
-        std::cout << "new shell location is: " << new_shell_location << std::endl;
         // remove from previous cell
         removeObjectInternal(old_shell_location, GameObjectType::SHELL);
 
@@ -133,7 +129,8 @@ void SatelliteAnalyticsView::advanceShellsOnce()
         addObjectInternal(shell_loc, GameObjectType::SHELL, ass_dir);
     }
 
-    // handle end of step collisions with walls
+    // handle end of step collisions with walls. 
+    // TODO: also handle collisions with shells
     for (BoardCell new_shell_location : this->getShellsLocations()){
         auto types_on_cell = this->getObjectsTypesOnCell(new_shell_location);
         if(types_on_cell.find(GameObjectType::WALL) != types_on_cell.end()){
@@ -169,14 +166,14 @@ void SatelliteAnalyticsView::initAnalyticalView(const SatelliteView &sat_view)
     }
 }
 
-BoardCell SatelliteAnalyticsView::shellExpectedLocation(const BoardCell &old_location, AssumedDirection assumed_dir, size_t steps_gap)
+BoardCell SatelliteAnalyticsView::shellExpectedLocation(const BoardCell &old_location, AssumedDirection assumed_dir, size_t steps_gap) const
 {
     // assuming that the satellite view is taken at the beginning of the step - before shell movement happened
 
     return old_location + (static_cast<Direction>(assumed_dir) * (steps_gap - 1));
 }
 
-bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap)
+bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap) const
 {
     // TODO: also check if not possible because would have collided with another shell
 
@@ -197,7 +194,7 @@ bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location
     return true;
 }
 
-AssumedDirection SatelliteAnalyticsView::findMatchingShellDirection(const BoardCell &old_location, size_t steps_gap)
+AssumedDirection SatelliteAnalyticsView::findMatchingShellDirection(const BoardCell &old_location, size_t steps_gap) const
 {
     AssumedDirection dir;
     for (size_t i = 0; i < 8; i++)
@@ -283,7 +280,6 @@ std::optional<AssumedDirection> SatelliteAnalyticsView::getDirectionOfObjectAt(G
 }
 
 // === Movement validation === //
-
 bool SatelliteAnalyticsView::isWallOnCell(const BoardCell &cell) const
 {    
     std::unordered_set<GameObjectType> objects_on_cell = this->getObjectsTypesOnCell(cell);
@@ -345,11 +341,11 @@ void SatelliteAnalyticsView::updateAnalyticalView(const SatelliteView &sat_view,
     }
 }
 
-void SatelliteAnalyticsView::approxBoardChanges()
+void SatelliteAnalyticsView::applyApproxBoardChanges()
 {
     advanceShells();
 
-    this->print();
+    // this->print();
 }
 
 // === Move Objects on View === //
@@ -366,10 +362,6 @@ void SatelliteAnalyticsView::addShell(const BoardCell &location, Direction dir)
 {
     BoardCell adjusted_location = this->createAdjustedCell(location);
     addObjectInternal(adjusted_location, GameObjectType::SHELL, static_cast<AssumedDirection>(dir));
-
-    Logger::runtime().logLine("adding shell in " +
-                              std::to_string(adjusted_location.getX()) + "," + std::to_string(adjusted_location.getY()) + 
-                              " direction is " + std::to_string(static_cast<char>(dir)));
 }
 
 
@@ -378,7 +370,7 @@ void SatelliteAnalyticsView::addShell(const BoardCell &location, Direction dir)
 #include <thread>   // TODO: delete include
 #include <chrono>   // TODO: delete include
 // TODO: this is temp function - delete
-void SatelliteAnalyticsView::print()
+void SatelliteAnalyticsView::print() const
 {
     for (int y = 0; y < (int)this->getHeight(); ++y)
     {

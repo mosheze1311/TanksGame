@@ -1,7 +1,7 @@
 #include "BoardSatelliteView.h"
 
-//=== Constructor === //
-BoardSatelliteView::BoardSatelliteView(GameBoard &board) : width(board.getWidth()), height(board.getHeight())
+// === Constructor === //
+BoardSatelliteView::BoardSatelliteView(const GameBoard &board) : width(board.getWidth()), height(board.getHeight())
 {
     for (BoardCell c : board.getOccupiedCells())
     {
@@ -15,29 +15,30 @@ BoardSatelliteView::BoardSatelliteView(GameBoard &board) : width(board.getWidth(
             continue;
         }
 
+        // if here, objects.size() == 1
         auto obj = *(objects.begin());
         this->sat_view[c] = obj->getObjectType();
     }
 }
 
-// TODO: is this public setter valid even though not part of interface?
+// === Setter For Manager - Not From Interface === //
 void BoardSatelliteView::setCallerTankLocation (const BoardCell& c){
     this->caller_tank_location = c;
 }
 
-//=== Interface Implementation ===
+// === Interface Implementation === //
 char BoardSatelliteView::getObjectAt(size_t x, size_t y) const
 {
 
     if (x > this->width || y > this->height) // not checking < 0 since size_t is unsigned
-        return this->out_of_bounds;
-    
+        return static_cast<char>(SpecialSatelliteViewChars::OutOfBounds);
+
     if (BoardCell(x,y) == caller_tank_location)
-        return caller_tank;
+        return static_cast<char>(SpecialSatelliteViewChars::CallerTank);
 
     auto iter = this->sat_view.find(BoardCell(x, y));
     if (iter == this->sat_view.end())
-        return empty_space;
-    
+        return static_cast<char>(SpecialSatelliteViewChars::EmptySpace);
+
     return static_cast<char>(iter->second);
 }

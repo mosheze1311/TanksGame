@@ -3,9 +3,11 @@
 #include "../GameBoard/GameBoard.h"
 #include "../GameCollisionHandler/GameCollisionHandler.h"
 
+#define tank_speed 1 // not in config because should not be changed
+
 //=== Constructors ===
-Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells, int spd, int hp)
-    : MovableObject(b, dir, spd, hp), type(t), shells(tank_num_shells) {}
+Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells)
+    : MovableObject(b, dir, tank_speed, tank_hp), type(t), shells(tank_num_shells) {}
 
 //=== Getters ===
 GameObjectType Tank::getObjectType() const
@@ -106,7 +108,11 @@ bool Tank::playTankRound(ActionRequest command)
     tickShootCooldown();
     tickBackwardsWait();
 
-    if (turns_to_wait_for_backward == 0)
+    // TODO: fix this disgusting patch and add the bacwards movemennt in a normal place
+    bool is_now_backwards = turns_to_wait_for_backward == 0;
+    bool is_valid_action = validateAndPerformAction(command);
+    bool backwards_not_canceled = turns_to_wait_for_backward == 0;
+    if (is_now_backwards && backwards_not_canceled)
     {
         if (canMoveBackwards())
         {
@@ -119,7 +125,7 @@ bool Tank::playTankRound(ActionRequest command)
     }
 
     // validate and perform the action
-    return validateAndPerformAction(command);
+    return is_valid_action;
 }
 
 bool Tank::validateAndPerformAction(ActionRequest command)
@@ -128,6 +134,9 @@ bool Tank::validateAndPerformAction(ActionRequest command)
     {
     case ActionRequest::DoNothing:
         return true; // allways correct, does nothing.
+
+    case ActionRequest::GetBattleInfo:
+             return performBattleInfoAction();
 
     case ActionRequest::MoveForward:
         return performForwardAction();
@@ -306,32 +315,44 @@ void Tank::shoot()
     BoardCell forward_cell = opt_forward_cell.value();
 
     // add shell to board
-    board.addObject(std::make_unique<Shell>(board, this->getDirection()), forward_cell);
-    board.useTankShell(); // make sure bord knows that the shell was shot from a tank and not just added to board.
+    board.addTankShell(std::make_unique<Shell>(board, this->getDirection()), forward_cell);
 
     // modify tank shoot cooldown and shells count
     shoot_cooldown = 5;
     shells--;
 }
 
+// === Battle Info === //
+bool Tank::performBattleInfoAction(){
+    this->cancelBackwardsWait();
+    return true;
+};
+
 //=== Drawing ===
 std::string Tank::getDrawing(DrawingType t) const
 {
-    bool is_t1 = this->getObjectType() == GameObjectType::TANK1;
+    static const std::vector<std::string> regular_emojis = {"🚙", "🚜", "🚗", "🚕", "🚓", "🚒", "🏎️", "🛻", "🚚"};
+    static const std::vector<std::string> tennis_emojis = {"🏸", "🏓", "🎾", "🥎", "🏐", "🏉", "🏈", "⚽", "⚾"};
+    static const std::vector<std::string> scifi_emojis = {"👽", "👾", "🤖", "🛸", "🚀", "🛰️", "🌌", "🔫", "🧬"};
+    static const std::vector<std::string> pirate_emojis = {"⛴️", "🚢", "⚓", "🏴‍☠️", "🦜", "🗺️", "🏝️", "💣", "🪙"};
+    static const std::vector<std::string> mideast_emojis = {"🇮🇱", "🇮🇷", "🇸🇦", "🇪🇬", "🇹🇷", "🇸🇾", "🇯🇴", "🇮🇶", "🇱🇧"};
+
+    int index = static_cast<int>(this->getObjectType()) - static_cast<int>(GameObjectType::TANK1);
+    index = std::clamp(index, 0, 8); // clamp to valid emoji range
 
     switch (t)
     {
     case DrawingType::REGULAR:
-        return is_t1 ? "🚙" : "🚜";
+        return regular_emojis[index];
     case DrawingType::TENNIS:
-        return is_t1 ? "🏸" : "🏓";
+        return tennis_emojis[index];
     case DrawingType::SCIFI:
-        return is_t1 ? "👽" : "👾";
+        return scifi_emojis[index];
     case DrawingType::PIRATE:
-        return is_t1 ? "⛴️" : "🚢";
+        return pirate_emojis[index];
     case DrawingType::MIDDLE_EAST:
-        return is_t1 ? "🇮🇱" : "🇮🇷";
+        return mideast_emojis[index];
     default:
-        return is_t1 ? "🚙" : "🚜";
+        return regular_emojis[index];
     }
 }

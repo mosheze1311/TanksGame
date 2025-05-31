@@ -1,9 +1,9 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
-
+ 
 //=== Constructors ===
-Wall::Wall(GameBoard& b, int hp)
-    : StaticObject(b, hp) {}
+Wall::Wall(GameBoard &b)
+    : StaticObject(b, wall_hp) {}
 
 //=== Type Info ===
 GameObjectType Wall::getObjectType() const { return GameObjectType::WALL; }

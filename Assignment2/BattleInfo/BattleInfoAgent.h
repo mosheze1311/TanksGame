@@ -11,7 +11,7 @@
 #include <queue>
 #include <vector>
 
-// === Container Structs ===
+// === Container Structs === //
 struct GameDetails
 {
     size_t max_steps;
@@ -31,7 +31,7 @@ struct TankToPlayerDetails
     Direction dir;
 
     // no need for constructor - updated by algorithm only after init
-    };
+};
 
 struct PlayerToTankDetails
 {
@@ -47,46 +47,39 @@ class BattleInfoAgent : public BattleInfo
 {
 private:
     // === Attributes === //
-    GameDetails game_details;
+    const GameDetails game_details;
 
     SatelliteAnalyticsView &advanced_sat_view;
-    SatelliteView &new_satellite_image;
+    const SatelliteView &new_satellite_image;
 
-    PlayerToTankDetails player_to_tank;
+    const PlayerToTankDetails player_to_tank;
     TankToPlayerDetails tank_to_player;
+
+    // === Two-Steps Update View API === //
+    void updateViewForStep(size_t steps_gap);
 
 public:
     // === Constructor === //
-    BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, SatelliteView &sat_view, PlayerToTankDetails player_to_tank, GameDetails details);
-
-    // === Destructor === //
-    ~BattleInfoAgent() override;
+    BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, const PlayerToTankDetails &player_to_tank, const GameDetails &details);
 
     // === Getters (for Player) === //
     size_t getCurrentStep() const;
-
     size_t getTankIndex() const;
     Direction getTankDirection() const;
     size_t getRemainingShells() const;
 
-    // === Getters (for Algorithm) === //
+    // === Getters (for TankAlgorithm) === //
     size_t getMaxSteps() const;
     size_t getInitialNumShells() const;
-
     BoardCell getTankLocation() const;
-
     size_t getStepToGetInfo(size_t current_step) const;
-    SatelliteAnalyticsView getAnalyticsView() const;
 
-    // === Setters (for Player) === //
-    // currently none: all setters are through the constructor
-
-    // === Setters (for Algorithm) === //
+    // === Setters (for TankAlgorithm) === //
     void setCurrentStep(size_t step);
     void setTankDirection(Direction dir);
     void setRemainingShells(size_t shells);
 
     // === Two-Steps Update View API === //
-    // TODO: move this logic to battle info boject so that SatelliteAnalyitcsView wont save SatelliteView refernce as an attribute
-    void updateViewForStep(size_t steps_gap);
+    SatelliteAnalyticsView updateAndGetAnalyticsView(size_t current_step);
+
 };

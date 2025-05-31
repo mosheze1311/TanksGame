@@ -4,18 +4,20 @@
 #define shell_speed 2
 
 // SPAWN DIRECTIONS
-#define tank1_initial_direction Direction::LEFT
-#define tank2_initial_direction Direction::RIGHT
-#define tank3_initial_direction Direction::RIGHT
-#define tank4_initial_direction Direction::RIGHT
-#define tank5_initial_direction Direction::RIGHT
-#define tank6_initial_direction Direction::RIGHT
-#define tank7_initial_direction Direction::RIGHT
-#define tank8_initial_direction Direction::RIGHT
-#define tank9_initial_direction Direction::RIGHT
+#define spawn_directions std::vector({ \
+    Direction::LEFT,      \
+    Direction::RIGHT,     \
+    Direction::LEFT,      \
+    Direction::RIGHT,     \
+    Direction::LEFT,      \
+    Direction::RIGHT,     \
+    Direction::LEFT,      \
+    Direction::RIGHT,     \
+    Direction::LEFT,      \
+})
 
 // HP
-#define wall_hp 1
+#define wall_hp 2
 #define tank_hp 1
 
 // DAMAGE

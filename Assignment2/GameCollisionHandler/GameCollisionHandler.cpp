@@ -6,7 +6,7 @@ GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(bo
 
 GameCollisionHandler::~GameCollisionHandler() {}
 
-//=== Static Members - Collision maps ===
+// === Static Members - Collision maps === //
 // TODO: rethink about the counters of each CollisionType.
 const CollisionMap GameCollisionHandler::explosion_map = {
     {CollisionObjectType::MINE, {CollisionObjectType::TANK}},
@@ -20,7 +20,7 @@ const CollisionMap GameCollisionHandler::prevention_map = {
     {CollisionObjectType::SHELL, {}},
     {CollisionObjectType::WALL, {CollisionObjectType::TANK, CollisionObjectType::MINE}}};
 
-//=== Member Functions ===
+// === Member Functions === //
 void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
 {
     this->positionNewShellsOnPreviousBoard(updated_board); // mid step collision preparing
@@ -120,7 +120,7 @@ void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard &upd
     }
 }
 
-const std::unordered_set<CollisionObjectType> GameCollisionHandler::getCollidingTypes(CollisionMap collision_map, GameObjectType objType)
+const std::unordered_set<CollisionObjectType> GameCollisionHandler::getCollidingTypes(const CollisionMap &collision_map, GameObjectType objType)
 {
     auto iter = collision_map.find(CollisionObjectTypeUtils::fromGameObjectType(objType));
     if (iter != collision_map.end())
@@ -130,7 +130,7 @@ const std::unordered_set<CollisionObjectType> GameCollisionHandler::getColliding
     return {};
 }
 
-//=== Static Functions ===
+// === Static Functions === //
 bool GameCollisionHandler::isObjectAllowedToStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c)
 {
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, board, obj_type, c);
@@ -146,7 +146,7 @@ bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoardView &board, Gam
     return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, board, obj_type, c);
 }
 
-bool GameCollisionHandler::isCollidingOnCell(const CollisionMap collision_map, const GameBoardView &board, GameObjectType obj_type, BoardCell c)
+bool GameCollisionHandler::isCollidingOnCell(const CollisionMap &collision_map, const GameBoardView &board, GameObjectType obj_type, BoardCell c)
 {
     const std::unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
     if (collidors.empty())

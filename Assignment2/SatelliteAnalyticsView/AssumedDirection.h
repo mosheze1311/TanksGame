@@ -1,6 +1,6 @@
 #pragma once
 
-enum class Direction
+enum class AssumedDirection
 {
     UP = 0,
     UPR = 1,
@@ -9,6 +9,6 @@ enum class Direction
     DOWN = 4,
     DOWNL = 5,
     LEFT = 6,
-    UPL = 7
-
+    UPL = 7,
+    UNKNOWN = 8
 };

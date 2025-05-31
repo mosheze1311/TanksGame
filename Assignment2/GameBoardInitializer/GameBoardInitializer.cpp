@@ -1,9 +1,10 @@
+#include "../config.h"
 #include "GameBoardInitializer.h"
 
 #include <fstream>
 #include <sstream>
 
-//=== Input File Handling ===
+// === Input File Handling === //
 void GameBoardInitializer::logInputError(const std::string &error_message)
 {
     Logger::input().logLine(error_message);
@@ -75,7 +76,7 @@ std::unique_ptr<GameObject> GameBoardInitializer::createGameObjectOfType(GameBoa
         return std::make_unique<Tank>(
             board,
             type,
-            GameObjectTypeUtils::tankTypeToPlayerIndex(type) % 2 == 1 ? Direction::LEFT : Direction::RIGHT,
+            spawn_directions[GameObjectTypeUtils::tankTypeToPlayerIndex(type) - 1],
             board.getTanksNumShells());
 
     case GameObjectType::WALL:
@@ -119,8 +120,7 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
     Allowed map characters:
     - '#' : Wall
     - '@' : Mine
-    - '1'–'9' : Tank for Player 1 (odd numbers → LEFT direction)
-    - '0'–'8' : Tank for Player 2 (even numbers → RIGHT direction)
+    - '1'–'9' : Tank for Player i (odd numbers → LEFT direction, even numbers → RIGHT direction)
     - Any other character or space is treated as empty space
     */
 
@@ -169,5 +169,6 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
         }
     }
 
+    file.close();
     return true;
 }
