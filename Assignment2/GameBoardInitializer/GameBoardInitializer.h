@@ -21,6 +21,8 @@ class GameBoardInitializer
     input file processing to GameBoardInitializer, maintaining separation of concerns.
     */
 private:
+    static const char empty_space_char = ' ';
+
     GameBoardInitializer() = delete;
     ~GameBoardInitializer() = delete;
 

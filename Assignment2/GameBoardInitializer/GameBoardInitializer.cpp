@@ -18,12 +18,12 @@ bool GameBoardInitializer::parseKeyLine(const std::string &line, size_t line_num
 
     if (!(iss >> key))
     {
-        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Missing key.\n");
+        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Missing key.");
         return false;
     }
     if (key != expected_key)
     {
-        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Unexpected key '" + key + "', expected '" + expected_key + "'.\n");
+        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Unexpected key '" + key + "', expected '" + expected_key + "'.");
         return false;
     }
     if (!(iss >> equal_sign) || equal_sign != "=")
@@ -44,14 +44,22 @@ bool GameBoardInitializer::parseKeyLine(const std::string &line, size_t line_num
 
 bool GameBoardInitializer::parseBoardLine(const std::string &line, size_t expected_width, size_t row, GameBoard &board, std::function<void(std::unique_ptr<GameObject>, const BoardCell &)> addObjectToBoard)
 {
-    size_t cols = std::min(expected_width, line.length()); // ensure no overflowing lines.
+    size_t actual_width = line.length();
+    size_t cols = std::min(expected_width, actual_width); // ensure no overflowing lines.
+    if (actual_width != expected_width)
+        GameBoardInitializer::logInputError("Board line " + std::to_string(row) + ": Expected " + std::to_string(expected_width) + " cols, got " + std::to_string(actual_width));
 
     char obj_char;
     for (size_t col = 0; col < cols; col++)
     {
         obj_char = line[col];
         if (!GameObjectTypeUtils::isValidObjectChar(obj_char))
+        {
+            if (obj_char != GameBoardInitializer::empty_space_char)
+                GameBoardInitializer::logInputError("Board line " + std::to_string(row) + ": Invalid char '" + std::string(1, obj_char) + "' in board column " + std::to_string(col) + ". Treated as empty space");
+
             continue;
+        }
 
         std::unique_ptr<GameObject> ptr = createGameObjectOfType(board, static_cast<GameObjectType>(obj_char));
         addObjectToBoard(std::move(ptr), BoardCell(col, row));
@@ -120,7 +128,7 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
     Allowed map characters:
     - '#' : Wall
     - '@' : Mine
-    - '1'–'9' : Tank for Player i (odd numbers → LEFT direction, even numbers → RIGHT direction)
+    - '1'–'9' : Tank for Player i (direction will be as decribed in config.h file)
     - Any other character or space is treated as empty space
     */
 
@@ -160,13 +168,23 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
 
     while (board_row_number < height && std::getline(file, line))
     {
-        line_number++;      // advance the read line if read any;
-        board_row_number++; // advance board row
 
         if (!GameBoardInitializer::parseBoardLine(line, width, board_row_number, board, addObjectToBoard))
         {
             return false; // return if some error in board - should not happen
         }
+
+        line_number++;      // advance the read line if read any;
+        board_row_number++; // advance board row
+    }
+
+    if (board_row_number < height)
+    {
+        GameBoardInitializer::logInputError("Actual board did not contain enough rows - filled by empty space");
+    }
+    else if (std::getline(file, line))
+    {
+        GameBoardInitializer::logInputError("Actual board contains too many rows - ignored");
     }
 
     file.close();
