@@ -2,6 +2,7 @@
 
 #include "../GameBoard/BoardCell.h"
 
+#include <vector>
 class GameBoardUtils
 {
 private:
