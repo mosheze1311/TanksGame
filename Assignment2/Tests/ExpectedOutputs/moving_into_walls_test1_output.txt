@@ -1,0 +1,11 @@
+MoveBackward, MoveBackward
+DoNothing, DoNothing
+DoNothing, DoNothing
+MoveBackward, MoveBackward
+MoveBackward, MoveBackward (ignored)
+MoveForward, MoveForward
+MoveForward, MoveForward
+MoveForward, MoveForward
+MoveForward, MoveForward (ignored)
+MoveForward (ignored), MoveForward (ignored)
+Tie, reached max steps = 10, player 1 has 1 tanks, player 2 has 1 tanks

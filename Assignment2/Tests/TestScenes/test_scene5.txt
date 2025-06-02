@@ -1,0 +1,7 @@
+shootdown2
+MaxSteps = 10
+NumShells = 10
+Rows = 3
+Cols = 16
+
+2              1

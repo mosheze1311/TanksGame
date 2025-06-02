@@ -1,0 +1,10 @@
+RotateLeft90, RotateLeft90
+RotateLeft90, RotateLeft90
+MoveForward, MoveForward
+MoveForward, MoveForward
+RotateLeft90, RotateLeft90
+MoveForward, MoveForward (ignored)
+MoveForward, MoveForward (ignored)
+MoveForward, MoveForward (ignored)
+MoveForward (killed), MoveForward (ignored)
+Player 1 won with 1 tanks still alive

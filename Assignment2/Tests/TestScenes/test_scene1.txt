@@ -1,4 +1,4 @@
-tests
+generic_tests
 MaxSteps = 10
 NumShells = 10
 Rows = 10
@@ -7,9 +7,9 @@ Cols = 10
         
     2 ##### 
         
-          
+
     ##   #
 # @  # ###
-#  #@ @   
-#1  #  @# 
+#  ## @   
+# 1  # @# 
   @ @#    

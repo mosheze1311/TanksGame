@@ -1,0 +1,11 @@
+MoveBackward, MoveBackward
+RotateLeft45 (ignored), RotateLeft45 (ignored)
+RotateLeft90 (ignored), RotateLeft90 (ignored)
+DoNothing, DoNothing
+MoveBackward, MoveBackward
+RotateRight45 (ignored), RotateRight45 (ignored)
+RotateRight90 (ignored), RotateRight90 (ignored)
+DoNothing, DoNothing
+MoveBackward, MoveBackward
+Shoot (ignored), Shoot (ignored)
+Tie, reached max steps = 10, player 1 has 1 tanks, player 2 has 1 tanks

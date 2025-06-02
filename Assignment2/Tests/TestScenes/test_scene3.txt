@@ -1,0 +1,9 @@
+mine_explosion_test
+MaxSteps = 10
+NumShells = 10
+Rows = 4
+Cols = 5
+@@@@@
+@@1@@
+@@2@@
+@@@@@
