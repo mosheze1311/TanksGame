@@ -4,16 +4,6 @@
 
 #include <memory>
 
-std::unique_ptr<PlayerFactory> getPlayerFactory()
-{
-    return std::make_unique<MyPlayerFactory>();
-}
-
-std::unique_ptr<TankAlgorithmFactory> getTankAlgorithmFactory()
-{
-    return std::make_unique<MyTankAlgorithmFactory>();
-}
-
 bool validateArgc(int argc)
 {
     if (argc != 2 && argc != 3)
@@ -51,7 +41,7 @@ int main(int argc, char **argv)
     if (!validateDrawingType(dt, argc, argv))
         return EXIT_SUCCESS;
 
-    GameManager game(getPlayerFactory(), getTankAlgorithmFactory());
+    GameManager game(MyPlayerFactory{}, MyTankAlgorithmFactory{});
 
     if(!game.readBoard(file_path))
         return EXIT_SUCCESS;

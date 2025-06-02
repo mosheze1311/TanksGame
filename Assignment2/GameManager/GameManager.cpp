@@ -9,7 +9,6 @@
 void GameManager::prepareForRun()
 {
     // set manager game parameters
-    this->game_total_tanks = board.getAllTanksOrderedByCell(); // TODO: make sure tanks are ordered correctly;
     this->remaining_steps = this->board.getMaxSteps();
     this->applyShellsLimitRuleOnRemainingSteps();
 
@@ -35,11 +34,13 @@ void GameManager::createPlayers()
 void GameManager::createAlgorithms()
 {
     std::map<size_t, size_t> algorithm_indexes_tracker;
-    for (Tank *t : game_total_tanks)
+    for (Tank *t : board.getAllTanksOrderedByCell())
     {
         size_t player_idx = GameObjectTypeUtils::tankTypeToPlayerIndex(t->getObjectType());
         size_t algorithm_idx = algorithm_indexes_tracker[player_idx]++;
-        algorithms.push_back(this->tank_algorithm_factory->create(player_idx, algorithm_idx));
+
+        std::pair tank_algo_pair = {t, this->tank_algorithm_factory->create(player_idx, algorithm_idx)};
+        initial_tank_algorithm_pairs.push_back(std::move(tank_algo_pair));
     }
 }
 
@@ -75,9 +76,9 @@ void GameManager::setOutputFile(const std::string &input_file_path)
     this->output_file_name = "output_" + input_file_name + ".txt";
 }
 
-void GameManager::logStepActions(const std::map<int, ActionRequest>& actions, std::vector<bool> is_valid_action) const
+void GameManager::logStepActions(const std::map<int, ActionRequest> &actions, std::vector<bool> is_valid_action) const
 {
-    size_t n = game_total_tanks.size();
+    size_t n = initial_tank_algorithm_pairs.size();
     for (size_t i = 0; i < n; ++i)
     {
         bool coma_in_log = i != n - 1;
@@ -89,7 +90,7 @@ void GameManager::logStepActions(const std::map<int, ActionRequest>& actions, st
             continue;
         }
 
-        Tank *t = game_total_tanks[i];
+        Tank *t = initial_tank_algorithm_pairs[i].first;
         bool is_killed = !(this->board.isObjectOnBoard(t)); // TODO: perhaps create a Manager function that checks if tank is alive
         bool is_valid = is_valid_action[i];
         ActionRequest action = iter->second;
@@ -162,7 +163,7 @@ void GameManager::logZeroShellsTie() const
     logTie("both players have zero shells for " + std::to_string(steps_after_shells_end) + " steps");
 }
 
-void GameManager::logTie(const std::string& reason) const
+void GameManager::logTie(const std::string &reason) const
 {
     Logger::output(output_file_name).logLine("Tie, " + reason);
 }
@@ -170,7 +171,7 @@ void GameManager::logTie(const std::string& reason) const
 // === Gameplay Functions === //
 std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest> actions, BoardSatelliteView &sat_view, GameCollisionHandler &c_handler, GameDrawer &d)
 {
-    size_t n = game_total_tanks.size();
+    size_t n = initial_tank_algorithm_pairs.size();
     std::vector<bool> is_valid_action(n);
     for (size_t i = 0; i < n; ++i)
     {
@@ -182,14 +183,14 @@ std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest
             continue;
         }
 
-        Tank *tank = game_total_tanks[i];
+        Tank *tank = initial_tank_algorithm_pairs[i].first;
         ActionRequest action = iter->second;
 
         if (action == ActionRequest::GetBattleInfo)
         {
             Player *player = players_map[GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())].get();
 
-            TankAlgorithm &algorithm = *(algorithms[i]);
+            TankAlgorithm &algorithm = *(initial_tank_algorithm_pairs[i].second);
             BoardCell tank_location = *(board.getObjectLocation(tank));
 
             sat_view.setCallerTankLocation(tank_location);
@@ -270,14 +271,14 @@ BoardSatelliteView GameManager::TakeSatelliteImage()
 
 std::map<int, ActionRequest> GameManager::requestAlgorithmsActions()
 {
-    std::map<int, ActionRequest> actions;
-    for (size_t i = 0; i < game_total_tanks.size(); ++i)
+    std::map<int, ActionRequest> actions; // using map because some tanks may not be alive anymore
+    for (size_t i = 0; i < initial_tank_algorithm_pairs.size(); ++i)
     {
-        Tank *tank = game_total_tanks[i];
+        auto &[tank, algorithm_ptr] = initial_tank_algorithm_pairs[i];
         if (!board.isObjectOnBoard(tank))
             continue;
 
-        ActionRequest algorithm_action = this->algorithms[i]->getAction();
+        ActionRequest algorithm_action = algorithm_ptr->getAction();
         actions[i] = algorithm_action;
     }
 
@@ -299,12 +300,8 @@ void GameManager::applyShellsLimitRuleOnRemainingSteps()
 
 // === Public Functions === //
 // === Constructor === //
-GameManager::GameManager(std::unique_ptr<PlayerFactory> player_factory, std::unique_ptr<TankAlgorithmFactory> tank_algorithm_factory)
-    : board(0, 0), player_factory(std::move(player_factory)), tank_algorithm_factory(std::move(tank_algorithm_factory))
-{
-}
 
-bool GameManager::readBoard(const std::string& input_file_path)
+bool GameManager::readBoard(const std::string &input_file_path)
 {
     // init board from file
     bool success = this->board.initFromFile(input_file_path);
@@ -325,7 +322,10 @@ void GameManager::run(DrawingType dt)
 
     while (true)
     {
-        // TODO: which moves first? Tanks or Shells?  - currently tanks move first
+        // check for winner / tie
+        if (this->concludeGame())
+            break;
+
         BoardSatelliteView sat_view = this->TakeSatelliteImage();
         std::map<int, ActionRequest> actions = requestAlgorithmsActions();
         this->advanceStepsClock();
@@ -335,9 +335,5 @@ void GameManager::run(DrawingType dt)
         this->moveShells(shell_speed, c_handler, d);
 
         logStepActions(actions, is_valid_action);
-
-        // check for winner / tie
-        if (this->concludeGame())
-            break;
     }
 }
