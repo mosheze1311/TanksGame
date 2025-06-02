@@ -14,7 +14,6 @@
 #include <string>
 #include <optional>
 
-// TODO: how to handle copying of derived classes? how will this work: GameObject go1 = Tank(); GameObject go2 = go1;
 // forward declaration
 class GameBoard;
 
@@ -24,6 +23,7 @@ class GameBoard;
 class GameObject : public DrawableObject
 {
 protected:
+    // TODO: consider using an object unique id
     // === Attributes === //
     int hp;
     GameBoard &board;
@@ -116,8 +116,12 @@ private:
     // === Cooldown / Wait Management === //
     void tickShootCooldown();
     void tickBackwardsWait();
+    int getShootCooldown() const;
+    int getBackwardWait() const;
+
     bool isPendingBackwards() const;
     bool canImmediateBackwards() const;
+    bool isBackwardsDue() const;
     void extendBackwardsStreak();
     void cancelBackwardsWait();
     void startBackwardsWait();
@@ -125,6 +129,7 @@ private:
     // === Action Validation & Execution === //
     bool validateAndPerformAction(ActionRequest action);
     bool performBackwardAction();
+    void performPostponedBackward(bool was_due_before_action);
     bool performForwardAction();
     bool performTurnAction(ActionRequest command);
     bool performShootAction();
@@ -144,8 +149,6 @@ private:
     void shoot();
     void setShells(int new_shells);
     void reload(int amount); // currently not in use
-    int getShootCooldown() const;
-    int getBackwardWait() const;
 
 public:
     Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells);

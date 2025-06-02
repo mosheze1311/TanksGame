@@ -73,6 +73,10 @@ bool Tank::isPendingBackwards() const
     return turns_to_wait_for_backward >= 0;
 }
 
+bool Tank::isBackwardsDue() const{
+    return this->getBackwardWait() == 0;
+}
+
 //=== Round Clock Management ===
 void Tank::tickBackwardsWait()
 {
@@ -108,24 +112,10 @@ bool Tank::playTankRound(ActionRequest command)
     tickShootCooldown();
     tickBackwardsWait();
 
-    // TODO: fix this disgusting patch and add the bacwards movemennt in a normal place
-    bool is_now_backwards = turns_to_wait_for_backward == 0;
-    bool is_valid_action = validateAndPerformAction(command);
-    bool backwards_not_canceled = turns_to_wait_for_backward == 0;
-    if (is_now_backwards && backwards_not_canceled)
-    {
-        if (canMoveBackwards())
-        {
-            moveBackwards(); // this will also extend the backwards streak
-        }
-        else
-        {
-            cancelBackwardsWait();
-        }
-    }
-
-    // validate and perform the action
-    return is_valid_action;
+    bool was_backwards_due = isBackwardsDue(); // must be before validateAndPerformAction
+    bool is_valid =  validateAndPerformAction(command);
+    performPostponedBackward(was_backwards_due); // must be after validateAndPerformAction
+    return is_valid;
 }
 
 bool Tank::validateAndPerformAction(ActionRequest command)
@@ -246,6 +236,27 @@ bool Tank::performBackwardAction()
     }
 }
 
+void Tank::performPostponedBackward(bool was_due_before_action){
+    /*
+        this function must be called after handling this step ActionRequest:
+
+        'was_due_before_action' prevent double backwards when extending backwards streak
+        'isBackwardsDue' prevent backwards after a canceling-backwards action
+
+        'cancelBackwardsWait' must be called after the handling of this step ActionRequest to prevent additional action  
+    */
+
+    if (!isBackwardsDue() || !was_due_before_action) 
+        return;
+    
+    if (canMoveBackwards()){
+        moveBackwards();
+    }
+    else{
+        cancelBackwardsWait(); 
+    }
+}
+
 bool Tank::canMoveBackwards() const
 {
     auto opt_backward_cell = this->getBackwardCell();
@@ -303,7 +314,7 @@ bool Tank::performShootAction()
         return true;
     }
 
-    return false; // On cloodowns, can't preform shooting act.
+    return false; // On cooldowns, can't preform shooting act.
 }
 
 void Tank::shoot()
