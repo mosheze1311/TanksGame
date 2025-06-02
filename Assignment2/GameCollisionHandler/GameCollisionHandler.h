@@ -55,6 +55,7 @@ private:
 
     // check for collisions after step (objects in the same locaition)
     void handleEndOfStepCollisions(GameBoard &updated_board) const;
+    void handleEndOfStepCollisionsOnCell(GameBoard &updated_board, const BoardCell& cell) const;
 
     // add new shells to precious board to allow mid-step collision handling
     void positionNewShellsOnPreviousBoard(const GameBoard &updated_board);

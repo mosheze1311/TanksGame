@@ -1,13 +1,11 @@
 #include "GameCollisionHandler.h"
 
-// TODO: change collision handling to fit multiple tanks.
 //=== Constructors ===
 GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
 
 GameCollisionHandler::~GameCollisionHandler() {}
 
 // === Static Members - Collision maps === //
-// TODO: rethink about the counters of each CollisionType.
 const CollisionMap GameCollisionHandler::explosion_map = {
     {CollisionObjectType::MINE, {CollisionObjectType::TANK}},
     {CollisionObjectType::TANK, {CollisionObjectType::MINE, CollisionObjectType::TANK, CollisionObjectType::SHELL}},
@@ -28,45 +26,80 @@ void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
     this->handleMidStepCollisions(updated_board);
     this->handleEndOfStepCollisions(updated_board);
 
-    this->previous_board = updated_board;
+    this->previous_board = GameBoardShallowCopy(updated_board);
 };
 
 void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) const
 {
-    // a mid step collision occurs when two objects switch lcations between steps.
+    // a mid step collision occurs when two objects switch lcations between steps by crossing each other (opposite directions).
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
         std::optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
         std::optional<BoardCell> opt_previous_loc = previous_board.getObjectLocation(obj);
-        if (!opt_current_loc || !opt_previous_loc) // object is no longer on board. TODO: think of new shells and how it effects them
+        if (!opt_current_loc || !opt_previous_loc) // object is no longer on board. (previous fail should not happen since adding new shells to previous board, and no other new objects should be born)
             continue;
 
         BoardCell current_location = *opt_current_loc;
         BoardCell previous_location = *opt_previous_loc;
 
+        if (current_location == previous_location) // object did not move so cant have mid step collision
+            continue;
+
         std::unordered_set<CollisionObjectType> colliders = this->getCollidingTypes(GameCollisionHandler::explosion_map, obj->getObjectType());
         std::unordered_set<GameObject *> objects_that_were_on_my_current_cell = this->previous_board.getObjectsOnCell(current_location); // potential mid step collisions
         for (GameObject *other : objects_that_were_on_my_current_cell)
         {
-            if (!updated_board.isObjectOnBoard(other))
+            if (obj == other) // never happens because object moved - here for clarity only
                 continue;
 
-            if (obj == other)
+            if (!updated_board.isObjectOnBoard(other)) // other died last step
                 continue;
 
-            if (colliders.find(CollisionObjectTypeUtils::fromGameObjectType(other->getObjectType())) == colliders.end())
+            if (colliders.find(CollisionObjectTypeUtils::fromGameObjectType(other->getObjectType())) == colliders.end()) // obj, other can't collide
                 continue;
 
-            std::optional<BoardCell> opt_other_current_loc = updated_board.getObjectLocation(other);
-            if (!opt_other_current_loc)
-                continue;
+            BoardCell other_current_loc = updated_board.getObjectLocation(other).value(); // no need to check optional since object on board
 
-            BoardCell other_current_loc = *opt_other_current_loc;
-            if (other_current_loc == previous_location)
+            if (other_current_loc == previous_location &&
+                dynamic_cast<MovableObject *>(obj)->getDirection() == DirectionUtils::getOppositeDirection(dynamic_cast<MovableObject *>(other)->getDirection()))
             {
                 // TODO: this is ok for now since all moving objects have 1 hp. to ensure only 1 hit per collision later - list mid step colliders and handle at the end
                 obj->gotHit(1);
                 other->gotHit(1);
+            }
+        }
+    }
+}
+
+void GameCollisionHandler::handleEndOfStepCollisionsOnCell(GameBoard &updated_board, const BoardCell &cell) const
+{
+    std::unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
+    for (auto iter = cell_objects.begin(); iter != cell_objects.end(); ++iter)
+    {
+        // skip dead objects
+        GameObject *obj1 = *iter;
+        if (!updated_board.isObjectOnBoard(obj1))
+            continue;
+
+        // check for collisions with other objects
+        std::unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
+        auto iter2 = iter;
+        ++iter2;
+        for (; iter2 != cell_objects.end(); ++iter2)
+        {
+            // skip dead objects
+            GameObject *obj2 = *iter2;
+            if (!updated_board.isObjectOnBoard(obj2))
+                continue;
+
+            // if collision - hit objects by 1
+            CollisionObjectType obj2_type = CollisionObjectTypeUtils::fromGameObjectType(obj2->getObjectType());
+            if (collide_with.find(obj2_type) != collide_with.end())
+            {
+                if (updated_board.isObjectOnBoard(obj1)) // test alive again to avoid multiple collisions error (an object that collides with many others)
+                    obj1->gotHit(1);
+
+                obj2->gotHit(1);
             }
         }
     }
@@ -78,30 +111,7 @@ void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) c
     // each collision cause 1 hp hit
     for (BoardCell &cell : updated_board.getOccupiedCells())
     {
-        std::unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
-        for (auto iter = cell_objects.begin(); iter != cell_objects.end();)
-        {
-            GameObject *obj1 = *iter;
-            auto iter2 = ++iter;
-            if (!updated_board.isObjectOnBoard(obj1))
-                continue;
-            std::unordered_set<CollisionObjectType> collide_with = getCollidingTypes(explosion_map, obj1->getObjectType());
-            for (; iter2 != cell_objects.end(); ++iter2)
-            {
-                GameObject *obj2 = *iter2;
-                if (!updated_board.isObjectOnBoard(obj2))
-                    continue;
-                CollisionObjectType obj2_type = CollisionObjectTypeUtils::fromGameObjectType(obj2->getObjectType());
-                if (collide_with.find(obj2_type) != collide_with.end())
-                {
-                    // should explode each other
-                    if (updated_board.isObjectOnBoard(obj1))
-                        obj1->gotHit(1);
-
-                    obj2->gotHit(1);
-                }
-            }
-        }
+        this->handleEndOfStepCollisionsOnCell(updated_board, cell);
     }
 }
 
