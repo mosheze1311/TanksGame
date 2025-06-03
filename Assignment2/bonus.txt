@@ -1,0 +1,116 @@
+Bonus 1: Visual Simulation  
+Bonus 2: Random Board Generator  
+Bonus 3: Configuration File  
+Bonus 4: Automated Tests  
+Bonus 5: 9 Players Support  
+
+
+=== Visual Simulation ===
+We have implemented a visual simulation feature that prints the game state to the terminal using emojis.
+
+Details:
+- Added a `Drawer` class responsible for rendering the game state visually in the terminal.
+- The `Drawer` supports multiple visual "skins" including:
+  - Regular 🚙
+  - Tennis  🎾
+  - Aliens  👽
+  - Pirate  ☠️
+  - Middle East 🕌
+
+- Introduced a `DrawableObject` base class (`GameDrawer/DrawableObject.h`) with a pure virtual method:
+    string getDrawing(DrawingType t) const = 0;
+  All drawable game objects inherit from this class and implement this method:
+    - `Tank` class (`GameObjects/Tank.h`, last function)
+    - `Wall` class (`GameObjects/Wall.h`, last function)
+    - `Mine` class (`GameObjects/Mine.h`, last function)
+    - `Shell` class (`GameObjects/Shell.h`, last function)
+
+Usage:
+- To enable the visual simulation, an additional numeric argument should be passed to the program indicating the desired skin:
+  - 0 = Regular
+  - 1 = Tennis
+  - 2 = Aliens
+  - 3 = Pirate
+  - 4 = Middle East
+- If no number is given, the game runs without visual simulation by default.
+
+Relevant Files and Line References:
+- `GameDrawer.h`, `DrawingTypes.h`, `DrawableObject.h`: Implementation of the Drawer, DrawableObject classes, DrawingTypes enum.
+- `main.cpp`: Logic to parse the additional command-line argument and enable the appropriate skin.
+
+
+=== Random Board Generator ===
+We developed a script that generates random board creation input files.
+
+Details:
+- Added a script 'generate_random_input_file.cpp' that accepts user input for board settings and generates a matching random input file in the requested format
+- The script prints the requested input file and draws the board using emojis (similar to the GameDrawer) for the user to see
+
+Usage:
+- We created additional Makefile for compiling this script - simply run 'make' in the ScriptsAndHelpers folder and then run using './random_input_generator'
+- The script will prompt some questions about the board that the user need to answer.
+
+Relevant Files:
+- `ScriptsAndHelpers/generate_random_input_file.cpp` and `ScriptsAndHelpers/Makefile`: Implementation of the generator and its Makefile.
+
+
+=== Configuration File ===
+We added a configuration file with hp values for tanks and walls, spawn directions for each player, shells speed and additional game parameters
+
+Details:
+- Added a config.txt file in the main directory in a simple key=value format.
+- Added a ConfigReader singelton class that can parse the config.txt
+- GameManager, Objects, Players and Algorithms use the ConfigReader to access the configured parameters
+
+Usage:
+- To change configurations simply edit the values in the config.txt file
+
+Relevant Files:
+- `config.txt`
+- `Config/ConfigReader.h`
+
+
+=== Automated Tests ===
+We added automated tests that verify game rules and collision handling.
+
+Details:
+- Added testing player, algorithm to run a list of actions known commands
+- Added a testing class that runs test players, algorithms with our GameManager and compares the output with an expected result file
+- Created tests of valid/invalid inputs, various game settings checks, valid printing to file, multiple tanks sitautions
+
+Usage:
+- We created additional Makefile for compiling the tests - simply run 'make' in the Tests folder and then run using './tanks_game'
+- Test results will be displayed in the terminal, if failed a test, there will be refirection to the expected output file
+
+Relevant Files:
+- 'Tests/TestInputs/'
+- 'Tests/TestScenes/'
+- 'Tests/ExpectedOutputs/'
+
+- 'Tests/Makefile'
+- 'Tests/TestPlayer.h'
+- 'Tests/TestAlgorithm.h'
+- 'Tests/TestBattleInfo.h'
+- 'Tests/GameRulesTester.h'
+- 'Tests/main_test.cpp'
+
+
+=== 9 Players Support ===
+Added support for up to 9 players, indexed from 1 to 9.
+
+Details:
+- Added GameObjectType::Tank3 ... Tank9
+- Enabled parsing players 3-9 from input file the GameBoardInitializer
+- GameManager win, tie tests modified to support more than 2 players.
+- MyPlayerFactory, MyTankFactory use 2 classes for all players and using %2 to choose a player/algorithm
+
+Usage:
+- Same as regular use - only requires an input file with numbers 3-9
+
+Relevant Files:
+- 'GameObjects/GameObjectType.h'
+- 'GameBoard/GameBoard.h' - tanks_count map in the inner BoardDetails class
+- 'GameBoardInitializer/GameBoardInitializer.cpp' - GameBoardInitializer::createGameObjectOfType() function
+- 'PlayerFactory/MyPlayerFactory.h' - MyPlayerFactory::create() function
+- 'AlgorithmFactory/MyAlgorithmFactory.h' - MyAlgorithmFactory::create() function
+- 'GameManager/GameManager.cpp' - GameManager::concludeGame() function
