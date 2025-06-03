@@ -1,6 +1,4 @@
 #include "AbstractTankAlgorithm.h"
-#include <iostream>
-
 #define SHOOTING_RANGE 8
 
 // === Constructor === //
@@ -10,7 +8,7 @@ AbstractTankAlgorithm::AbstractTankAlgorithm(size_t tank_idx, size_t player_idx)
 
 {
     // TODO: should later calculate based on config.h
-    direction = spawn_directions[player_idx - 1];
+    direction = ConfigReader::getConfig().getSpawnDirections()[player_idx - 1];
 }
 
 // === Setters === //
@@ -83,7 +81,7 @@ void AbstractTankAlgorithm::handlePendingBackwards()
     // this function moves the tank backwards on the end of cooldown.
     // if movement is not possible, cancel the backwards wait
 
-    if (cooldowns.isDoneBackwardWait())
+    if (cooldowns.isBackwardsDue())
     {
         // if can move backwards - move
         BoardCell backwards_cell = GameBoardUtils::createAdjustedBoardCell(this->getCurrentLocation() - this->getTankDirection(), this->sat_view.getWidth(), this->sat_view.getHeight());
@@ -289,7 +287,7 @@ std::optional<ActionRequest> AbstractTankAlgorithm::escapeShells() const
 {
     size_t step_dist = 5;
     step_dist = std::min(std::min(sat_view.getHeight(), sat_view.getWidth()), step_dist); // for small fields.
-    int proximitiy = step_dist * shell_speed;
+    int proximitiy = step_dist * ConfigReader::getConfig().getShellsSpeed();
 
     int left = this->assumed_location.getX() - proximitiy;
     int right = this->assumed_location.getX() + proximitiy;
@@ -484,8 +482,8 @@ bool AbstractTankAlgorithm::isShellChasingTank(const BoardCell &shell_loc, Assum
 
     Direction shell_dir = static_cast<Direction>(shell_assumed_dir);
 
-    int dist = GameBoardUtils::distance(shell_loc, this->assumed_location, this->sat_view.getWidth(), this->sat_view.getHeight());
-    if (dist <= shell_speed * 3 && GameBoardUtils::isDirectionMatch(shell_loc, this->assumed_location, shell_dir, this->sat_view.getWidth(), this->sat_view.getHeight()))
+    size_t dist = GameBoardUtils::distance(shell_loc, this->assumed_location, this->sat_view.getWidth(), this->sat_view.getHeight());
+    if (dist <= ConfigReader::getConfig().getShellsSpeed() * 3 && GameBoardUtils::isDirectionMatch(shell_loc, this->assumed_location, shell_dir, this->sat_view.getWidth(), this->sat_view.getHeight()))
     {
         return true;
     }

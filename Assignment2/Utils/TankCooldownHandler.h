@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../config.h"
+#include "../Config/ConfigReader.h"
 
 #include <algorithm>
 
@@ -28,7 +28,7 @@ public:
     // === Backward cooldown === //
     void startBackwardWait()
     {
-        backward_cooldown = backward_wait_steps;
+        backward_cooldown = ConfigReader::getConfig().getBackwardWaitSteps();
     }
 
     void cancelBackwardWait()
@@ -51,7 +51,7 @@ public:
         backward_cooldown = 0;
     }
 
-    bool isDoneBackwardWait() const
+    bool isBackwardsDue() const
     {
         return backward_cooldown == 0;
     }
@@ -64,7 +64,7 @@ public:
 
     void beginShoot()
     {
-       shoot_cooldown = shoot_cooldown_steps + 1; // +1 because changing in this step and it does not count as cooldown
+       shoot_cooldown = ConfigReader::getConfig().getShootCooldownSteps() + 1; // +1 because changing in this step and it does not count as cooldown
     }
 
     void tickCooldowns(){

@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "../Config/ConfigReader.h"
 #include "GameBoardInitializer.h"
 
 #include <fstream>
@@ -84,7 +84,7 @@ std::unique_ptr<GameObject> GameBoardInitializer::createGameObjectOfType(GameBoa
         return std::make_unique<Tank>(
             board,
             type,
-            spawn_directions[GameObjectTypeUtils::tankTypeToPlayerIndex(type) - 1],
+            ConfigReader::getConfig().getSpawnDirections()[GameObjectTypeUtils::tankTypeToPlayerIndex(type) - 1],
             board.getTanksNumShells());
 
     case GameObjectType::WALL:

@@ -7,7 +7,7 @@
 
 //=== Constructors ===
 Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells)
-    : MovableObject(b, dir, tank_speed, tank_hp), type(t), shells(tank_num_shells) {}
+    : MovableObject(b, dir, tank_speed, ConfigReader::getConfig().getTankHp()), type(t), shells(tank_num_shells) {}
 
 //=== Getters ===
 GameObjectType Tank::getObjectType() const
@@ -34,61 +34,7 @@ void Tank::reload(int amount)
 
 bool Tank::canShoot() const
 {
-    return shells > 0 && shoot_cooldown == 0;
-}
-
-int Tank::getShootCooldown() const
-{
-    return shoot_cooldown;
-}
-
-//=== Backward Movement Logic ===
-int Tank::getBackwardWait() const
-{
-    return turns_to_wait_for_backward;
-}
-
-void Tank::extendBackwardsStreak()
-{
-    turns_to_wait_for_backward = 0; // Stay in ready state for chained backwards
-}
-
-void Tank::cancelBackwardsWait()
-{
-    this->turns_to_wait_for_backward = -2;
-}
-
-void Tank::startBackwardsWait()
-{
-    this->turns_to_wait_for_backward = 2;
-}
-
-bool Tank::canImmediateBackwards() const
-{
-    return this->turns_to_wait_for_backward == -1;
-}
-
-bool Tank::isPendingBackwards() const
-{
-    return turns_to_wait_for_backward >= 0;
-}
-
-bool Tank::isBackwardsDue() const{
-    return this->getBackwardWait() == 0;
-}
-
-//=== Round Clock Management ===
-void Tank::tickBackwardsWait()
-{
-    turns_to_wait_for_backward = std::max(turns_to_wait_for_backward - 1, -2);
-}
-
-void Tank::tickShootCooldown()
-{
-    if (shoot_cooldown > 0)
-    {
-        --shoot_cooldown;
-    }
+    return shells > 0 && cooldown_handler.isDoneShootCooldown();
 }
 
 //=== Action Logic ===
@@ -109,10 +55,9 @@ bool Tank::playTankRound(ActionRequest command)
      */
 
     // tick clock for the shoot cooldown and backward wait
-    tickShootCooldown();
-    tickBackwardsWait();
+    cooldown_handler.tickCooldowns();
 
-    bool was_backwards_due = isBackwardsDue(); // must be before validateAndPerformAction
+    bool was_backwards_due = cooldown_handler.isBackwardsDue(); // must be before validateAndPerformAction
     bool is_valid =  validateAndPerformAction(command);
     performPostponedBackward(was_backwards_due); // must be after validateAndPerformAction
     return is_valid;
@@ -180,9 +125,9 @@ std::optional<BoardCell> Tank::getBackwardCell() const
 bool Tank::performForwardAction()
 {
     // cancel backwards if relevant
-    if (isPendingBackwards())
+    if (cooldown_handler.isPendingBackwards())
     {
-        cancelBackwardsWait();
+        cooldown_handler.cancelBackwardWait();
         return true;
     }
 
@@ -213,13 +158,13 @@ void Tank::moveToCell(BoardCell target)
 bool Tank::performBackwardAction()
 {
     // can't backward while waiting
-    if (isPendingBackwards())
+    if (cooldown_handler.isPendingBackwards())
     {
         return false;
     }
 
     // if can move backwards at current turn
-    else if (canImmediateBackwards())
+    else if (cooldown_handler.canImmediateBackwards())
     {
         if (!canMoveBackwards()) // blocked by something
             return false;
@@ -231,7 +176,7 @@ bool Tank::performBackwardAction()
     // if not pending and can't immediately backwards - must initiate a backwards countdown
     else
     {
-        startBackwardsWait();
+        cooldown_handler.startBackwardWait();
         return true;
     }
 }
@@ -246,14 +191,14 @@ void Tank::performPostponedBackward(bool was_due_before_action){
         'cancelBackwardsWait' must be called after the handling of this step ActionRequest to prevent additional action  
     */
 
-    if (!isBackwardsDue() || !was_due_before_action) 
+    if (!cooldown_handler.isBackwardsDue() || !was_due_before_action)
         return;
     
     if (canMoveBackwards()){
         moveBackwards();
     }
     else{
-        cancelBackwardsWait(); 
+        cooldown_handler.cancelBackwardWait();
     }
 }
 
@@ -277,13 +222,13 @@ void Tank::moveBackwards()
 
     // actual movement
     moveToCell(backward_cell);
-    extendBackwardsStreak();
+    cooldown_handler.extendBackwardsStreak();
 }
 
 //=== Turning ===
 bool Tank::performTurnAction(ActionRequest command)
 {
-    if (isPendingBackwards())
+    if (cooldown_handler.isPendingBackwards())
     { // ignore action
         return false;
     }
@@ -305,7 +250,7 @@ void Tank::turn(ActionRequest command)
 //=== Shooting ===
 bool Tank::performShootAction()
 {
-    if (this->isPendingBackwards())
+    if (this->cooldown_handler.isPendingBackwards())
         return false;
 
     if (this->canShoot())
@@ -329,23 +274,23 @@ void Tank::shoot()
     board.addTankShell(std::make_unique<Shell>(board, this->getDirection()), forward_cell);
 
     // modify tank shoot cooldown and shells count
-    shoot_cooldown = 5;
+    cooldown_handler.beginShoot();
     shells--;
 }
 
 // === Battle Info === //
 bool Tank::performBattleInfoAction(){
-    this->cancelBackwardsWait();
+    this->cooldown_handler.cancelBackwardWait();
     return true;
 };
 
 //=== Drawing ===
 std::string Tank::getDrawing(DrawingType t) const
 {
-    static const std::vector<std::string> regular_emojis = {"🚙", "🚜", "🚗", "🚕", "🚓", "🚒", "🏎️", "🛻", "🚚"};
-    static const std::vector<std::string> tennis_emojis = {"🏸", "🏓", "🎾", "🥎", "🏐", "🏉", "🏈", "⚽", "⚾"};
-    static const std::vector<std::string> scifi_emojis = {"👽", "👾", "🤖", "🛸", "🚀", "🛰️", "🌌", "🔫", "🧬"};
-    static const std::vector<std::string> pirate_emojis = {"⛴️", "🚢", "⚓", "🏴‍☠️", "🦜", "🗺️", "🏝️", "💣", "🪙"};
+    static const std::vector<std::string> regular_emojis = {"🚙", "🚜", "🚗", "🚕", "🚓", "🚒", "🏎️ ", "🛻 ", "🚚"};
+    static const std::vector<std::string> tennis_emojis = {"🏸", "🏓", "T", "🥎", "🏐", "🏉", "🏈", "⚽", "⚾"};
+    static const std::vector<std::string> scifi_emojis = {"👽", "👾", "🤖", "🛸", "🚀", "🛰️ ", "🌌", "🔫", "🧬"};
+    static const std::vector<std::string> pirate_emojis = {"⛴️ ", "🚢", "⚓", "🏴", "🦜", "🗺️ ", "🏝️ ", "💣", "🪙 "};
     static const std::vector<std::string> mideast_emojis = {"🇮🇱", "🇮🇷", "🇸🇦", "🇪🇬", "🇹🇷", "🇸🇾", "🇯🇴", "🇮🇶", "🇱🇧"};
 
     int index = static_cast<int>(this->getObjectType()) - static_cast<int>(GameObjectType::TANK1);

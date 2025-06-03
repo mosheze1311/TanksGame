@@ -1,0 +1,19 @@
+# spawn directions
+spawn_directions=LEFT,RIGHT,UP,DOWN,UPL,UPR,DOWNL,DOWNR,LEFT
+
+# speed
+shells_speed=2
+
+# hp (supported but not accurate - some collisions cause double damage)
+wall_hp=2
+tank_hp=1
+
+# damage (not supported yet)
+shell_damage=1
+mine_damage=1
+tanks_collision_damage=1
+
+# game settings (test for full support)
+steps_after_shells_end=40
+shoot_cooldown_steps=4
+backward_wait_steps=2

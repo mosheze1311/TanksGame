@@ -2,11 +2,12 @@
 
 #include "../common/ActionRequest.h"
 
-#include "../config.h"
+#include "../Config/ConfigReader.h"
 
 #include "Direction.h"
 #include "GameObjectType.h"
 
+#include "../Utils/TankCooldownHandler.h"
 #include "../GameBoard/BoardCell.h"
 #include "../GameDrawer/DrawableObject.h"
 #include "../GameDrawer/DrawingTypes.h"
@@ -110,21 +111,8 @@ private:
     // === Attributes === //
     const GameObjectType type;
     int shells;
-    int turns_to_wait_for_backward = -2;
-    int shoot_cooldown = 0;
 
-    // === Cooldown / Wait Management === //
-    void tickShootCooldown();
-    void tickBackwardsWait();
-    int getShootCooldown() const;
-    int getBackwardWait() const;
-
-    bool isPendingBackwards() const;
-    bool canImmediateBackwards() const;
-    bool isBackwardsDue() const;
-    void extendBackwardsStreak();
-    void cancelBackwardsWait();
-    void startBackwardsWait();
+    CooldownHandler cooldown_handler;
 
     // === Action Validation & Execution === //
     bool validateAndPerformAction(ActionRequest action);

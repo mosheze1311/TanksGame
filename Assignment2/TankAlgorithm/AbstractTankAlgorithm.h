@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../config.h"
+#include "../Config/ConfigReader.h"
 
 #include "../common/TankAlgorithm.h"
 

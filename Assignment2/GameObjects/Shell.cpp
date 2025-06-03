@@ -5,7 +5,7 @@
 
 //=== Constructor ===
 Shell::Shell(GameBoard &b, Direction dir)
-    : MovableObject(b, dir, shell_speed, shell_hp) {}
+    : MovableObject(b, dir, ConfigReader::getConfig().getShellsSpeed(), shell_hp) {}
 
 //=== Type Info ===
 GameObjectType Shell::getObjectType() const { return GameObjectType::SHELL; }

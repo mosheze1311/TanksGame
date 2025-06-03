@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "../Config/ConfigReader.h"
 
 #include "GameManager.h"
 
@@ -160,7 +160,7 @@ void GameManager::logMaxStepsTie() const
 
 void GameManager::logZeroShellsTie() const
 {
-    logTie("both players have zero shells for " + std::to_string(steps_after_shells_end) + " steps");
+    logTie("both players have zero shells for " + std::to_string(ConfigReader::getConfig().getStepsAfterShellsEnd()) + " steps");
 }
 
 void GameManager::logTie(const std::string &reason) const
@@ -290,10 +290,10 @@ void GameManager::applyShellsLimitRuleOnRemainingSteps()
 {
     if (this->board.getTotalRemainingShells() == 0)
     {
-        if (steps_after_shells_end < this->getRemainingSteps())
+        if (ConfigReader::getConfig().getStepsAfterShellsEnd() < this->getRemainingSteps())
         {
             this->are_steps_limited_by_shells = true;
-            this->setRemainingSteps(steps_after_shells_end);
+            this->setRemainingSteps(ConfigReader::getConfig().getStepsAfterShellsEnd());
         }
     }
 }
@@ -332,7 +332,7 @@ void GameManager::run(DrawingType dt)
 
         std::vector<bool> is_valid_action = this->performActionsOnBoard(actions, sat_view, c_handler, d);
 
-        this->moveShells(shell_speed, c_handler, d);
+        this->moveShells(ConfigReader::getConfig().getShellsSpeed(), c_handler, d);
 
         logStepActions(actions, is_valid_action);
     }
