@@ -1,4 +1,4 @@
-#include "../config.h"
+#include "../Config/ConfigReader.h"
 
 #include "SatelliteAnalyticsView.h"
 
@@ -15,6 +15,7 @@ using namespace DirectionUtils; // for multiplying direction by a const
         3. allowing multiple objects on the same cell (Done)
         4. I added a printing function for debugging - it should be deleted when done
         5. should use ajusted boardcells
+        6. TODO: new mission - check for size_t errors because it is very dangerous - check that nothing can get overlapped to huge numbers, and calculations cant be wrong
 
     should test this class carefully
 */
@@ -184,7 +185,7 @@ bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location
 
     // check if path to new location does not have walls
     BoardCell cell_to_check = old_location;
-    for (size_t i = 1; i <= steps_gap - 1; i++)
+    for (size_t i = 0; i < steps_gap; ++i)
     {
         cell_to_check = cell_to_check + static_cast<Direction>(assumed_dir);
         std::unordered_set<GameObjectType> objects_types_on_cell = this->getObjectsTypesOnCell(cell_to_check);
@@ -197,14 +198,13 @@ bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location
 AssumedDirection SatelliteAnalyticsView::findMatchingShellDirection(const BoardCell &old_location, size_t steps_gap) const
 {
     AssumedDirection dir;
-    for (size_t i = 0; i < 8; i++)
+    for (size_t i = 0; i < 8; ++i)
     {
         dir = static_cast<AssumedDirection>(i);
         BoardCell new_location = shellExpectedLocation(old_location, dir, steps_gap);
         if (isDirectionMatchShell(old_location, new_location, dir, steps_gap))
             return dir;
     }
-
     return AssumedDirection::UNKNOWN;
 }
 
@@ -351,7 +351,7 @@ void SatelliteAnalyticsView::applyApproxBoardChanges()
 // === Move Objects on View === //
 void SatelliteAnalyticsView::advanceShells()
 {
-    for (int i = 0; i < shell_speed; i++)
+    for (size_t i = 0; i < ConfigReader::getConfig().getShellsSpeed() ; i++)
     {
         advanceShellsOnce();
         // TODO: sheck for collisions and update map again.
