@@ -20,7 +20,7 @@ private:
     const DrawingType appearence;
 
     // === Functions === //
-    std::string decideCellImage(const BoardCell &c)
+    std::string decideCellImage(const BoardCell &c) const
     {
         std::vector<std::string> empty_blocks({"⬜", "⬜"});
         // std::vector<std::string> empty_blocks({"🟧", "⬜"}); // for chess pattern
@@ -34,16 +34,22 @@ private:
         return empty_blocks[(c.getX() + c.getY()) % 2];
     }
 
+    void clearConsole() const
+    {
+        std::cout << "\033[2J\033[H"; // Clear screen and move cursor to top-left
+    }
+
 public:
     // === Constructor === //
     GameDrawer(const GameBoard &board, DrawingType dt = DrawingType::NONE) : board(board), appearence(dt) {};
 
     // === Functions === //
-    void draw()
+    void draw() const
     {
         if (this->appearence == DrawingType::NONE)
             return;
 
+        clearConsole();
         std::string board_drawing = ""; // board drawing result
         static const std::string game_border_portal = "🌀";
         int border_width = this->board.getWidth() + 2;
