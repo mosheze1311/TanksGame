@@ -372,6 +372,11 @@ std::vector<GameRulesTester> getGameRulesTests()
     };
     tests.emplace_back("ignored_killed_test", "TestScenes/test_scene10.txt", TestPlayerFactory{}, TestAlgorithmFactory{ignore_killed}, "ExpectedOutputs/ignored_killed_test_output.txt");
 
+    std::vector<ActionRequest> shells_speed_test_p1 = {
+        ActionRequest::Shoot,
+    };
+    tests.emplace_back("shells_speed_test", "TestScenes/test_scene10.txt", TestPlayerFactory{}, TestAlgorithmFactory{shells_speed_test_p1, {}}, "ExpectedOutputs/shells_speed_test_output.txt");
+
     return tests;
 }
 
