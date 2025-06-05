@@ -1,0 +1,11 @@
+Shoot, Shoot
+MoveForward, MoveForward
+MoveForward (ignored), MoveForward (ignored)
+DoNothing, DoNothing
+DoNothing, DoNothing
+Shoot, Shoot
+MoveForward, MoveForward
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing, DoNothing
+Tie, reached max steps = 10, player 1 has 1 tanks, player 2 has 1 tanks

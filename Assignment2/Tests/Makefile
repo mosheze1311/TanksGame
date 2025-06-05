@@ -1,50 +1,33 @@
 # Compiler and flags
-CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address
+CXX := g++
+# Automatically find all subdirectories in ../ and add them as include paths
+INCLUDE_DIRS := $(shell find ../ -type d)
+CXXFLAGS := -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address $(addprefix -I, $(INCLUDE_DIRS)) -DTEST_MODE
 
-# Target executable
-TARGET = tanks_game
+# Find all .cpp files in ../, but exclude main.cpp and anything inside ../ExtraMainDir
+SRCS := $(shell find ../ -name "*.cpp" ! -name "main.cpp" ! -path "../ScriptsAndHelpers/*")
 
-# List of source files
-SRCS = \
-    ../GameManager/GameManager.cpp \
-    ../Players/AbstractPlayer.cpp \
-	../TankAlgorithm/AbstractTankAlgorithm.cpp \
-	../TankAlgorithm/AggressiveTankAlgorithm.cpp \
-	../TankAlgorithm/PassiveTankAlgorithm.cpp \
-	../BattleInfo/BattleInfoAgent.cpp \
-	../SatelliteAnalyticsView/SatelliteAnalyticsView.cpp \
-    ../GameBoardInitializer/GameBoardInitializer.cpp \
-    ../GameBoard/BoardCell.cpp \
-    ../GameBoard/GameBoard.cpp \
-    ../BoardSatelliteView/BoardSatelliteView.cpp \
-    ../GameCollisionHandler/GameCollisionHandler.cpp \
-    ../GameObjects/GameObject.cpp \
-    ../GameObjects/MovableObject.cpp \
-    ../GameObjects/StaticObject.cpp \
-    ../GameObjects/Mine.cpp \
-    ../GameObjects/Shell.cpp \
-    ../GameObjects/Tank.cpp \
-    ../GameObjects/Wall.cpp \
-    ../Utils/GameBoardUtils.cpp \
-    ../Logger/Logger.cpp \
-    main_test.cpp
+# Convert source paths to object paths in build/
+OBJS := $(patsubst ../%, build/%, $(SRCS:.cpp=.o))
 
-# Object files (replace .cpp with .o)
-OBJS = $(SRCS:.cpp=.o)
+# Target binary
+TARGET := game_tester
 
-# Rule to create the executable
+# Default target
+all: $(TARGET)
+
+# Rule to build the target
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
 
-# Rule to create object files from source files
-%.o: %.cpp
+# Rule to compile each .cpp into its corresponding .o in build/
+build/%.o: ../%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean rule to remove object files and the executable
+# Clean rule
 clean:
-	rm -f $(OBJS) $(TARGET)
-	rm -f *.log
+	rm -rf build $(TARGET)
 
-# Optional: automatic clean on make
-.PHONY: clean
+.PHONY: all clean
