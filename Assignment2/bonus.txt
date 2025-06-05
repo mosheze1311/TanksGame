@@ -3,6 +3,7 @@ Bonus 2: Random Board Generator
 Bonus 3: Configuration File  
 Bonus 4: Automated Tests  
 Bonus 5: 9 Players Support  
+Bonus 6: HLD Document
 
 
 === Visual Simulation (Improvement) ===
@@ -117,3 +118,19 @@ Relevant Files:
 - 'PlayerFactory/MyPlayerFactory.h' - MyPlayerFactory::create() function
 - 'AlgorithmFactory/MyAlgorithmFactory.h' - MyAlgorithmFactory::create() function
 - 'GameManager/GameManager.cpp' - GameManager::concludeGame() function
+
+=== HLD Document ===
+Details:
+- Added a detailed HLD (docs/HLD.md) describing architecture, key class roles, and workflows.
+- Includes UML class diagram (GameObject hierarchy, GameManager, CollisionHandler) and sequence diagram (turn logic).
+- Design emphasizes modularity, clear responsibilities, and extensibility.
+- Highlights design choices (e.g., inheritance vs. ECS, raw pointers vs. smart pointers, Dijkstra vs. A*) with reasoning.
+- Testing approach summarized with methods used and coverage goals.
+
+Usage:
+- Use the document to understand system flow, object relationships, and turn-based interaction logic.
+- Helpful for onboarding, debugging, and further development.
+
+Relevant Files:
+- docs/HLD.pdf
+
