@@ -1,4 +1,4 @@
-Bonus 1: Visual Simulation  
+Bonus 1: Visual Simulation (Improvment)
 Bonus 2: Random Board Generator  
 Bonus 3: Configuration File  
 Bonus 4: Automated Tests  
@@ -121,10 +121,10 @@ Relevant Files:
 
 === HLD Document ===
 Details:
-- Added a detailed HLD (docs/HLD.md) describing architecture, key class roles, and workflows.
+- Added a detailed HLD (docs/HLD.pdf) describing architecture, key class roles, and workflows.
 - Includes UML class diagram (GameObject hierarchy, GameManager, CollisionHandler) and sequence diagram (turn logic).
 - Design emphasizes modularity, clear responsibilities, and extensibility.
-- Highlights design choices (e.g., inheritance vs. ECS, raw pointers vs. smart pointers, Dijkstra vs. A*) with reasoning.
+- Highlights design choices with reasoning.
 - Testing approach summarized with methods used and coverage goals.
 
 Usage:
