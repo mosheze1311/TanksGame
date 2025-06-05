@@ -5,7 +5,7 @@ Bonus 4: Automated Tests
 Bonus 5: 9 Players Support  
 
 
-=== Visual Simulation ===
+=== Visual Simulation (Improvement) ===
 We have implemented a visual simulation feature that prints the game state to the terminal using emojis.
 
 Details:
@@ -38,6 +38,9 @@ Relevant Files and Line References:
 - `GameDrawer.h`, `DrawingTypes.h`, `DrawableObject.h`: Implementation of the Drawer, DrawableObject classes, DrawingTypes enum.
 - `main.cpp`: Logic to parse the additional command-line argument and enable the appropriate skin.
 
+Improvement:
+  - We added to the drawer a clearConsole() method that uses ANSI escape codes to clear the console screen and move the cursor to the top left corner.
+  - The visulaization looks smoother now and instead of printing multiple frame only one frame is visible everytime.
 
 === Random Board Generator ===
 We developed a script that generates random board creation input files.
