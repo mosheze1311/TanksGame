@@ -1,0 +1,6 @@
+@startuml classDesign
+
+!include classDiagramEnums.puml
+!include classDiagramNoEnums.puml
+
+@enduml

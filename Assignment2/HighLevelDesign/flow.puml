@@ -1,0 +1,58 @@
+@startuml TanksGameExecution
+
+actor User
+User -> Main : run program
+activate Main
+
+Main -> GameManager : GameManager (MyPlayerFactory, MyTankAlgorithmFactory)
+activate GameManager
+GameManager --> Main
+deactivate GameManager
+
+Main -> GameManager : readBoard(file_path)
+activate GameManager
+GameManager --> Main : success/failure
+deactivate GameManager
+
+Main -> GameManager : run(drawingType)
+activate GameManager
+
+loop each step
+    GameManager -> GameManager : concludeGame
+
+    deactivate GameManager
+    alt Game over
+        GameManager --> Main : exit
+        activate GameManager
+
+    end alt
+    
+    GameManager -> GameManager : TakeSatelliteImage()
+
+    loop each algorithm
+    GameManager -> TankAlgorithm : getAction()
+    activate TankAlgorithm
+    TankAlgorithm --> GameManager : ActionRequest
+    deactivate TankAlgorithm
+    end loop
+
+    GameManager -> GameManager : performActionsOnBoard(actions, sat_view)
+
+    GameManager -> GameManager : moveShells(shell_speed)
+    
+    GameManager -> CollisionHandler : handleCollisions()
+    activate CollisionHandler
+    CollisionHandler --> GameManager
+    deactivate CollisionHandler
+
+    GameManager -> GameManager : advanceStepsClock()
+
+end loop
+
+    GameManager --> Main
+    deactivate GameManager
+
+    Main --> User : exit 0
+    deactivate Main
+
+@enduml

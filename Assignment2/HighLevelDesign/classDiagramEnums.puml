@@ -1,0 +1,83 @@
+@startuml classDesign
+'========= ENUMERATIONS and Static Class =========
+enum Direction {
+    UP
+    UPR
+    RIGHT
+    DOWNR
+    DOWN
+    DOWNL
+    LEFT
+    UPL
+}
+
+enum AssumedDirection {
+    UP
+    UPR
+    RIGHT
+    DOWNR
+    DOWN
+    DOWNL
+    LEFT
+    UPL
+    UNKNOWN
+}
+
+enum GameObjectType {
+    TANK1
+    TANK2
+    TANK3
+    TANK4
+    TANK5
+    TANK6
+    TANK7
+    TANK8
+    TANK9
+    WALL
+    MINE
+    SHELL
+}
+
+enum DrawingType {
+    REGULAR
+    TENNIS
+    SCIFI
+    PIRATE
+    MIDDLE_EAST
+    NONE
+}
+
+enum ActionRequest {
+    MoveForward
+    MoveBackward
+    RotateLeft90
+    RotateRight90
+    RotateLeft45
+    RotateRight45
+    Shoot
+    GetBattleInfo
+    DoNothing
+}
+
+enum CollisionObjectType {
+    TANK
+    WALL
+    MINE
+    SHELL
+}
+
+class ConfigReader <<singleton>>{
+    - shells_speed   : size_t
+    - wall_hp        : size_t
+    - tank_hp        : size_t
+    + static getConfig() : ConfigReader&
+}
+
+class Logger <<multiton>>{
+    - logFile  : ofstream
+    - logMutex : mutex
+    + static input() : Logger&
+    + static runtime() : Logger&
+    + static output(const string& file_path) : Logger&
+}
+@enduml

@@ -1,0 +1,252 @@
+@startuml classDesign
+'' ========= INTERFACES =========
+interface DrawableObject
+interface SatelliteView {
+    + <i>virtual getObjectAt(size_t x, size_t y) const <i>: char
+}
+interface Player{
+  }
+interface TankAlgorithm
+interface BattleInfo
+interface PlayerFactory{
+      + virtual create(
+    \t int player_idx,\n\t size_t x,\n\t size_t y,\n\t size_t max_steps,\n\t size_t num_shells\n) const : unique_ptr<Player>
+
+}
+interface TankAlgorithmFactory
+
+'' ========= CORE VALUE OBJECTS & UTIL =========
+class BoardCell {
+    - x : int
+    - y : int
+}
+
+class CooldownHandler{
+
+}
+
+'' ========= GAME OBJECT HIERARCHY =========
+abstract class GameObject {
+    # hp : int
+    # damage : int
+    # board : GameBoard&
+}
+
+abstract class StaticObject
+abstract class MovableObject {
+    # direction : Direction
+    # speed     : int
+}
+
+class Tank {
+    - type             : GameObjectType
+    - shells           : int
+    - cooldown_handler : CooldownHandler
+
+    + playTankRound(ActionRequest) : bool
+}
+Tank --> CooldownHandler
+
+class Shell {
+    + advance() : void
+}
+class Wall
+class Mine
+
+DrawableObject <|-- GameObject
+GameObject     <|-- StaticObject
+GameObject     <|-- MovableObject
+StaticObject   <|-- Wall
+StaticObject   <|-- Mine
+MovableObject  <|-- Tank
+MovableObject  <|-- Shell
+
+'' ========= BOARD & VIEWS =========
+class BoardDetails {
+    - height    : size_t
+    - width     : size_t
+    - max_steps : size_t
+}
+
+class GameBoard {
+    - board_details : BoardDetails
+    - owned_objects : map<GameObject*, unique_ptr<GameObject>>
+    - objects_locations : map<GameObject*, BoardCell>
+    - board : map<BoardCell, set<GameObject*>>
+
+    + initFromFile(const string& file_path) : bool
+}
+
+class GameBoardInitializer <<static>> {
+    + initGameBoardFromFile (
+    \tconst string& file_path,\n\t GameBoard& board,\n\t function setBoardDetails,\n\t function addObjectToBoard\n) : bool
+}
+
+class GameBoardShallowCopy {
+    - width  : int
+    - height : int
+}
+
+class BoardSatelliteView {
+    '- sat_view : Map<Object, Object>
+    - width    : size_t
+    - height   : size_t
+    + getObjectAt(size_t x, size_t y) const override : char
+
+}
+
+SatelliteView   <|-- BoardSatelliteView
+GameBoard *-- BoardDetails
+GameBoard "1" <--> "∞" GameObject
+GameBoard --> BoardCell
+GameBoard ..> GameBoardInitializer
+
+
+'' ========= PLAYER LAYER =========ß
+abstract class AbstractPlayer {
+    # player_index   : int
+    # board_width : size_t
+    # board_height : size_t
+    # mas_steps : size_t
+    # initial_num_shells : size_t
+    # analytics_view : SatelliteAnalyticsView
+    + updateTankWithBattleInfo(TankAlgorithm& ,SatelliteView&)
+    # <i> virtual calculateStepsGapForGetInfo() <i> : size_t
+
+}
+
+class Player1{
+    # calculateStepsGapForGetInfo() override : size_t 
+
+}
+class Player2 {
+    - steps_gap : size_t
+    # calculateStepsGapForGetInfo() override : size_t 
+}
+
+Player         <|-- AbstractPlayer
+AbstractPlayer <|-- Player1
+AbstractPlayer <|-- Player2
+AbstractPlayer --> SatelliteAnalyticsView
+AbstractPlayer ..> BattleInfoAgent
+AbstractPlayer ..> SatelliteView
+
+class MyPlayerFactory{
+    + create(int, size_t, size_t ,size_t, size_t) const override : unique_ptr<Player>
+}
+PlayerFactory <|-- MyPlayerFactory
+MyPlayerFactory ..> Player1
+MyPlayerFactory ..> Player2
+
+'' ========= BATTLE-INFO AGENT =========
+
+class BattleInfoAgent {
+    - game_details        : GameDetails
+    - advanced_sat_view   : SatelliteAnalyticsView &
+    - new_satellite_image : SatelliteView
+    - player_to_tank      : PlayerToTankDetails
+    - tank_to_player      : TankToPlayerDetails
+    + updateAndGetAnalyticsView(size_t current_step) : SatelliteAnalyticsView
+}
+
+BattleInfo <|-- BattleInfoAgent
+BattleInfoAgent --> SatelliteAnalyticsView
+
+
+class SatelliteAnalyticsView {
+    - player_idx : int
+    - analytical_map : map<BoardCell, vector<pair<GameObjectType, AssumedDirection>>>
+    + updateAnalyticalView(const SatelliteView&, size_t current_step) : void
+    + applyApproxBoardChanges() : void
+}
+
+
+'' ========= TANK-ALGORITHMS =========
+abstract class AbstractTankAlgorithm {
+    # player_idx : int
+    # tank_idx : size_t
+    # cooldown_handler : CooldownHandler
+    # sat_view : SatelliteAnalyticsView
+    + getAction() : ActionRequest
+    + updateBattleInfo(BattleInfo&)
+    # <i> virtual getActionLogic() : ActionRequest <i>
+}
+
+class AggressiveTankAlgorithm{
+    - getActionLogic() override : ActionRequest
+    - getTankAggressiveAction() : ActionRequest
+
+}
+class PassiveTankAlgorithm{
+    - getActionLogic() override : ActionRequest
+
+}
+
+TankAlgorithm         <|-- AbstractTankAlgorithm
+AbstractTankAlgorithm <|-- AggressiveTankAlgorithm
+AbstractTankAlgorithm <|-- PassiveTankAlgorithm
+AbstractTankAlgorithm ..> BattleInfoAgent
+AbstractTankAlgorithm --> SatelliteAnalyticsView
+AbstractTankAlgorithm --> CooldownHandler 
+
+
+class MyTankAlgorithmFactory{
+    + create (int player_idx, int tank_idx) const override : unique_ptr<TankAlgorithm>
+}
+TankAlgorithmFactory <|-- MyTankAlgorithmFactory
+MyTankAlgorithmFactory ..> AggressiveTankAlgorithm
+MyTankAlgorithmFactory ..> PassiveTankAlgorithm
+
+'' ========= COLLISION & MANAGER =========
+class GameCollisionHandler {
+    - updated_board : GameBoard &
+    - previous_board : GameBoardShallowCopy
+
+    - handleMidStepCollisions() : void
+    - handleEndOfStepCollisions() : void
+    + handleCollisions() : void
+}
+GameCollisionHandler --> GameBoardShallowCopy
+GameCollisionHandler --> GameBoard
+
+
+class GameDrawer {
+    - board      : GameBoard &
+    - appearence : DrawingType
+    + draw() : void
+}
+GameDrawer ..> DrawableObject
+GameDrawer --> GameBoard
+
+
+
+class GameManager {
+    - board             : GameBoard
+    - player_factory    : unique_ptr<PlayerFactory>
+    - tank_algo_factory : unique_ptr<TankAlgorithmFactory>
+    - vector<pair<Tank*, unique_ptr<TankAlgorithm>>> initial_tank_algorithm_pairs
+    - map<int, unique_ptr<Player>> players_map
+
+    - concludeGame() : bool
+    - takeSatelliteImage() : BoardSatelliteView
+    - requestAlgorithmsActions() : map<int, ActionRequest>
+    - performActionsOnBoard(map<int, ActionRequest> actions, BoardSatelliteView&, ...) : vector<bool>
+    - moveShells(int shells_speed, ...) : void
+    - advanceStepsClock() : void
+    + readBoard(const string& path) : bool
+    + run(DrawingType <<optional>>) : void
+
+}
+
+GameManager --> GameBoard
+GameManager ..> GameCollisionHandler
+GameManager ..> GameDrawer
+
+GameManager ..> BoardSatelliteView
+GameManager --> PlayerFactory
+GameManager --> TankAlgorithmFactory
+GameManager "1" --> "∞" Player
+GameManager "1" --> "∞" TankAlgorithm
+
+
+@enduml
