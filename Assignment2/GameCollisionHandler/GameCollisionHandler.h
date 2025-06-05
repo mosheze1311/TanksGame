@@ -39,6 +39,7 @@ class GameCollisionHandler
 private:
     // === Attributes === //
     GameBoardShallowCopy previous_board;
+    GameBoard &updated_board;
     static const CollisionMap explosion_map;
     static const CollisionMap prevention_map;
 
@@ -51,14 +52,14 @@ private:
 
     // === Functions === //
     // check for collision mid step (went through each other)
-    void handleMidStepCollisions(GameBoard &updated_board) const;
+    void handleMidStepCollisions();
 
     // check for collisions after step (objects in the same locaition)
-    void handleEndOfStepCollisions(GameBoard &updated_board) const;
-    void handleEndOfStepCollisionsOnCell(GameBoard &updated_board, const BoardCell& cell) const;
+    void handleEndOfStepCollisions();
+    void handleEndOfStepCollisionsOnCell(const BoardCell& cell);
 
     // add new shells to precious board to allow mid-step collision handling
-    void positionNewShellsOnPreviousBoard(const GameBoard &updated_board);
+    void positionNewShellsOnPreviousBoard();
 
 public:
     // === Constructors === //
@@ -66,7 +67,7 @@ public:
     ~GameCollisionHandler();
 
     // === Functions === //
-    void handleCollisions(GameBoard &updatedBoard);
+    void handleCollisions();
 
     // === Static Functions === //
     static bool isObjectAllowedToStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c);

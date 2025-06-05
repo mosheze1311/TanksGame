@@ -1,9 +1,11 @@
 #include "GameObjects.h"
 #include "../GameBoard/GameBoard.h"
- 
+
+#define wall_collision_damage 1 // not in config because should not be changed
+
 //=== Constructors ===
 Wall::Wall(GameBoard &b)
-    : StaticObject(b, ConfigReader::getConfig().getWallHp()) {}
+    : StaticObject(b, ConfigReader::getConfig().getWallHp(), wall_collision_damage) {}
 
 //=== Type Info ===
 GameObjectType Wall::getObjectType() const { return GameObjectType::WALL; }

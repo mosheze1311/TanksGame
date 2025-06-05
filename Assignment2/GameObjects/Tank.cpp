@@ -7,7 +7,7 @@
 
 //=== Constructors ===
 Tank::Tank(GameBoard &b, GameObjectType t, Direction dir, size_t tank_num_shells)
-    : MovableObject(b, dir, tank_speed, ConfigReader::getConfig().getTankHp()), type(t), shells(tank_num_shells) {}
+    : MovableObject(b, dir, tank_speed, ConfigReader::getConfig().getTankHp(), ConfigReader::getConfig().getTankCollisionDamage()), type(t), shells(tank_num_shells) {}
 
 //=== Getters ===
 GameObjectType Tank::getObjectType() const

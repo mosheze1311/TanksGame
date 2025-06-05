@@ -91,7 +91,7 @@ void GameManager::logStepActions(const std::map<int, ActionRequest> &actions, st
         }
 
         Tank *t = initial_tank_algorithm_pairs[i].first;
-        bool is_killed = !(this->board.isObjectOnBoard(t)); // TODO: perhaps create a Manager function that checks if tank is alive
+        bool is_killed = !(this->board.isObjectOnBoard(t));
         bool is_valid = is_valid_action[i];
         ActionRequest action = iter->second;
 
@@ -201,7 +201,7 @@ std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest
         is_valid_action[i] = is_valid;
     }
 
-    c_handler.handleCollisions(this->board);
+    c_handler.handleCollisions();
     d.draw();
 
     return is_valid_action;
@@ -254,7 +254,7 @@ void GameManager::moveShells(int times, GameCollisionHandler &c_handler, GameDra
     for (int i = 0; i < times; ++i)
     {
         this->moveShellsOnce();
-        c_handler.handleCollisions(board);
+        c_handler.handleCollisions();
         d.draw();
     }
 }
@@ -312,7 +312,6 @@ bool GameManager::readBoard(const std::string &input_file_path)
     return success;
 }
 
-// TODO: test for errors when calling 'run' before calling readBoard.
 void GameManager::run(DrawingType dt)
 {
     this->prepareForRun();
@@ -327,13 +326,13 @@ void GameManager::run(DrawingType dt)
             break;
 
         BoardSatelliteView sat_view = this->TakeSatelliteImage();
+        
         std::map<int, ActionRequest> actions = requestAlgorithmsActions();
-        this->advanceStepsClock();
-
         std::vector<bool> is_valid_action = this->performActionsOnBoard(actions, sat_view, c_handler, d);
 
         this->moveShells(ConfigReader::getConfig().getShellsSpeed(), c_handler, d);
 
         logStepActions(actions, is_valid_action);
+        this->advanceStepsClock();
     }
 }

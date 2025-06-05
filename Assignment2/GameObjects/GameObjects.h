@@ -24,14 +24,14 @@ class GameBoard;
 class GameObject : public DrawableObject
 {
 protected:
-    // TODO: consider using an object unique id
     // === Attributes === //
     int hp;
+    const int collision_damage;
     GameBoard &board;
 
 public:
     // === Constructors === //
-    GameObject(GameBoard &b, int hp);
+    GameObject(GameBoard &b, int hp, int collision_damage);
     virtual ~GameObject() override = default;
 
     // === Type & Drawing === //
@@ -42,6 +42,9 @@ public:
     int getHP() const;
     void setHP(int new_hp);
     void gotHit(int dmg = 1);
+
+    // === Damage Management === //
+    int getCollisionDamage() const;
 };
 
 // ===========================
@@ -50,7 +53,7 @@ public:
 class StaticObject : public GameObject
 {
 public:
-    StaticObject(GameBoard &b, int hp);
+    StaticObject(GameBoard &b, int hp, int collision_damage);
     virtual ~StaticObject() override = default;
 };
 
@@ -69,7 +72,7 @@ protected:
     void setSpeed(int new_speed);
 
 public:
-    MovableObject(GameBoard &b, Direction dir, int spd, int hp);
+    MovableObject(GameBoard &b, Direction dir, int spd, int hp, int collision_damage);
     virtual ~MovableObject() override = default;
 
     // === Movement Properties === //

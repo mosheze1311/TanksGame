@@ -3,7 +3,7 @@
 #include "../GameBoard/GameBoard.h"
 
 // Constructor implementations
-GameObject::GameObject(GameBoard& b, int hp) : hp(hp), board(b)  {}
+GameObject::GameObject(GameBoard &b, int hp, int collision_damage) : hp(hp), collision_damage(collision_damage), board(b) {}
 
 int GameObject::getHP() const
 {
@@ -24,4 +24,9 @@ void GameObject::gotHit(int dmg)
     {
         this->board.removeObject(this);
     }
+}
+
+int GameObject::getCollisionDamage() const
+{
+    return this->collision_damage;
 }

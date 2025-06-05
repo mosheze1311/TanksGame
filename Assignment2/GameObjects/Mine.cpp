@@ -5,7 +5,7 @@
 
 //=== Constructor ===
 Mine::Mine(GameBoard &b)
-    : StaticObject(b, mine_hp) {}
+    : StaticObject(b, mine_hp, ConfigReader::getConfig().getMineDamage()) {}
 
 //=== Type Information ===
 GameObjectType Mine::getObjectType() const

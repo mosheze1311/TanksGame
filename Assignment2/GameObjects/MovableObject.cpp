@@ -2,8 +2,8 @@
 #include "../GameBoard/GameBoard.h"
 
 // === Constructors === //
-MovableObject::MovableObject(GameBoard& b, Direction dir, int spd, int hp)
-    : GameObject(b, hp), direction(dir), speed(spd) {}
+MovableObject::MovableObject(GameBoard& b, Direction dir, int spd, int hp, int collision_damage)
+    : GameObject(b, hp, collision_damage), direction(dir), speed(spd) {}
 
 // === Getters === //
 Direction MovableObject::getDirection() const {

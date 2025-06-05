@@ -4,16 +4,16 @@ spawn_directions=LEFT,RIGHT,UP,DOWN,UPL,UPR,DOWNL,DOWNR,LEFT
 # speed
 shells_speed=2
 
-# hp (supported but not accurate - some collisions cause double damage)
+# hp
 wall_hp=2
 tank_hp=1
 
-# damage (not supported yet)
+# damage (when objects are on the same cell, damage is inflicted on tanks steps and on shells steps)
 shell_damage=1
 mine_damage=1
 tanks_collision_damage=1
 
-# game settings (test for full support)
+# game settings
 steps_after_shells_end=40
 shoot_cooldown_steps=4
 backward_wait_steps=2

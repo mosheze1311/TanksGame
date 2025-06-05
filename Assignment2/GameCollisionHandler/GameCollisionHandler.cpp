@@ -1,7 +1,7 @@
 #include "GameCollisionHandler.h"
 
 //=== Constructors ===
-GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board) {}
+GameCollisionHandler::GameCollisionHandler(GameBoard &board) : previous_board(board), updated_board(board) {}
 
 GameCollisionHandler::~GameCollisionHandler() {}
 
@@ -19,19 +19,20 @@ const CollisionMap GameCollisionHandler::prevention_map = {
     {CollisionObjectType::WALL, {CollisionObjectType::TANK, CollisionObjectType::MINE}}};
 
 // === Member Functions === //
-void GameCollisionHandler::handleCollisions(GameBoard &updated_board)
+void GameCollisionHandler::handleCollisions()
 {
-    this->positionNewShellsOnPreviousBoard(updated_board); // mid step collision preparing
+    this->positionNewShellsOnPreviousBoard(); // mid step collision preparing
 
-    this->handleMidStepCollisions(updated_board);
-    this->handleEndOfStepCollisions(updated_board);
+    this->handleMidStepCollisions();
+    this->handleEndOfStepCollisions();
 
     this->previous_board = GameBoardShallowCopy(updated_board);
 };
 
-void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) const
+void GameCollisionHandler::handleMidStepCollisions()
 {
     // a mid step collision occurs when two objects switch lcations between steps by crossing each other (opposite directions).
+    std::unordered_map<GameObject*, int> hit_damage;
     for (GameObject *obj : updated_board.getAllGameObjects())
     {
         std::optional<BoardCell> opt_current_loc = updated_board.getObjectLocation(obj);
@@ -63,16 +64,19 @@ void GameCollisionHandler::handleMidStepCollisions(GameBoard &updated_board) con
             if (other_current_loc == previous_location &&
                 dynamic_cast<MovableObject *>(obj)->getDirection() == DirectionUtils::getOppositeDirection(dynamic_cast<MovableObject *>(other)->getDirection()))
             {
-                // TODO: this is ok for now since all moving objects have 1 hp. to ensure only 1 hit per collision later - list mid step colliders and handle at the end
-                obj->gotHit(1);
-                other->gotHit(1);
+                hit_damage[other] += obj->getCollisionDamage();
             }
         }
     }
+    for (auto [obj, damage] : hit_damage)
+    {
+        obj->gotHit(damage);
+    }
 }
 
-void GameCollisionHandler::handleEndOfStepCollisionsOnCell(GameBoard &updated_board, const BoardCell &cell) const
+void GameCollisionHandler::handleEndOfStepCollisionsOnCell(const BoardCell &cell)
 {
+    std::unordered_map<GameObject *, int> hit_damage;
     std::unordered_set<GameObject *> cell_objects = updated_board.getObjectsOnCell(cell);
     for (auto iter = cell_objects.begin(); iter != cell_objects.end(); ++iter)
     {
@@ -92,30 +96,32 @@ void GameCollisionHandler::handleEndOfStepCollisionsOnCell(GameBoard &updated_bo
             if (!updated_board.isObjectOnBoard(obj2))
                 continue;
 
-            // if collision - hit objects by 1
+            // if collision - hit objects by appropriate damage
             CollisionObjectType obj2_type = CollisionObjectTypeUtils::fromGameObjectType(obj2->getObjectType());
             if (collide_with.find(obj2_type) != collide_with.end())
             {
-                if (updated_board.isObjectOnBoard(obj1)) // test alive again to avoid multiple collisions error (an object that collides with many others)
-                    obj1->gotHit(1);
-
-                obj2->gotHit(1);
+                hit_damage[obj1] += obj2->getCollisionDamage();
+                hit_damage[obj2] += obj1->getCollisionDamage();
             }
         }
     }
-}
 
-void GameCollisionHandler::handleEndOfStepCollisions(GameBoard &updated_board) const
-{
-    // an end of step collision occurs when two objects are on the same location at the end of the step.
-    // each collision cause 1 hp hit
-    for (BoardCell &cell : updated_board.getOccupiedCells())
+    for (auto [obj, damage] : hit_damage)
     {
-        this->handleEndOfStepCollisionsOnCell(updated_board, cell);
+        obj->gotHit(damage);
     }
 }
 
-void GameCollisionHandler::positionNewShellsOnPreviousBoard(const GameBoard &updated_board)
+void GameCollisionHandler::handleEndOfStepCollisions()
+{
+    // an end of step collision occurs when two objects are on the same location at the end of the step.
+    for (BoardCell &cell : updated_board.getOccupiedCells())
+    {
+        this->handleEndOfStepCollisionsOnCell(cell);
+    }
+}
+
+void GameCollisionHandler::positionNewShellsOnPreviousBoard()
 {
     std::vector<GameObject *> all_shells = updated_board.getGameObjects(GameObjectType::SHELL);
     for (GameObject *shell_obj : all_shells)
