@@ -1,7 +1,7 @@
 #include "PassiveTankAlgorithm.h"
 
 // === Constructor === //
-PassiveTankAlgorithm::PassiveTankAlgorithm(size_t player_index, size_t tank_index)
+PassiveTankAlgorithm::PassiveTankAlgorithm(int player_index, int tank_index)
     : AbstractTankAlgorithm(
           tank_index,       // tank_idx
           player_index    // player_idx
@@ -11,8 +11,6 @@ PassiveTankAlgorithm::PassiveTankAlgorithm(size_t player_index, size_t tank_inde
 // === Public Methods === //
 ActionRequest PassiveTankAlgorithm::getActionLogic() const
 {
-    // TODO: Improve behavior
-
     // in first turn, get battle info
     if (this->getCurrentStep() == this->step_to_get_info)
     {

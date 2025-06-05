@@ -13,7 +13,7 @@ private:
 
 public:
     // === Constructor === //
-    PassiveTankAlgorithm(size_t player_index, size_t tank_index);
+    PassiveTankAlgorithm(int player_index, int tank_index);
 
     // === Destructor === //
     ~PassiveTankAlgorithm() override = default;

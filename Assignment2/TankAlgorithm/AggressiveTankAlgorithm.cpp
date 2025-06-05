@@ -1,7 +1,7 @@
 #include "AggressiveTankAlgorithm.h"
 
 // === Constructor === //
-AggressiveTankAlgorithm::AggressiveTankAlgorithm(size_t player_index, size_t tank_index)
+AggressiveTankAlgorithm::AggressiveTankAlgorithm(int player_index, int tank_index)
     : AbstractTankAlgorithm(
           tank_index,              // tank_idx
           player_index            // player_idx
@@ -11,9 +11,7 @@ AggressiveTankAlgorithm::AggressiveTankAlgorithm(size_t player_index, size_t tan
 // === Public Methods === //
 ActionRequest AggressiveTankAlgorithm::getActionLogic() const
 {
-    // TODO: Implement actual behavior
-
-    // in first turn, get battle info
+    // get battle info on required steps
     if (this->getCurrentStep() == this->step_to_get_info)
     {
         return ActionRequest::GetBattleInfo;

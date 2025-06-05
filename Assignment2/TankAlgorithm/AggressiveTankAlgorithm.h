@@ -17,7 +17,7 @@ private:
 
 public:
     // === Constructor === //
-    AggressiveTankAlgorithm(size_t player_index, size_t tank_index);
+    AggressiveTankAlgorithm(int player_index, int tank_index);
 
     // === Destructor === //
     ~AggressiveTankAlgorithm() override = default;

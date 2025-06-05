@@ -19,8 +19,8 @@ class AbstractTankAlgorithm : public TankAlgorithm
 protected:
 
     // === Attributes === //
-    size_t tank_idx;
-    size_t player_idx;
+    int tank_idx;
+    int player_idx;
 
     BoardCell assumed_location;
     Direction direction;
@@ -53,7 +53,7 @@ protected:
     void handlePendingBackwards();
 
     // === Action Planning === //
-    ActionRequest getTankEvasionAction(Direction chaser_direction) const; // TODO: should we move it to Aggressive Algorithm?
+    ActionRequest getTankEvasionAction(Direction chaser_direction) const;
     ActionRequest advanceTankToTarget(const BoardCell& target) const;
     ActionRequest adjustDirection(const BoardCell &to, size_t width, size_t height) const;
 
@@ -94,7 +94,7 @@ protected:
 
 public:
     // === Constructor === //
-    AbstractTankAlgorithm(size_t tank_idx, size_t player_idx);
+    AbstractTankAlgorithm(int tank_idx, int player_idx);
     
     // === Destructor === //
     virtual ~AbstractTankAlgorithm() override = default;

@@ -2,12 +2,11 @@
 #define SHOOTING_RANGE 8
 
 // === Constructor === //
-AbstractTankAlgorithm::AbstractTankAlgorithm(size_t tank_idx, size_t player_idx)
+AbstractTankAlgorithm::AbstractTankAlgorithm(int tank_idx, int player_idx)
     : tank_idx(tank_idx), player_idx(player_idx),
       sat_view(0, 0, 0, player_idx)
 
 {
-    // TODO: should later calculate based on config.h
     direction = ConfigReader::getConfig().getSpawnDirections()[player_idx - 1];
 }
 
@@ -138,7 +137,7 @@ ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const BoardCell &target
     std::map<BoardCell, BoardCell> parents;
     this->Dijkstra(this->getTankType(), this->assumed_location, target, distances, parents);
 
-    // TODO: if cant reach target shoot and hope for good. maybe should do something smarter?
+    // if cant reach target shoot and hope for good
     if (distances.find(target) == distances.end())
     {
         return ActionRequest::Shoot;
