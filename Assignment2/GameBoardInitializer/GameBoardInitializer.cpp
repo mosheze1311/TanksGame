@@ -3,38 +3,44 @@
 
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 // === Input File Handling === //
-void GameBoardInitializer::logInputError(const std::string &error_message)
+void GameBoardInitializer::logInputError(const std::string &error_message, bool can_recover)
 {
     Logger::input().logLine(error_message);
+    if (!can_recover)
+        std::cout << error_message << std::endl;
 }
 
 bool GameBoardInitializer::parseKeyLine(const std::string &line, size_t line_number, const std::string &expected_key, size_t &out_value)
 {
-    std::istringstream iss(line);
+    size_t equal_pos = line.find("=");
+    std::istringstream key_ss(line.substr(0, equal_pos));
+    std::istringstream value_ss(line.substr(equal_pos + 1));
+   
     std::string key, equal_sign;
     size_t value;
-
-    if (!(iss >> key))
+    if (equal_pos == std::string::npos)
     {
-        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Missing key.");
+        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Expected '=' in line", false);
+        return false;
+    }
+    if (!(key_ss >> key))
+    {
+        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Missing key.", false);
         return false;
     }
     if (key != expected_key)
     {
-        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Unexpected key '" + key + "', expected '" + expected_key + "'.");
-        return false;
-    }
-    if (!(iss >> equal_sign) || equal_sign != "=")
-    {
-        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Expected '=' after key.");
+        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Unexpected key '" + key + "', expected '" + expected_key + "'.", false);
         return false;
     }
 
-    if (!(iss >> value))
+
+    if (!(value_ss >> value))
     {
-        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Expected numeric value after '='.");
+        GameBoardInitializer::logInputError("Line " + std::to_string(line_number) + ": Expected numeric value after '='.", false);
         return false;
     }
 
@@ -47,7 +53,7 @@ bool GameBoardInitializer::parseBoardLine(const std::string &line, size_t expect
     size_t actual_width = line.length();
     size_t cols = std::min(expected_width, actual_width); // ensure no overflowing lines.
     if (actual_width != expected_width)
-        GameBoardInitializer::logInputError("Board line " + std::to_string(row) + ": Expected " + std::to_string(expected_width) + " cols, got " + std::to_string(actual_width));
+        GameBoardInitializer::logInputError("Board line " + std::to_string(row) + ": Expected " + std::to_string(expected_width) + " cols, got " + std::to_string(actual_width), true);
 
     char obj_char;
     for (size_t col = 0; col < cols; col++)
@@ -56,7 +62,7 @@ bool GameBoardInitializer::parseBoardLine(const std::string &line, size_t expect
         if (!GameObjectTypeUtils::isValidObjectChar(obj_char))
         {
             if (obj_char != GameBoardInitializer::empty_space_char)
-                GameBoardInitializer::logInputError("Board line " + std::to_string(row) + ": Invalid char '" + std::string(1, obj_char) + "' in board column " + std::to_string(col) + ". Treated as empty space");
+                GameBoardInitializer::logInputError("Board line " + std::to_string(row) + ": Invalid char '" + std::string(1, obj_char) + "' in board column " + std::to_string(col) + ". Treated as empty space", true);
 
             continue;
         }
@@ -136,7 +142,7 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
     // Handle file open failure
     if (!file)
     {
-        GameBoardInitializer::logInputError("Can't open the input file");
+        GameBoardInitializer::logInputError("Can't open the input file", false);
         return false;
     }
 
@@ -145,7 +151,7 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
     size_t line_number = 1;
     if (!(std::getline(file, line)))
     {
-        GameBoardInitializer::logInputError("Line 1: file does not contain the map name");
+        GameBoardInitializer::logInputError("Line 1: file does not contain the map name", false);
         return false;
     }
 
@@ -180,11 +186,11 @@ bool GameBoardInitializer::initGameBoardFromFile(const std::string &input_file_p
 
     if (board_row_number < height)
     {
-        GameBoardInitializer::logInputError("Actual board did not contain enough rows - filled by empty space");
+        GameBoardInitializer::logInputError("Actual board did not contain enough rows - filled by empty space", true);
     }
     else if (std::getline(file, line))
     {
-        GameBoardInitializer::logInputError("Actual board contains too many rows - ignored");
+        GameBoardInitializer::logInputError("Actual board contains too many rows - ignored", true);
     }
 
     file.close();

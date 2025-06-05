@@ -27,7 +27,7 @@ private:
     ~GameBoardInitializer() = delete;
 
     // === Logger === //
-    static void logInputError(const std::string &error_message);
+    static void logInputError(const std::string &error_message, bool can_recover);
 
     // === Parse Input Functions === //
     static bool parseKeyLine(const std::string &line, size_t line_number, const std::string &expected_key, size_t &out_value);
