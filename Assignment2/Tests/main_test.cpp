@@ -62,6 +62,7 @@ std::vector<GameRulesTester> getInputHandlingTests()
     tests.emplace_back("invalid_board_details4 - non integer key", "TestInputs/invalid_board_details4.txt", TestPlayerFactory{}, TestAlgorithmFactory(), "invalid_input_test_output.txt", true);
     tests.emplace_back("invalid_board_details5 - no map title", "TestInputs/invalid_board_details5.txt", TestPlayerFactory{}, TestAlgorithmFactory(), "invalid_input_test_output.txt", true);
     tests.emplace_back("invalid_board_details6 - empty", "TestInputs/invalid_board_details6.txt", TestPlayerFactory{}, TestAlgorithmFactory(), "invalid_input_test_output.txt", true);
+    tests.emplace_back("invalid_board_details7 - file not exist", "TestInputs/invalid_board_details7.txt", TestPlayerFactory{}, TestAlgorithmFactory(), "invalid_input_test_output.txt", true);
 
     return tests;
 }
@@ -422,7 +423,6 @@ std::vector<GameRulesTester> getGameRulesTests()
     };
     tests.emplace_back("wall_hp_test", "TestScenes/test_scene1.txt", TestPlayerFactory{}, TestAlgorithmFactory{wall_hp_test}, "wall_hp_test_output.txt");
 
-    // TODO: add a test to check that the player approached on GetBattleInfo requests.
     return tests;
 }
 
@@ -483,6 +483,12 @@ std::vector<GameRulesTester> getMultipleTanksTests()
     return tests;
 };
 
+std::vector<GameRulesTester> getSatelliteViewTests(){
+    std::vector<GameRulesTester> tests;
+
+    return tests;
+
+}
 int evalTests(const std::vector<GameRulesTester> &tests)
 {
     int passed_tests = 0;

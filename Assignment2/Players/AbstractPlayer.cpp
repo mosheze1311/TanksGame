@@ -45,7 +45,7 @@ PlayerToTankDetails AbstractPlayer::createPlayerToTankDetails(const SatelliteVie
 void AbstractPlayer::updateTankWithBattleInfo(TankAlgorithm &tank_algo, SatelliteView &satellite_view)
 {
     PlayerToTankDetails pttd = createPlayerToTankDetails(satellite_view);
-    GameDetails game_details(this->max_steps, this->board_width, this->board_height, this->initial_num_of_shells);
+    GameDetails game_details(this->max_steps, this->board_height, this->board_width, this->initial_num_of_shells);
     BattleInfoAgent battle_info(this->analytics_view, satellite_view, pttd, game_details);
 
     tank_algo.updateBattleInfo(battle_info);

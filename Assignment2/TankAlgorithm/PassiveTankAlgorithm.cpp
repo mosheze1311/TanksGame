@@ -25,7 +25,7 @@ ActionRequest PassiveTankAlgorithm::getActionLogic() const
 
     // If enemy in range, try to escape
     BoardCell approx_closet_enemy = this->approxClosestEnemyTankLocation();
-    if (auto shoot_action_opt = this->evaluateShootingOpportunity(approx_closet_enemy, sat_view.getWidth(), sat_view.getHeight()))
+    if (auto shoot_action_opt = this->evaluateShootingOpportunity(approx_closet_enemy))
     {
         return shoot_action_opt.value();
     }

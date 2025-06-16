@@ -57,6 +57,7 @@ private:
 
     // === Two-Steps Update View API === //
     void updateViewForStep(size_t steps_gap);
+    
 
 public:
     // === Constructor === //
@@ -71,6 +72,8 @@ public:
     // === Getters (for TankAlgorithm) === //
     size_t getMaxSteps() const;
     size_t getInitialNumShells() const;
+    size_t getBoardWidth() const;
+    size_t getBoardHeight() const;
     BoardCell getTankLocation() const;
     size_t getStepToGetInfo(size_t current_step) const;
 
@@ -80,6 +83,6 @@ public:
     void setRemainingShells(size_t shells);
 
     // === Two-Steps Update View API === //
-    SatelliteAnalyticsView updateAndGetAnalyticsView(size_t current_step);
+    SatelliteAnalyticsView updateAndGetAnalyticsView(size_t current_step,const SatelliteAnalyticsView &tank_algorithm_sat_view);
 
 };

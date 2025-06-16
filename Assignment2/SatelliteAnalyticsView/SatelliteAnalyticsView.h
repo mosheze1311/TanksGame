@@ -70,17 +70,16 @@ public:
     std::set<BoardCell> getMinesLocations() const;
     std::vector<std::pair<char, AssumedDirection>> getObjectsAt(const BoardCell &c) const;
     std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const override;
-    std::optional<AssumedDirection> getDirectionOfObjectAt(GameObjectType t, const BoardCell& c) const;
+    std::optional<AssumedDirection> getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const;
+    std::optional<std::pair<GameObjectType, AssumedDirection>> getObjectAt(GameObjectType obj_type, const BoardCell &location) const;
     
     // === Movement validation === //
     bool isWallOnCell (const BoardCell &cell) const;
 
     // === Update View Functions === //
     void updateAnalyticalView(const SatelliteView &sat_view, size_t current_step);
+    void updateShellsDirectionsFromView(const SatelliteAnalyticsView &other);
 
     void applyApproxBoardChanges(); // this function should be called at the beginning of each step to update the view
     void addShell(const BoardCell &location, Direction dir);
-
-    // === DEBUGGING === //
-    void print() const;
 };

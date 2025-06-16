@@ -28,8 +28,15 @@ private:
         if (this->board.isOccupiedCell(c))
         {
             std::unordered_set<GameObject *> objects = this->board.getObjectsOnCell(c);
-            GameObject *first = *(objects.begin());
-            return first->getDrawing(this->appearence);
+            GameObject *selected = *(objects.begin());
+
+            for (GameObject* obj : objects){
+                if(obj->getObjectType() == GameObjectType::SHELL){
+                    selected = obj;
+                    break;
+                }
+            }
+            return selected->getDrawing(this->appearence);
         }
         return empty_blocks[(c.getX() + c.getY()) % 2];
     }

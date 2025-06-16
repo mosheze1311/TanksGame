@@ -8,14 +8,9 @@
 using namespace DirectionUtils; // for multiplying direction by a const
 
 /*
-    TODO: this class contains logic errors.
-    need to fix the following (and maybe more):
-        1. mix TankAlgorithm's object with Player's object on the GetBattleInfo situation
-        2. moving shells on board should die when colliding with other objects
-        3. allowing multiple objects on the same cell (Done)
+    TODO: need to check the following (and maybe more):
         4. I added a printing function for debugging - it should be deleted when done
-        5. should use ajusted boardcells
-        6. TODO: new mission - check for size_t errors because it is very dangerous - check that nothing can get overlapped to huge numbers, and calculations cant be wrong
+        6. check for size_t errors because it is very dangerous - check that nothing can get overlapped to huge numbers, and calculations cant be wrong
 
     should test this class carefully
 */
@@ -112,7 +107,7 @@ void SatelliteAnalyticsView::advanceShellsOnce()
         if (!assumed_dir_opt) // shell not exist on old location - Should never happen
             continue;
 
-        assumed_dir = assumed_dir_opt.value();
+        assumed_dir = *assumed_dir_opt;
         if (assumed_dir == AssumedDirection::UNKNOWN)
             assumed_dir = AssumedDirection::DOWN;
 
@@ -121,7 +116,7 @@ void SatelliteAnalyticsView::advanceShellsOnce()
         // remove from previous cell
         removeObjectInternal(old_shell_location, GameObjectType::SHELL);
 
-        temp.push_back({new_shell_location, assumed_dir_opt.value()});
+        temp.push_back({new_shell_location, *assumed_dir_opt});
     }
 
     for (auto [shell_loc, ass_dir] : temp)
@@ -130,11 +125,13 @@ void SatelliteAnalyticsView::advanceShellsOnce()
         addObjectInternal(shell_loc, GameObjectType::SHELL, ass_dir);
     }
 
-    // handle end of step collisions with walls. 
+    // handle end of step collisions with walls.
     // TODO: also handle collisions with shells
-    for (BoardCell new_shell_location : this->getShellsLocations()){
+    for (BoardCell new_shell_location : this->getShellsLocations())
+    {
         auto types_on_cell = this->getObjectsTypesOnCell(new_shell_location);
-        if(types_on_cell.find(GameObjectType::WALL) != types_on_cell.end()){
+        if (types_on_cell.find(GameObjectType::WALL) != types_on_cell.end())
+        {
             this->removeObjectInternal(new_shell_location, GameObjectType::SHELL);
             this->removeObjectInternal(new_shell_location, GameObjectType::WALL);
         }
@@ -171,7 +168,7 @@ BoardCell SatelliteAnalyticsView::shellExpectedLocation(const BoardCell &old_loc
 {
     // assuming that the satellite view is taken at the beginning of the step - before shell movement happened
 
-    return old_location + (static_cast<Direction>(assumed_dir) * (steps_gap - 1));
+    return this->createAdjustedCell(old_location + (static_cast<Direction>(assumed_dir) * static_cast<int>(steps_gap * ConfigReader::getConfig().getShellsSpeed())));
 }
 
 bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap) const
@@ -264,35 +261,50 @@ std::unordered_set<GameObjectType> SatelliteAnalyticsView::getObjectsTypesOnCell
 
     return object_types_on_cell;
 }
-
+// Const version - return a copy wrapped in std::optional
 std::optional<AssumedDirection> SatelliteAnalyticsView::getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const
 {
-    BoardCell adjusted_cell = createAdjustedCell(c);
-    auto objects = this->getObjectsAt(adjusted_cell);
+    auto object_opt = getObjectAt(t, c);
+    if (!object_opt)
+        return std::nullopt;
 
-    for (auto [object_char, assumed_dir] : objects)
+    return object_opt->second; // returns a copy of AssumedDirection
+}
+
+std::optional<std::pair<GameObjectType, AssumedDirection>> SatelliteAnalyticsView::getObjectAt(GameObjectType requested_type, const BoardCell &location) const
+{
+    BoardCell adjusted_cell = createAdjustedCell(location);
+    auto it = analytical_view.find(adjusted_cell);
+    if (it == analytical_view.end())
+        return std::nullopt;
+
+    auto &objects = it->second;
+
+    for (auto &object_pair : objects)
     {
-        if (object_char == static_cast<char>(t))
-            return assumed_dir;
+        if (object_pair.first == requested_type)
+            return object_pair; // returns a copy
     }
 
     return std::nullopt;
 }
 
+
 // === Movement validation === //
 bool SatelliteAnalyticsView::isWallOnCell(const BoardCell &cell) const
-{    
+{
     std::unordered_set<GameObjectType> objects_on_cell = this->getObjectsTypesOnCell(cell);
 
-    return objects_on_cell.find(GameObjectType::WALL) != objects_on_cell.end(); 
+    return objects_on_cell.find(GameObjectType::WALL) != objects_on_cell.end();
 }
 
 // === Update View Functions === //
 void SatelliteAnalyticsView::updateAnalyticalView(const SatelliteView &sat_view, size_t current_step)
 {
-    size_t sat_view_creation_step = current_step - 1; // created as of last step
+    size_t sat_view_creation_step = current_step; // created as of last step
     size_t steps_gap = sat_view_creation_step - last_updated_step;
     last_updated_step = current_step;
+
     if (steps_gap > max_steps_gap)
     {
         this->initAnalyticalView(sat_view);
@@ -327,8 +339,8 @@ void SatelliteAnalyticsView::updateAnalyticalView(const SatelliteView &sat_view,
                 if (assumed_dir == AssumedDirection::UNKNOWN)
                     continue;
                 BoardCell new_cell = shellExpectedLocation(cell, assumed_dir, steps_gap);
-                auto objects_at_new_cell = analytical_view[new_cell];
-                for (auto obj_pair : objects_at_new_cell)
+                auto& objects_at_new_cell = analytical_view[new_cell];
+                for (auto &obj_pair : objects_at_new_cell)
                 {
                     if (obj_pair.first == GameObjectType::SHELL)
                     {
@@ -344,17 +356,32 @@ void SatelliteAnalyticsView::updateAnalyticalView(const SatelliteView &sat_view,
 void SatelliteAnalyticsView::applyApproxBoardChanges()
 {
     advanceShells();
+}
 
-    // this->print();
+void SatelliteAnalyticsView::updateShellsDirectionsFromView(const SatelliteAnalyticsView &other)
+{
+    for (auto shell_location : getShellsLocations())
+    {
+        for (auto & [obj_type, assumed_dir]: analytical_view[shell_location])
+        {
+            if (obj_type!=GameObjectType::SHELL || assumed_dir != AssumedDirection::UNKNOWN)
+                continue;
+
+            auto other_opt_dir = other.getDirectionOfObjectAt(GameObjectType::SHELL, shell_location);
+            if (!other_opt_dir)
+                continue;
+
+            assumed_dir = *other_opt_dir;
+        }
+    }
 }
 
 // === Move Objects on View === //
 void SatelliteAnalyticsView::advanceShells()
 {
-    for (size_t i = 0; i < ConfigReader::getConfig().getShellsSpeed() ; i++)
+    for (size_t i = 0; i < ConfigReader::getConfig().getShellsSpeed(); i++)
     {
         advanceShellsOnce();
-        // TODO: sheck for collisions and update map again.
     }
 }
 
@@ -362,75 +389,4 @@ void SatelliteAnalyticsView::addShell(const BoardCell &location, Direction dir)
 {
     BoardCell adjusted_location = this->createAdjustedCell(location);
     addObjectInternal(adjusted_location, GameObjectType::SHELL, static_cast<AssumedDirection>(dir));
-}
-
-
-// === DEBUGGING === //
-#include <iostream> // TODO: delete include
-#include <thread>   // TODO: delete include
-#include <chrono>   // TODO: delete include
-// TODO: this is temp function - delete
-void SatelliteAnalyticsView::print() const
-{
-    for (int y = 0; y < (int)this->getHeight(); ++y)
-    {
-        for (int x = 0; x < (int)this->getWidth(); ++x)
-        {
-            BoardCell c = BoardCell(x, y);
-            if (this->getObjectsAt(c).empty())
-            {
-                std::cout << "   ";
-                continue;
-            }
-
-            auto [object_type_char, object_assumed_direction] = this->getObjectsAtInternal(c)[0];
-            std::cout << object_type_char;
-
-            if (object_type_char == static_cast<char>(GameObjectType::SHELL))
-            {
-                switch (object_assumed_direction)
-                {
-                case AssumedDirection::UNKNOWN:
-                    std::cout << "??";
-                    break;
-                case AssumedDirection::UP:
-                    std::cout << "^^";
-                    break;
-                case AssumedDirection::UPR:
-                    std::cout << "^>";
-                    break;
-                case AssumedDirection::RIGHT:
-                    std::cout << ">>";
-                    break;
-                case AssumedDirection::DOWNR:
-                    std::cout << "v>";
-                    break;
-                case AssumedDirection::DOWN:
-                    std::cout << "vv";
-                    break;
-                case AssumedDirection::DOWNL:
-                    std::cout << "<v";
-                    break;
-                case AssumedDirection::LEFT:
-                    std::cout << "<<";
-                    break;
-                case AssumedDirection::UPL:
-                    std::cout << "<^";
-                    break;
-                default:
-                    break;
-                };
-            }
-            else
-            {
-                std::cout << "  ";
-            }
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }

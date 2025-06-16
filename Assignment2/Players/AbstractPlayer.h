@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 
-#define analysis_max_steps_gap 5UL
+#define analysis_max_steps_gap 3UL
 
 class AbstractPlayer : public Player
 {

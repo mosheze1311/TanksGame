@@ -4,6 +4,8 @@
 
 #include <fstream>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 class ConfigReader
 {
@@ -64,7 +66,7 @@ private:
 
             parseKeyValue(key, value);
         }
-    };
+    }
 
     // === Parsing Functions === //
     void parseKeyValue(const std::string &key, const std::string &value)

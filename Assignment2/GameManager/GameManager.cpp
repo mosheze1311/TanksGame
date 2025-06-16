@@ -33,11 +33,11 @@ void GameManager::createPlayers()
 
 void GameManager::createAlgorithms()
 {
-    std::map<size_t, size_t> algorithm_indexes_tracker;
+    std::map<size_t, size_t> algorithm_indexes_tracker; // maps a player index to next created algorithm index
     for (Tank *t : board.getAllTanksOrderedByCell())
     {
         size_t player_idx = GameObjectTypeUtils::tankTypeToPlayerIndex(t->getObjectType());
-        size_t algorithm_idx = algorithm_indexes_tracker[player_idx]++;
+        size_t algorithm_idx = algorithm_indexes_tracker[player_idx]++; // ++ also increase count for next creation
 
         std::pair tank_algo_pair = {t, this->tank_algorithm_factory->create(player_idx, algorithm_idx)};
         initial_tank_algorithm_pairs.push_back(std::move(tank_algo_pair));

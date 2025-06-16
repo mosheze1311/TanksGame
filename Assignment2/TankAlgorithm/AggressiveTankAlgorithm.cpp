@@ -40,7 +40,7 @@ ActionRequest AggressiveTankAlgorithm::getTankAggressiveAction() const
     BoardCell target = this->approxClosestEnemyTankLocation();
 
     // try to shoot enemy
-    if (auto shoot_action_opt = this->evaluateShootingOpportunity(target, sat_view.getWidth(), sat_view.getHeight()))
+    if (auto shoot_action_opt = this->evaluateShootingOpportunity(target))
     {
         return shoot_action_opt.value();
     }

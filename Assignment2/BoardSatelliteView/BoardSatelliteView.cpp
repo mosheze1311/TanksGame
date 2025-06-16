@@ -3,21 +3,24 @@
 // === Constructor === //
 BoardSatelliteView::BoardSatelliteView(const GameBoard &board) : width(board.getWidth()), height(board.getHeight())
 {
+    // if more than one object on cell, and one of the objects is a shell - saves the shell.
+    // else - saves the first one in the unordered-set.
     for (BoardCell c : board.getOccupiedCells())
     {
-        auto objects = board.getObjectsOnCell(c);
-        if (objects.empty())
+        auto objects_types = board.getObjectsTypesOnCell(c);
+        if (objects_types.empty())
             continue; // should not get here since c is an occupied cell. for safety reasons only.
 
-        if (objects.size() > 1)
+        bool is_shell = objects_types.find(GameObjectType::SHELL) != objects_types.end();
+        if (objects_types.size() > 1 && is_shell)
         {
-            this->sat_view[c] = GameObjectType::SHELL; // assuming  that 2 objects can only co-exist on same cell if one is mine, and other is shell
+            this->sat_view[c] = GameObjectType::SHELL;
             continue;
         }
 
-        // if here, objects.size() == 1
-        auto obj = *(objects.begin());
-        this->sat_view[c] = obj->getObjectType();
+        // if here, either there is only one object, or multiple without a shell (irrelevant to rules)
+        auto obj_type = *(objects_types.begin());
+        this->sat_view[c] = obj_type;
     }
 }
 

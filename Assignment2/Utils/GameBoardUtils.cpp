@@ -40,6 +40,11 @@ bool GameBoardUtils::isStraightLine(const BoardCell &from, const BoardCell &to, 
 
 bool GameBoardUtils::isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir, size_t width, size_t height)
 {
+    if (!GameBoardUtils::isStraightLine(from, to, width, height))
+    {
+        return false;
+    }
+
     return getNextCellInDirection(from, dir, width, height) == getNextCellInStraightLine(from, to, width, height);
 }
 

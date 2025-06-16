@@ -1,7 +1,7 @@
 #include "BattleInfoAgent.h"
 
 // === Constructor === //
-BattleInfoAgent::BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, const PlayerToTankDetails& player_to_tank, const GameDetails& details)
+BattleInfoAgent::BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, const PlayerToTankDetails &player_to_tank, const GameDetails &details)
     : game_details(details),
 
       advanced_sat_view(advanced_sat_view),
@@ -25,6 +25,10 @@ BoardCell BattleInfoAgent::getTankLocation() const
 }
 
 size_t BattleInfoAgent::getMaxSteps() const { return game_details.max_steps; }
+
+size_t BattleInfoAgent::getBoardHeight() const { return game_details.board_rows; }
+
+size_t BattleInfoAgent::getBoardWidth() const { return game_details.board_cols; }
 
 size_t BattleInfoAgent::getInitialNumShells() const { return game_details.initial_num_of_shells; }
 
@@ -51,15 +55,16 @@ void BattleInfoAgent::setTankDirection(Direction dir)
 }
 
 // === Two-Steps Update View API === //
-//private
+// private
 void BattleInfoAgent::updateViewForStep(size_t current_step)
 {
     this->advanced_sat_view.updateAnalyticalView(this->new_satellite_image, current_step);
 }
 
 // public
-SatelliteAnalyticsView BattleInfoAgent::updateAndGetAnalyticsView(size_t current_step)
+SatelliteAnalyticsView BattleInfoAgent::updateAndGetAnalyticsView(size_t current_step, const SatelliteAnalyticsView &tank_algorithm_sat_view)
 {
     this->updateViewForStep(current_step);
+    this->advanced_sat_view.updateShellsDirectionsFromView(tank_algorithm_sat_view);
     return this->advanced_sat_view;
 }

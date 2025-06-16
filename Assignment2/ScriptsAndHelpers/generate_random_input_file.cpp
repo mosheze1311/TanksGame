@@ -12,6 +12,7 @@ enum class GameObjectType
     WALL = '#',
     MINE = '@'
 };
+
 CELL random_cell(int h, int w)
 {
     int lower = 0;
@@ -67,6 +68,11 @@ private:
             objects_locations[go].push_back(c);
         }
     }
+    void clearConsole()
+    {
+        std::cout << "\033[3J\033[H\033[2J\033[H"; // Clear screen and move cursor to top-left
+        std::cout << "\033c";                      // THIS RESET THE BOARD - MAY CAUSE PROBLEMS
+    }
 
 public:
     Game(game_general_params &gp)
@@ -82,6 +88,9 @@ public:
 
     void create_input_file()
     {
+        clearConsole();
+
+        
         cout << gp.name << "\n";
         cout << "MaxSteps = " << gp.max_steps << "\n";
         cout << "NumShells = " << gp.num_shells << "\n";
