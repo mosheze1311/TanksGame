@@ -1,0 +1,79 @@
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo
+Shoot, RotateRight90, Shoot, RotateRight90, GetBattleInfo, Shoot, RotateRight90, Shoot
+Shoot (ignored), Shoot, Shoot (ignored), Shoot, MoveForward, Shoot (ignored), Shoot, Shoot (ignored)
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, RotateLeft90, GetBattleInfo, GetBattleInfo, GetBattleInfo
+Shoot (ignored), RotateLeft90, Shoot (ignored), DoNothing, GetBattleInfo, Shoot (ignored), DoNothing, Shoot (ignored)
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, Shoot, Shoot (ignored), DoNothing, Shoot (ignored)
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, GetBattleInfo
+Shoot, RotateLeft45, Shoot, Shoot, GetBattleInfo, Shoot, Shoot, RotateLeft90
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, DoNothing, Shoot (ignored), DoNothing, Shoot
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, GetBattleInfo
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, GetBattleInfo, Shoot (ignored), DoNothing, Shoot (ignored)
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, Shoot, Shoot (ignored), DoNothing, Shoot (ignored) (killed)
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot, RotateLeft90, Shoot, Shoot, GetBattleInfo, Shoot, Shoot, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, RotateRight90, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, RotateRight45, GetBattleInfo, GetBattleInfo, killed
+Shoot (ignored), RotateRight90, Shoot (ignored), DoNothing, GetBattleInfo, Shoot (ignored), DoNothing, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, MoveForward, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, RotateLeft45, GetBattleInfo, GetBattleInfo, killed
+Shoot, MoveForward, Shoot, Shoot, GetBattleInfo, Shoot, Shoot, killed
+Shoot (ignored), RotateLeft90, Shoot (ignored), DoNothing, Shoot, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, GetBattleInfo, Shoot (ignored), DoNothing, killed
+Shoot (ignored), RotateRight45, Shoot (ignored), DoNothing, DoNothing, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot, MoveForward, Shoot, Shoot, GetBattleInfo, Shoot, Shoot, killed
+Shoot (ignored), RotateLeft45, Shoot (ignored), DoNothing, Shoot, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, GetBattleInfo, Shoot (ignored), DoNothing, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, DoNothing, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot, MoveForward, Shoot, Shoot, GetBattleInfo, Shoot, Shoot, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, Shoot, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot (ignored), RotateRight90, Shoot (ignored), DoNothing, GetBattleInfo, Shoot (ignored), DoNothing, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, DoNothing, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo, GetBattleInfo, killed
+Shoot, RotateLeft90, Shoot, Shoot, GetBattleInfo, Shoot, Shoot, killed
+Shoot (ignored), Shoot, Shoot (ignored), DoNothing, Shoot, Shoot (ignored), DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, GetBattleInfo (killed), GetBattleInfo, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, GetBattleInfo, killed, DoNothing, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, DoNothing, killed, DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, GetBattleInfo, killed
+Shoot, RotateRight90, Shoot, Shoot, GetBattleInfo, killed, Shoot, killed
+Shoot (ignored), Shoot, Shoot (ignored), DoNothing, Shoot, killed, DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, GetBattleInfo, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, GetBattleInfo, killed, DoNothing, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, DoNothing, killed, DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, GetBattleInfo, killed
+Shoot, Shoot, Shoot, Shoot, GetBattleInfo, killed, Shoot, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, Shoot, killed, DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, GetBattleInfo, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, GetBattleInfo, killed, DoNothing, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, DoNothing, killed, DoNothing, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, GetBattleInfo, killed
+Shoot, Shoot, Shoot, Shoot, GetBattleInfo, killed, Shoot, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, Shoot, killed, DoNothing (killed), killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+Shoot (ignored), RotateLeft90, Shoot (ignored), DoNothing, GetBattleInfo, killed, killed, killed
+Shoot (ignored), MoveForward, Shoot (ignored), DoNothing, DoNothing, killed, killed, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+Shoot, MoveForward, Shoot, RotateRight90, GetBattleInfo, killed, killed, killed
+Shoot (ignored), MoveForward, Shoot (ignored), Shoot, Shoot, killed, killed, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+Shoot (ignored), RotateRight45, Shoot (ignored), DoNothing, GetBattleInfo, killed, killed, killed
+Shoot (ignored), Shoot, Shoot (ignored), DoNothing, DoNothing, killed, killed, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+Shoot, DoNothing, Shoot, Shoot, GetBattleInfo, killed, killed, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, Shoot, killed, killed, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+RotateRight90, Shoot, Shoot (ignored), DoNothing, GetBattleInfo, killed, killed, killed
+MoveForward, DoNothing, Shoot (ignored), DoNothing, DoNothing, killed, killed, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+Shoot, DoNothing, Shoot, Shoot, GetBattleInfo, killed, killed, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, Shoot, killed, killed, killed
+GetBattleInfo, GetBattleInfo, GetBattleInfo, GetBattleInfo, DoNothing, killed, killed, killed
+Shoot (ignored), Shoot, Shoot (ignored), DoNothing, GetBattleInfo, killed, killed, killed
+Shoot (ignored), DoNothing, Shoot (ignored), DoNothing, DoNothing (killed), killed, killed, killed
+Player 2 won with 4 tanks still alive
