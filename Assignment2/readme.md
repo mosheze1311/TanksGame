@@ -11,6 +11,7 @@ A deterministic tank battle game for "Advanced Topics in Programming" at TAU. Fe
 1. We implemented GetBattleInfo so it would cancel backward movements.
 2. After waiting for two steps to execute the MoveBackward command, on the 3rd step, if a MoveForward or GetBattleInfo command is received we cancel the backward movement.
 All other commands are ignored during this waiting period, and the backward movement proceeds as planned.
+3. Logging: To guarantee centralized logging with no duplication or file conflicts, the game uses static multiton Loggers. This causes all components (including multiple instances of GameManager) to write to the same output file consistently. While not confirmed on Moodle, we believe that this design is logical and upholds the assignment request.
 
 ## Input File Format
 
@@ -147,6 +148,7 @@ This file logs unexpected issues that occur during the game’s execution.
 - Manages game rules and steps.
 - Executes algorithms actions on tanks and moves shells. 
 - Logs all actions and invalid moves in the output file.
+
 
 ### Hierarchy Structure
 ```

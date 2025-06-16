@@ -121,7 +121,7 @@ Relevant Files:
 
 === HLD Document ===
 Details:
-- Added a detailed HLD (docs/HLD.pdf) describing architecture, key class roles, and workflows.
+- Added a detailed HLD describing architecture, key class roles, and workflows.
 - Includes UML class diagram (GameObject hierarchy, GameManager, CollisionHandler) and sequence diagram (turn logic).
 - Design emphasizes modularity, clear responsibilities, and extensibility.
 - Highlights design choices with reasoning.
@@ -132,5 +132,5 @@ Usage:
 - Helpful for onboarding, debugging, and further development.
 
 Relevant Files:
-- docs/HLD.pdf
+- HighLevelDesign/HLD.pdf
 
