@@ -1,0 +1,11 @@
+MoveBackward, MoveBackward
+MoveForward, MoveForward
+RotateRight45, RotateRight45
+MoveBackward, MoveBackward
+MoveForward, MoveForward
+RotateRight90, RotateRight90
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing, DoNothing
+Tie, reached max steps = 10, player 1 has 1 tanks, player 2 has 1 tanks

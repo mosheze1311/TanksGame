@@ -1,0 +1,4 @@
+MoveBackward, MoveBackward
+Shoot (ignored), Shoot (ignored)
+Shoot (ignored) (killed), Shoot (ignored) (killed)
+Tie, both players have zero tanks

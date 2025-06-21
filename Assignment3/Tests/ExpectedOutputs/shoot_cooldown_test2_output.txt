@@ -1,0 +1,11 @@
+Shoot, Shoot
+DoNothing, DoNothing
+MoveForward, MoveForward
+RotateLeft45, RotateLeft45
+RotateLeft90, RotateLeft90
+Shoot, Shoot
+RotateRight45, RotateRight45
+RotateRight90, RotateRight90
+GetBattleInfo, GetBattleInfo
+MoveBackward, MoveBackward
+Tie, reached max steps = 10, player 1 has 1 tanks, player 2 has 1 tanks

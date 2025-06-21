@@ -1,0 +1,8 @@
+DoNothing, Shoot
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing, DoNothing
+DoNothing (killed), DoNothing
+Player 1 won with 1 tanks still alive

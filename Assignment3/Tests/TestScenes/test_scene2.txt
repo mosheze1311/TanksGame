@@ -1,0 +1,7 @@
+small_no_movement_test
+MaxSteps = 10
+NumShells = 10
+Rows = 2
+Cols = 3
+#1#
+#2#
