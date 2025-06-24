@@ -1,38 +1,41 @@
 #pragma once
 
-#include "../common/Player.h"
+#include "../../common/Player.h"
 
 #include "AbstractPlayer.h"
 
 #include <algorithm>
-
-class Player2 : public AbstractPlayer
+namespace Algorithm_211388913_322330820
 {
-
-protected:
-    size_t steps_gap = 0;
-
-    size_t calculateStepsGapForGetInfo() override
+    using namespace UserCommon_211388913_322330820;
+    class Player2 : public AbstractPlayer
     {
-        if (this->current_step == 1)
+
+    protected:
+        size_t steps_gap = 0;
+
+        size_t calculateStepsGapForGetInfo() override
         {
+            if (this->current_step == 1)
+            {
 
-            return ++steps_gap;
+                return ++steps_gap;
+            }
+            else
+            {
+                steps_gap = this->tanks_alive;
+                return std::max(tanks_alive, analysis_max_steps_gap);
+            }
         }
-        else
-        {
-            steps_gap = this->tanks_alive;
-            return std::max(tanks_alive, analysis_max_steps_gap);
-        }
-    }
 
-public:
-    // === Consturctor === //
-    Player2(int player_index,
-            size_t x, size_t y,
-            size_t max_steps, size_t num_shells)
-        : AbstractPlayer(player_index, x, y, max_steps, num_shells) {}
+    public:
+        // === Consturctor === //
+        Player2(int player_index,
+                size_t x, size_t y,
+                size_t max_steps, size_t num_shells)
+            : AbstractPlayer(player_index, x, y, max_steps, num_shells) {}
 
-    // === Destructor === //
-    ~Player2() override {}
-};
+        // === Destructor === //
+        ~Player2() override {}
+    };
+}

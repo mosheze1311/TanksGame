@@ -1,7 +1,0 @@
-RotateRight90, DoNothing
-RotateRight90, DoNothing
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward, MoveForward
-Tie, reached max steps = 6, player 1 has 1 tanks, player 2 has 1 tanks

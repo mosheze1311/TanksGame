@@ -1,32 +1,35 @@
 #include "GameObjects.h"
 
 #include "../GameBoard/GameBoard.h"
-
-// Constructor implementations
-GameObject::GameObject(GameBoard &b, int hp, int collision_damage) : hp(hp), collision_damage(collision_damage), board(b) {}
-
-int GameObject::getHP() const
+namespace UserCommon_211388913_322330820
 {
-    return hp;
-}
 
-// Setter implementation
-void GameObject::setHP(int new_hp)
-{
-    hp = new_hp;
-}
+    // Constructor implementations
+    GameObject::GameObject(GameBoard &b, int hp, int collision_damage) : hp(hp), collision_damage(collision_damage), board(b) {}
 
-// Handling getting hit
-void GameObject::gotHit(int dmg)
-{
-    this->setHP(getHP() - dmg);
-    if (this->getHP() <= 0)
+    int GameObject::getHP() const
     {
-        this->board.removeObject(this);
+        return hp;
     }
-}
 
-int GameObject::getCollisionDamage() const
-{
-    return this->collision_damage;
+    // Setter implementation
+    void GameObject::setHP(int new_hp)
+    {
+        hp = new_hp;
+    }
+
+    // Handling getting hit
+    void GameObject::gotHit(int dmg)
+    {
+        this->setHP(getHP() - dmg);
+        if (this->getHP() <= 0)
+        {
+            this->board.removeObject(this);
+        }
+    }
+
+    int GameObject::getCollisionDamage() const
+    {
+        return this->collision_damage;
+    }
 }

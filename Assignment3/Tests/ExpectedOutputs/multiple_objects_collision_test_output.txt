@@ -1,8 +1,0 @@
-MoveBackward, MoveBackward, DoNothing
-DoNothing, DoNothing, DoNothing
-DoNothing, DoNothing, DoNothing
-MoveBackward, MoveBackward, DoNothing
-RotateLeft90, RotateLeft90 (ignored), DoNothing
-DoNothing, DoNothing, RotateLeft90
-MoveForward (killed), MoveForward (killed), Shoot
-Player 2 won with 1 tanks still alive

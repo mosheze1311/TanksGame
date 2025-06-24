@@ -3,10 +3,13 @@
 #include "DrawingTypes.h"
 
 #include <string>
-
-class DrawableObject
+namespace UserCommon_211388913_322330820
 {
-public:
-    virtual ~DrawableObject() = default;
-    virtual std::string getDrawing(DrawingType t) const = 0;
-};
+
+    class DrawableObject
+    {
+    public:
+        virtual ~DrawableObject() = default;
+        virtual std::string getDrawing(DrawingType t) const = 0;
+    };
+}

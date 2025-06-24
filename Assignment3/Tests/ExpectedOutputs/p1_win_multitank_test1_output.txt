@@ -1,2 +1,0 @@
-Shoot, DoNothing (killed), Shoot, DoNothing (killed), Shoot, DoNothing (killed), Shoot, DoNothing (killed), Shoot, DoNothing (killed), Shoot, DoNothing (killed), Shoot, DoNothing (killed), Shoot (killed)
-Player 1 won with 7 tanks still alive

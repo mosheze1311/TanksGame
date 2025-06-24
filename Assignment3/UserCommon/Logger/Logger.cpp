@@ -1,58 +1,64 @@
 #include "Logger.h"
-
-using std::string;
-
-// ===  Constructors === //
-Logger::Logger(const string &filename)
+namespace UserCommon_211388913_322330820
 {
-    logFile.open(filename, std::ios::app);
-}
+    // === Static Members === //
+    std::map<std::string, std::unique_ptr<Logger>> Logger::output_map;
 
-Logger::~Logger()
-{
-    if (logFile.is_open())
+    // ===  Constructors === //
+    Logger::Logger(const std::string &filename)
     {
-        logFile.close();
+        logFile.open(filename, std::ios::app);
     }
-}
 
-// === Singleton Accessors === //
-Logger &Logger::input()
-{
-    static Logger instance("input_errors.txt");
-    return instance;
-}
-
-Logger &Logger::runtime()
-{
-    static Logger instance("runtime_errors.txt");
-    return instance;
-}
-
-Logger &Logger::output(const string &file_name)
-{
-    static Logger instance(file_name);
-    return instance;
-}
-
-// === Logging Methods === //
-void Logger::logInternal(const string &message, bool newline)
-{
-    std::lock_guard<std::mutex> lock(logMutex);
-
-    if (logFile.is_open())
+    Logger::~Logger()
     {
-        logFile << message;
-        if (newline)
-            logFile << std::endl;
+        if (logFile.is_open())
+        {
+            logFile.close();
+        }
     }
-}
 
-void Logger::log(const string &message)
-{
-    this->logInternal(message, false);
-}
-void Logger::logLine(const string &message)
-{
-    this->logInternal(message, true);
+    // === Singleton Accessors === //
+    Logger &Logger::input()
+    {
+        static Logger instance("input_errors.txt");
+        return instance;
+    }
+
+    Logger &Logger::runtime()
+    {
+        static Logger instance("runtime_errors.txt");
+        return instance;
+    }
+
+    Logger &Logger::output(const std::string &file_name)
+    {
+        if (!output_map.contains(file_name)){
+            output_map.emplace(file_name, std::unique_ptr<Logger>(new Logger(file_name)));
+        }
+
+        return *output_map.at(file_name);
+    }
+
+    // === Logging Methods === //
+    void Logger::logInternal(const std::string &message, bool newline)
+    {
+        std::lock_guard<std::mutex> lock(logMutex);
+
+        if (logFile.is_open())
+        {
+            logFile << message;
+            if (newline)
+                logFile << std::endl;
+        }
+    }
+
+    void Logger::log(const std::string &message)
+    {
+        this->logInternal(message, false);
+    }
+    void Logger::logLine(const std::string &message)
+    {
+        this->logInternal(message, true);
+    }
 }

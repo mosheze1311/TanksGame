@@ -1,2 +1,0 @@
-DoNothing, DoNothing
-Tie, reached max steps = 1, player 1 has 1 tanks, player 2 has 1 tanks

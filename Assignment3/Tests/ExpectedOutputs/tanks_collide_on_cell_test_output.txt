@@ -1,8 +1,0 @@
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward, MoveForward
-MoveForward (killed), MoveForward (killed)
-Tie, both players have zero tanks

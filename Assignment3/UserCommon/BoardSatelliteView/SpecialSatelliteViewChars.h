@@ -1,8 +1,9 @@
 #pragma once
-
-enum class SpecialSatelliteViewChars : char
-{
-    EmptySpace = ' ',
-    CallerTank = '%',
-    OutOfBounds = '&'
-};
+namespace UserCommon_211388913_322330820{
+    enum class SpecialSatelliteViewChars : char
+    {
+        EmptySpace = ' ',
+        CallerTank = '%',
+        OutOfBounds = '&'
+    };
+}

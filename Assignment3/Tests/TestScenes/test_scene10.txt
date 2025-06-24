@@ -1,7 +1,0 @@
-shootdown3
-MaxSteps = 100
-NumShells = 3
-Rows = 3
-Cols = 15
-
-2             1

@@ -1,7 +1,0 @@
-immediate_tie
-MaxSteps = 10
-NumShells = 10
-Rows = 3
-Cols = 3
-
- 

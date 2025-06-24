@@ -1,45 +1,54 @@
-#include "../Config/ConfigReader.h"
+#include "../UserCommon/Config/ConfigReader.h"
 
 #include "GameManager.h"
 
-#include "../GameCollisionHandler/GameCollisionHandler.h"
-#include "../Utils/ActionRequestUtils.h"
+#include "../UserCommon/GameCollisionHandler/GameCollisionHandler.h"
+#include "../UserCommon/Utils/ActionRequestUtils.h"
+
+#include <chrono>
+using namespace GameManager_211388913_322330820;
+// === Constructor === //
+GameManager::GameManager(bool verbose) : verbose(verbose) {};
 
 // === Prepare Run Functions === //
-void GameManager::prepareForRun()
+void GameManager::prepareForRun(size_t map_width, size_t map_height,
+                                SatelliteView &map,
+                                size_t max_steps, size_t num_shells,
+                                Player &player1, Player &player2,
+                                TankAlgorithmFactory player1TankAlgoFactory,
+                                TankAlgorithmFactory player2TankAlgoFactory)
 {
-    // set manager game parameters
+
+    // Init output log file
+    this->initOutputFile();
+
+    // Init board and game details
+    this->board = GameBoard(map, map_width, map_height, max_steps, num_shells);
     this->remaining_steps = this->board.getMaxSteps();
     this->applyShellsLimitRuleOnRemainingSteps();
 
-    // initiate players and algorithms based on board
-    this->createPlayers();
+    // Init players map
+    this->players_map[1] = &player1;
+    this->players_map[2] = &player2;
+
+    // Init algorithmFactoriesMap
+    this->algo_factories_map[1] = player1TankAlgoFactory;
+    this->algo_factories_map[2] = player2TankAlgoFactory;
+
+    // Init algorithms based on board
     this->createAlgorithms();
-}
-
-void GameManager::createPlayers()
-{
-    std::map<GameObjectType, size_t> tanks_counters = this->board.getTanksCountPerType();
-    for (int i = 1; i <= 9; ++i)
-    {
-        GameObjectType tank_type = GameObjectTypeUtils::playerIndexToTankType(i);
-        size_t tanks_count = tanks_counters[tank_type];
-        if (tanks_count == 0)
-            continue;
-
-        this->players_map[i] = player_factory->create(i, this->board.getWidth(), this->board.getHeight(), this->board.getMaxSteps(), this->board.getTanksNumShells());
-    }
 }
 
 void GameManager::createAlgorithms()
 {
-    std::map<size_t, size_t> algorithm_indexes_tracker; // maps a player index to next created algorithm index
+    std::map<size_t, int> algorithm_indexes_tracker{}; // maps a player index to next created algorithm index
     for (Tank *t : board.getAllTanksOrderedByCell())
     {
-        size_t player_idx = GameObjectTypeUtils::tankTypeToPlayerIndex(t->getObjectType());
-        size_t algorithm_idx = algorithm_indexes_tracker[player_idx]++; // ++ also increase count for next creation
+        int player_idx = GameObjectTypeUtils::tankTypeToPlayerIndex(t->getObjectType());
+        int algorithm_idx = algorithm_indexes_tracker[player_idx]++; // ++ also increase count for next creation
 
-        std::pair tank_algo_pair = {t, this->tank_algorithm_factory->create(player_idx, algorithm_idx)};
+        TankAlgorithmFactory algoFactory = this->algo_factories_map.at(player_idx);
+        std::pair tank_algo_pair = {t, algoFactory(player_idx, algorithm_idx)};
         initial_tank_algorithm_pairs.push_back(std::move(tank_algo_pair));
     }
 }
@@ -70,10 +79,34 @@ void GameManager::setRemainingSteps(int num_steps)
 }
 
 // === Log Functions === //
-void GameManager::setOutputFile(const std::string &input_file_path)
+void GameManager::initOutputFile()
 {
-    std::string input_file_name = std::filesystem::path(input_file_path).stem().string(); // this is a standard library function the return the name of a file
-    this->output_file_name = "output_" + input_file_name + ".txt";
+    // Get current time
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::chrono::duration<double> ts = now.time_since_epoch();
+
+    //  Format timestamp to date/time
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
+
+    // Append high-precision fraction
+    constexpr size_t NUM_DIGITS = 9;
+    size_t NUM_DIGITS_P = std::pow(10, NUM_DIGITS);
+    size_t fractional_part = size_t(ts.count() * NUM_DIGITS_P) % NUM_DIGITS_P;
+
+    oss << "_" << std::setw(NUM_DIGITS) << std::setfill('0') << fractional_part;
+
+    this->output_file_name = "output_GameManager_211388913_322330820" + oss.str() + ".txt";
+
+}
+
+void GameManager::writeToOutputFile(const std::string &text) const{
+    if (!verbose){
+        return;
+    }
+
+    Logger::output(this->output_file_name).log(text);
 }
 
 void GameManager::logStepActions(const std::map<int, ActionRequest> &actions, std::vector<bool> is_valid_action) const
@@ -108,7 +141,7 @@ void GameManager::logAction(ActionRequest action, bool is_valid, bool is_killed,
     if (is_killed)
         action_log += " (killed)";
 
-    Logger::output(output_file_name).log(action_log);
+    this->writeToOutputFile(action_log);
 
     if (coma)
         logComa();
@@ -116,26 +149,31 @@ void GameManager::logAction(ActionRequest action, bool is_valid, bool is_killed,
 
 void GameManager::logKilled(bool coma) const
 {
-    Logger::output(output_file_name).log("killed");
+    this->writeToOutputFile("killed");
+
     if (coma)
         logComa();
 }
 
 void GameManager::logComa() const
 {
-
-    Logger::output(output_file_name).log(", ");
+    this->writeToOutputFile(", ");
 }
 
 void GameManager::logEndOfStep() const
 {
-    Logger::output(output_file_name).logLine("");
+    this->writeToOutputFile("\n");
 }
 
 void GameManager::logWin(int winner, int remaining_tanks) const
 {
-    std::string winning_text = "Player " + std::to_string(winner) + " won with " + std::to_string(remaining_tanks) + " tanks still alive";
-    Logger::output(output_file_name).logLine(winning_text);
+    std::string winning_text = "Player " + std::to_string(winner) + " won with " + std::to_string(remaining_tanks) + " tanks still alive\n";
+    this->writeToOutputFile(winning_text);
+}
+
+void GameManager::logTie(const std::string &reason) const
+{
+    this->writeToOutputFile("Tie, " + reason + "\n");
 }
 
 void GameManager::logZeroTanksTie() const
@@ -163,13 +201,9 @@ void GameManager::logZeroShellsTie() const
     logTie("both players have zero shells for " + std::to_string(ConfigReader::getConfig().getStepsAfterShellsEnd()) + " steps");
 }
 
-void GameManager::logTie(const std::string &reason) const
-{
-    Logger::output(output_file_name).logLine("Tie, " + reason);
-}
 
 // === Gameplay Functions === //
-std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest> actions, BoardSatelliteView &sat_view, GameCollisionHandler &c_handler, GameDrawer &d)
+std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest> actions, BoardSatelliteView &sat_view, GameCollisionHandler &c_handler)
 {
     size_t n = initial_tank_algorithm_pairs.size();
     std::vector<bool> is_valid_action(n);
@@ -188,7 +222,7 @@ std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest
 
         if (action == ActionRequest::GetBattleInfo)
         {
-            Player *player = players_map[GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())].get();
+            Player *player = players_map[GameObjectTypeUtils::tankTypeToPlayerIndex(tank->getObjectType())];
 
             TankAlgorithm &algorithm = *(initial_tank_algorithm_pairs[i].second);
             BoardCell tank_location = *(board.getObjectLocation(tank));
@@ -202,7 +236,6 @@ std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest
     }
 
     c_handler.handleCollisions();
-    d.draw();
 
     return is_valid_action;
 }
@@ -249,13 +282,12 @@ void GameManager::moveShellsOnce()
     }
 }
 
-void GameManager::moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d)
+void GameManager::moveShells(int times, GameCollisionHandler &c_handler)
 {
     for (int i = 0; i < times; ++i)
     {
         this->moveShellsOnce();
         c_handler.handleCollisions();
-        d.draw();
     }
 }
 
@@ -299,26 +331,21 @@ void GameManager::applyShellsLimitRuleOnRemainingSteps()
 }
 
 // === Public Functions === //
-// === Constructor === //
-
-bool GameManager::readBoard(const std::string &input_file_path)
+GameResult GameManager::run(size_t map_width, size_t map_height,
+                            const SatelliteView &map,
+                            size_t max_steps, size_t num_shells,
+                            Player &player1, Player &player2,
+                            TankAlgorithmFactory player1_tank_algo_factory,
+                            TankAlgorithmFactory player2_tank_algo_factory)
 {
-    // init board from file
-    bool success = this->board.initFromFile(input_file_path);
 
-    // set output to required file
-    this->setOutputFile(input_file_path);
+    this->prepareForRun(map_width, map_height, map, max_steps,
+                        num_shells, player1, player2,
+                        player1_tank_algo_factory,
+                        player2_tank_algo_factory);
 
-    return success;
-}
-
-void GameManager::run(DrawingType dt)
-{
-    this->prepareForRun();
+    // running game loop
     GameCollisionHandler c_handler(this->board);
-    GameDrawer d(this->board, dt);
-    d.draw();
-
     while (true)
     {
         // check for winner / tie
@@ -326,13 +353,15 @@ void GameManager::run(DrawingType dt)
             break;
 
         BoardSatelliteView sat_view = this->TakeSatelliteImage();
-        
-        std::map<int, ActionRequest> actions = requestAlgorithmsActions();
-        std::vector<bool> is_valid_action = this->performActionsOnBoard(actions, sat_view, c_handler, d);
 
-        this->moveShells(ConfigReader::getConfig().getShellsSpeed(), c_handler, d);
+        std::map<int, ActionRequest> actions = requestAlgorithmsActions();
+        std::vector<bool> is_valid_action = this->performActionsOnBoard(actions, sat_view, c_handler);
+
+        this->moveShells(ConfigReader::getConfig().getShellsSpeed(), c_handler);
 
         logStepActions(actions, is_valid_action);
         this->advanceStepsClock();
     }
+
+    return GameResult(0, GameResult::Reason::ALL_TANKS_DEAD, {0, 0});
 }

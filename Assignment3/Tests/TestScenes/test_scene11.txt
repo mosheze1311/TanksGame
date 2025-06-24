@@ -1,7 +1,0 @@
-multiple_tanks_in_line
-MaxSteps = 100
-NumShells = 3
-Rows = 3
-Cols = 15
-
-121212121212121

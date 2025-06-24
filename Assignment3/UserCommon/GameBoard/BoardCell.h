@@ -4,50 +4,53 @@
 
 #include <ostream>
 #include <utility>
-
-// Forward declarations
-enum class Direction;
-
-class BoardCell
+namespace UserCommon_211388913_322330820
 {
-private:
-    // === Atributes === //
-    // values are not const to allow assignment using operator=. cannot really change them - no setters.
-    int x;
-    int y;
 
-public:
-    // === Constructors === //
-    // Empty constructor - do not delete, used in STL containers.
-    BoardCell();
+    // Forward declarations
+    enum class Direction;
 
-    BoardCell(int x, int y);
+    class BoardCell
+    {
+    private:
+        // === Atributes === //
+        // values are not const to allow assignment using operator=. cannot really change them - no setters.
+        int x;
+        int y;
 
-    // === Getters === //
-    int getX() const;
+    public:
+        // === Constructors === //
+        // Empty constructor - do not delete, used in STL containers.
+        BoardCell();
 
-    int getY() const;
+        BoardCell(int x, int y);
 
-    // === Overloading Comparison Operators === //
-    // Allow using BoardCell as a key in a map
-    bool operator<(const BoardCell &other) const;
+        // === Getters === //
+        int getX() const;
 
-    // Allow comparing cells (default compares all fields by value)
-    bool operator==(const BoardCell &other) const = default;
+        int getY() const;
 
-    // === Overloading Arithmetic Operators === //
-    // Returns a new cell moved in the given direction
-    BoardCell operator+(Direction dir) const;
+        // === Overloading Comparison Operators === //
+        // Allow using BoardCell as a key in a map
+        bool operator<(const BoardCell &other) const;
 
-    // Returns a new cell moved opposite to the given direction
-    BoardCell operator-(Direction dir) const;
+        // Allow comparing cells (default compares all fields by value)
+        bool operator==(const BoardCell &other) const = default;
 
-    // Returns a new cell offset by the given delta
-    BoardCell operator+(const std::pair<int, int> &offsets) const;
+        // === Overloading Arithmetic Operators === //
+        // Returns a new cell moved in the given direction
+        BoardCell operator+(Direction dir) const;
 
-    // Returns a new cell offset negatively by the given delta
-    BoardCell operator-(const std::pair<int, int> &offsets) const;
-};
+        // Returns a new cell moved opposite to the given direction
+        BoardCell operator-(Direction dir) const;
 
-// === Overloading << Operator for Printing === //
-std::ostream &operator<<(std::ostream &os, const BoardCell &cell);
+        // Returns a new cell offset by the given delta
+        BoardCell operator+(const std::pair<int, int> &offsets) const;
+
+        // Returns a new cell offset negatively by the given delta
+        BoardCell operator-(const std::pair<int, int> &offsets) const;
+    };
+
+    // === Overloading << Operator for Printing === //
+    std::ostream &operator<<(std::ostream &os, const BoardCell &cell);
+}

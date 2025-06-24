@@ -1,15 +1,14 @@
 #pragma once
 
-#include "../common/PlayerFactory.h"
-#include "../common/TankAlgorithmFactory.h"
+#include "../common/Player.h"
+#include "../common/TankAlgorithm.h"
+#include "../common/AbstractGameManager.h"
 
-#include "../BoardSatelliteView/BoardSatelliteView.h"
-#include "../GameBoardInitializer/GameBoardInitializer.h"
-#include "../GameCollisionHandler/GameCollisionHandler.h"
-#include "../GameDrawer/GameDrawer.h"
-#include "../GameBoard/GameBoard.h"
-#include "../Logger/Logger.h"
-#include "../Utils/GameObjectTypeUtils.h"
+#include "../UserCommon/BoardSatelliteView/BoardSatelliteView.h"
+#include "../UserCommon/GameCollisionHandler/GameCollisionHandler.h"
+#include "../UserCommon/GameBoard/GameBoard.h"
+#include "../UserCommon/Logger/Logger.h"
+#include "../UserCommon/Utils/GameObjectTypeUtils.h"
 
 #include <filesystem> // for splitting the file_path to name only
 #include <fstream>
@@ -19,92 +18,93 @@
 #include <type_traits>
 #include <vector>
 
-template <typename T>
-concept DerivedFromPlayerFactory = std::is_base_of<PlayerFactory, std::decay_t<T>>::value;
-
-template <typename T>
-concept DerivedFromTankAlgorithmFactory = std::is_base_of<TankAlgorithmFactory, std::decay_t<T>>::value;
-
-class GameManager
+namespace GameManager_211388913_322330820
 {
-private:
-    // === Attributes === //
-    GameBoard board;
+    using namespace UserCommon_211388913_322330820;
+    class GameManager : public AbstractGameManager
+    {
+    private:
+        // === Attributes === //
+        bool verbose;
+        GameBoard board;
 
-    size_t remaining_steps;
-    bool are_steps_limited_by_shells = false;
+        size_t remaining_steps;
+        bool are_steps_limited_by_shells = false;
 
-    const std::unique_ptr<PlayerFactory> player_factory;
-    const std::unique_ptr<TankAlgorithmFactory> tank_algorithm_factory;
+        std::map<int, TankAlgorithmFactory> algo_factories_map;
+        std::vector<std::pair<Tank *, std::unique_ptr<TankAlgorithm>>> initial_tank_algorithm_pairs;
+        std::map<int, Player *> players_map;
 
-    std::vector<std::pair<Tank *, std::unique_ptr<TankAlgorithm>>> initial_tank_algorithm_pairs;
-    std::map<int, std::unique_ptr<Player>> players_map;
+        std::string output_file_name;
 
-    std::string output_file_name;
+        GameResult game_result;
+        // === Getters === //
+        size_t getRemainingSteps() const; // private getter for readability
+        std::vector<GameObjectType> getActiveTankTypes(std::map<GameObjectType, size_t> players_tanks_count) const;
 
-    // === Getters === //
-    size_t getRemainingSteps() const; // private getter for readability
-    std::vector<GameObjectType> getActiveTankTypes(std::map<GameObjectType, size_t> players_tanks_count) const;
+        // === Setters === //
+        void setRemainingSteps(int num_shells);
 
-    // === Setters === //
-    void setRemainingSteps(int num_shells);
+        // === Gameplay Function === //
+        void advanceStepsClock();
+        BoardSatelliteView TakeSatelliteImage(); // Returns an updated SatelliteView object at the start of the turn.
+        std::map<int, ActionRequest> requestAlgorithmsActions();
+        std::vector<bool> performActionsOnBoard(std::map<int, ActionRequest> actions, BoardSatelliteView &sat_view, GameCollisionHandler &c_handler);
+        void moveShells(int times, GameCollisionHandler &c_handler);
+        void moveShellsOnce(); // Move shells acoording to their direction
+        bool concludeGame();   // Checks if a game is finsihed in a specific turn
 
-    // === Gameplay Function === //
-    void advanceStepsClock();
-    BoardSatelliteView TakeSatelliteImage(); // Returns an updated SatelliteView object at the start of the turn.
-    std::map<int, ActionRequest> requestAlgorithmsActions();
-    std::vector<bool> performActionsOnBoard(std::map<int, ActionRequest> actions, BoardSatelliteView &sat_view, GameCollisionHandler &c_handler, GameDrawer &d);
-    void moveShells(int times, GameCollisionHandler &c_handler, GameDrawer &d);
-    void moveShellsOnce(); // Move shells acoording to their direction
-    bool concludeGame();   // Checks if a game is finsihed in a specific turn
+        // === Log Functions === //
+        void initOutputFile();
+        void writeToOutputFile(const std::string &text) const;
 
-    // === Log Functions === //
-    void setOutputFile(const std::string &input_file_path);
+        void logStepActions(const std::map<int, ActionRequest> &actions, std::vector<bool> is_valid_action) const;
+        void logAction(ActionRequest action, bool is_valid, bool is_killed, bool coma) const;
+        void logKilled(bool coma) const;
+        void logComa() const;
+        void logEndOfStep() const;
+        
+        void logWin(int winner, int remaining_tanks) const;
+        void logTie(const std::string &reason) const;
+        void logZeroTanksTie() const;
+        void logZeroShellsTie() const;
+        void logMaxStepsTie() const;
 
-    void logStepActions(const std::map<int, ActionRequest> &actions, std::vector<bool> is_valid_action) const;
-    void logAction(ActionRequest action, bool is_valid, bool is_killed, bool coma) const;
-    void logKilled(bool coma) const;
+        // === Prepare Run Functions === //
+        void prepareForRun(size_t map_width, size_t map_height,
+                           SatelliteView &map,
+                           size_t max_steps, size_t num_shells,
+                           Player &player1, Player &player2,
+                           TankAlgorithmFactory player1_tank_algo_factory,
+                           TankAlgorithmFactory player2_tank_algo_factory);
+        void createPlayers();
+        void createAlgorithms();
 
-    void logComa() const;
-    void logEndOfStep() const;
-    void logWin(int winner, int remaining_tanks) const;
+        // === Helper Functions === //
+        void applyShellsLimitRuleOnRemainingSteps();
 
-    void logTie(const std::string &reason) const;
-    void logZeroTanksTie() const;
-    void logZeroShellsTie() const;
-    void logMaxStepsTie() const;
+    public:
+        // === Constructor for Temp Factory Objects === //
+        GameManager(bool verbose);
 
-    // === Prepare Run Functions === //
-    void prepareForRun();
-    void createPlayers();
-    void createAlgorithms();
+        // === Destructor === //
+        ~GameManager() = default;
 
-    // === Helper Functions === //
-    void applyShellsLimitRuleOnRemainingSteps();
+        // === Copy (Deleted) === //
+        GameManager(const GameManager &) = delete;
+        GameManager &operator=(const GameManager &) = delete;
 
-public:
-    // === Constructor for Temp Factory Objects === //
-    template <DerivedFromPlayerFactory PF, DerivedFromTankAlgorithmFactory AF>
-    GameManager(PF &&player_factory, AF &&tank_algorithm_factory)
-        : board(0, 0),
-          player_factory(std::make_unique<std::decay_t<PF>>(std::forward<PF>(player_factory))),
-          tank_algorithm_factory(std::make_unique<std::decay_t<AF>>(std::forward<AF>(tank_algorithm_factory))) {}
+        // === Move (Deleted) === //
+        GameManager(GameManager &&) = default;
+        GameManager &operator=(GameManager &&) = default;
 
-    // === Destructor === //
-    ~GameManager() = default;
+        // === Public API === //
+        // === Runs Game === //
+        GameResult run(size_t map_width, size_t map_height,
+                       const SatelliteView &map, // <= assume it is a snapshot, NOT updated
+                       size_t max_steps, size_t num_shells, Player &player1, Player &player2,
+                       TankAlgorithmFactory player1_tank_algo_factory,
+                       TankAlgorithmFactory player2_tank_algo_factory) override;
+    };
 
-    // === Copy (Deleted) === //
-    GameManager(const GameManager &) = delete;
-    GameManager &operator=(const GameManager &) = delete;
-
-    // === Move (Deleted) === //
-    GameManager(GameManager &&) = delete;
-    GameManager &operator=(GameManager &&) = delete;
-
-    // === Public API === //
-    // Reads input file into board object.
-    bool readBoard(const std::string &input_file_path);
-
-    // === Runs Game === //
-    void run(DrawingType dt = DrawingType::NONE);
 };

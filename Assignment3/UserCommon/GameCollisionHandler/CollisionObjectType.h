@@ -1,19 +1,23 @@
 #pragma once
 
-#include "../GameObjects/GameObjectType.h" 
+#include "../GameObjects/GameObjectType.h"
+namespace UserCommon_211388913_322330820
+{
 
+    enum class CollisionObjectType
+    {
+        TANK,
+        WALL,
+        MINE,
+        SHELL
+    };
 
-enum class CollisionObjectType {
-    TANK,
-    WALL,
-    MINE,
-    SHELL
-};
-
-namespace CollisionObjectTypeUtils {
-    inline CollisionObjectType fromGameObjectType(GameObjectType t) {
-        switch (t)
+    namespace CollisionObjectTypeUtils
+    {
+        inline CollisionObjectType fromGameObjectType(GameObjectType t)
         {
+            switch (t)
+            {
             case GameObjectType::TANK1:
             case GameObjectType::TANK2:
             case GameObjectType::TANK3:
@@ -32,6 +36,7 @@ namespace CollisionObjectTypeUtils {
                 return CollisionObjectType::SHELL;
             default:
                 return CollisionObjectType::TANK; // should never get here
+            }
         }
     }
 }
