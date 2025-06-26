@@ -3,9 +3,10 @@ namespace UserCommon_211388913_322330820
 {
     // === Static Members === //
     std::map<std::string, std::unique_ptr<Logger>> Logger::output_map;
+    std::mutex Logger::output_mutex;
 
     // ===  Constructors === //
-    Logger::Logger(const std::string &filename)
+    Logger::Logger(const std::string &filename, SecretToken)
     {
         logFile.open(filename, std::ios::app);
     }
@@ -21,20 +22,22 @@ namespace UserCommon_211388913_322330820
     // === Singleton Accessors === //
     Logger &Logger::input()
     {
-        static Logger instance("input_errors.txt");
+        static Logger instance("input_errors.txt", SecretToken{});
         return instance;
     }
 
     Logger &Logger::runtime()
     {
-        static Logger instance("runtime_errors.txt");
+        static Logger instance("runtime_errors.txt", SecretToken{});
         return instance;
     }
 
     Logger &Logger::output(const std::string &file_name)
     {
-        if (!output_map.contains(file_name)){
-            output_map.emplace(file_name, std::unique_ptr<Logger>(new Logger(file_name)));
+        std::lock_guard<std::mutex> lock(output_mutex);
+        if (!output_map.contains(file_name))
+        {
+            output_map.emplace(file_name, std::make_unique<Logger>(file_name, SecretToken{}));
         }
 
         return *output_map.at(file_name);
