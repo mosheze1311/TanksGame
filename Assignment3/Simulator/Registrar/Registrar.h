@@ -63,6 +63,12 @@ public:
     {
         entries.clear();
     }
+
+    // === Operators === //
+    RegistrarEntry< Factory> operator[](std::size_t index)
+    {
+        return entries[index];
+    }
 };
 template <IsFactory Factory>
 Registrar<Factory> Registrar<Factory>::registrar;
