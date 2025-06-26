@@ -41,8 +41,7 @@ namespace UserCommon_211388913_322330820
     // === Interface Implementation === //
     char BoardSatelliteView::getObjectAt(size_t x, size_t y) const
     {
-
-        if (x > this->width || y > this->height) // not checking < 0 since size_t is unsigned
+        if (x >= this->width || y >= this->height) // not checking < 0 since size_t is unsigned
             return static_cast<char>(SpecialSatelliteViewChars::OutOfBounds);
 
         if (BoardCell(x, y) == caller_tank_location)
