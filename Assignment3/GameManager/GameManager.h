@@ -40,10 +40,11 @@ namespace GameManager_211388913_322330820
         GameResult game_result;
         // === Getters === //
         size_t getRemainingSteps() const; // private getter for readability
-        std::vector<GameObjectType> getActiveTankTypes(std::map<GameObjectType, size_t> players_tanks_count) const;
+        std::vector<GameObjectType> getActiveTankTypes(const std::map<GameObjectType, size_t> players_tanks_count) const;
 
         // === Setters === //
         void setRemainingSteps(int num_shells);
+        void setGameResult(size_t winner, GameResult::Reason reason, const std::map<GameObjectType, size_t>& players_tanks_count);
 
         // === Gameplay Function === //
         void advanceStepsClock();
@@ -63,21 +64,16 @@ namespace GameManager_211388913_322330820
         void logKilled(bool coma) const;
         void logComa() const;
         void logEndOfStep() const;
-        
-        void logWin(int winner, int remaining_tanks) const;
-        void logTie(const std::string &reason) const;
-        void logZeroTanksTie() const;
-        void logZeroShellsTie() const;
-        void logMaxStepsTie() const;
+        void logEndOfGameLine() const;
 
         // === Prepare Run Functions === //
         void prepareForRun(size_t map_width, size_t map_height,
-                           SatelliteView &map,
+                           const SatelliteView &map,
                            size_t max_steps, size_t num_shells,
                            Player &player1, Player &player2,
                            TankAlgorithmFactory player1_tank_algo_factory,
                            TankAlgorithmFactory player2_tank_algo_factory);
-        void createPlayers();
+        
         void createAlgorithms();
 
         // === Helper Functions === //
@@ -95,8 +91,8 @@ namespace GameManager_211388913_322330820
         GameManager &operator=(const GameManager &) = delete;
 
         // === Move (Deleted) === //
-        GameManager(GameManager &&) = default;
-        GameManager &operator=(GameManager &&) = default;
+        GameManager(GameManager &&) = delete;
+        GameManager &operator=(GameManager &&) = delete;
 
         // === Public API === //
         // === Runs Game === //

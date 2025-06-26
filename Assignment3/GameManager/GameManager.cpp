@@ -4,6 +4,7 @@
 
 #include "../UserCommon/GameCollisionHandler/GameCollisionHandler.h"
 #include "../UserCommon/Utils/ActionRequestUtils.h"
+#include "../UserCommon/Utils/GameResultUtils.h"
 
 #include <chrono>
 using namespace GameManager_211388913_322330820;
@@ -12,7 +13,7 @@ GameManager::GameManager(bool verbose) : verbose(verbose) {};
 
 // === Prepare Run Functions === //
 void GameManager::prepareForRun(size_t map_width, size_t map_height,
-                                SatelliteView &map,
+                                const SatelliteView &map,
                                 size_t max_steps, size_t num_shells,
                                 Player &player1, Player &player2,
                                 TankAlgorithmFactory player1TankAlgoFactory,
@@ -23,7 +24,7 @@ void GameManager::prepareForRun(size_t map_width, size_t map_height,
     this->initOutputFile();
 
     // Init board and game details
-    this->board = GameBoard(map, map_width, map_height, max_steps, num_shells);
+    this->board.initFromDetails(map, map_width, map_height, max_steps, num_shells);
     this->remaining_steps = this->board.getMaxSteps();
     this->applyShellsLimitRuleOnRemainingSteps();
 
@@ -59,7 +60,7 @@ size_t GameManager::getRemainingSteps() const
     return this->remaining_steps;
 }
 
-std::vector<GameObjectType> GameManager::getActiveTankTypes(std::map<GameObjectType, size_t> players_tanks_count) const
+std::vector<GameObjectType> GameManager::getActiveTankTypes(const std::map<GameObjectType, size_t> players_tanks_count) const
 {
 
     std::vector<GameObjectType> tanks_types_alive;
@@ -76,6 +77,21 @@ std::vector<GameObjectType> GameManager::getActiveTankTypes(std::map<GameObjectT
 void GameManager::setRemainingSteps(int num_steps)
 {
     this->remaining_steps = num_steps;
+}
+void GameManager::setGameResult(size_t winner, GameResult::Reason reason, const std::map<GameObjectType, size_t> &players_tanks_count)
+{
+    this->game_result.winner = winner;
+    this->game_result.rounds = this->board.getMaxSteps() - this->getRemainingSteps();
+    this->game_result.reason = reason;
+
+    size_t n_players = players_tanks_count.size();
+    this->game_result.remaining_tanks = std::vector<size_t>(n_players);
+    for (auto &[tank_type, count] : players_tanks_count)
+    {
+        size_t player_id = GameObjectTypeUtils::tankTypeToPlayerIndex(tank_type);
+        this->game_result.remaining_tanks[player_id - 1] = count;
+    }
+    this->game_result.gameState = std::make_unique<BoardSatelliteView>(this->TakeSatelliteImage());
 }
 
 // === Log Functions === //
@@ -98,11 +114,12 @@ void GameManager::initOutputFile()
     oss << "_" << std::setw(NUM_DIGITS) << std::setfill('0') << fractional_part;
 
     this->output_file_name = "output_GameManager_211388913_322330820" + oss.str() + ".txt";
-
 }
 
-void GameManager::writeToOutputFile(const std::string &text) const{
-    if (!verbose){
+void GameManager::writeToOutputFile(const std::string &text) const
+{
+    if (!verbose)
+    {
         return;
     }
 
@@ -165,42 +182,10 @@ void GameManager::logEndOfStep() const
     this->writeToOutputFile("\n");
 }
 
-void GameManager::logWin(int winner, int remaining_tanks) const
+void GameManager::logEndOfGameLine() const
 {
-    std::string winning_text = "Player " + std::to_string(winner) + " won with " + std::to_string(remaining_tanks) + " tanks still alive\n";
-    this->writeToOutputFile(winning_text);
+    this->writeToOutputFile(GameResultUtils::endOfGameLine(this->game_result) + "\n");
 }
-
-void GameManager::logTie(const std::string &reason) const
-{
-    this->writeToOutputFile("Tie, " + reason + "\n");
-}
-
-void GameManager::logZeroTanksTie() const
-{
-    logTie("both players have zero tanks");
-}
-
-void GameManager::logMaxStepsTie() const
-{
-
-    std::map<GameObjectType, size_t> players_tanks_count = board.getTanksCountPerType();
-    std::string reason = "reached max steps = " + std::to_string(this->board.getMaxSteps());
-
-    for (const auto &[type, count] : players_tanks_count)
-    {
-        int playerId = GameObjectTypeUtils::tankTypeToPlayerIndex(type);
-        reason += ", player " + std::to_string(playerId) + " has " + std::to_string(count) + " tanks";
-    }
-
-    logTie(reason);
-}
-
-void GameManager::logZeroShellsTie() const
-{
-    logTie("both players have zero shells for " + std::to_string(ConfigReader::getConfig().getStepsAfterShellsEnd()) + " steps");
-}
-
 
 // === Gameplay Functions === //
 std::vector<bool> GameManager::performActionsOnBoard(std::map<int, ActionRequest> actions, BoardSatelliteView &sat_view, GameCollisionHandler &c_handler)
@@ -249,19 +234,21 @@ bool GameManager::concludeGame()
 
     if (tanks_types_alive.size() == 1)
     {
-        this->logWin(GameObjectTypeUtils::tankTypeToPlayerIndex(tanks_types_alive[0]), players_tanks_count[tanks_types_alive[0]]);
+        size_t winner = GameObjectTypeUtils::tankTypeToPlayerIndex(tanks_types_alive[0]);
+        setGameResult(winner, GameResult::Reason::ALL_TANKS_DEAD, players_tanks_count);
         return true;
     }
 
     if (tanks_types_alive.empty())
     {
-        this->logZeroTanksTie();
+        setGameResult(0, GameResult::Reason::ALL_TANKS_DEAD, players_tanks_count);
         return true;
     }
 
     if (this->getRemainingSteps() == 0)
     {
-        this->are_steps_limited_by_shells ? this->logZeroShellsTie() : this->logMaxStepsTie();
+        setGameResult(0, this->are_steps_limited_by_shells ? GameResult::Reason::MAX_STEPS : GameResult::Reason::MAX_STEPS,
+                      players_tanks_count);
         return true;
     }
 
@@ -362,6 +349,7 @@ GameResult GameManager::run(size_t map_width, size_t map_height,
         logStepActions(actions, is_valid_action);
         this->advanceStepsClock();
     }
+    this->logEndOfGameLine();
 
-    return GameResult(0, GameResult::Reason::ALL_TANKS_DEAD, {0, 0});
+    return std::move(this->game_result);
 }
