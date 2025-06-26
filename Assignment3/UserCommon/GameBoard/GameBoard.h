@@ -98,8 +98,6 @@ namespace UserCommon_211388913_322330820
     public:
         // === Constructor === //
         GameBoard();
-        GameBoard(const SatelliteView &sat_view, size_t width, size_t height, size_t max_steps, size_t num_shells);
-
         // === Destructor === //
         ~GameBoard() override = default;
 
@@ -108,10 +106,13 @@ namespace UserCommon_211388913_322330820
         // === Assignment Operator (DELETED) === //
         GameBoard &operator=(const GameBoard &other) = delete;
 
-        // === Move Constructor (DEFAULT) === //
-        GameBoard(GameBoard &&board) = default;
-        //  === Move Assignment Operator (DEFAULT) === //
-        GameBoard &operator=(GameBoard &&other) = default;
+        // === Move Constructor (DELETED) === //
+        GameBoard(GameBoard &&board) = delete;
+        //  === Move Assignment Operator (DELETED) === //
+        GameBoard &operator=(GameBoard &&other) = delete;
+
+        // === Init Board === //
+        void initFromDetails(const SatelliteView &sat_view, size_t width, size_t height, size_t max_steps, size_t num_shells);
 
         // === Getters === //
         size_t getWidth() const override;

@@ -3,6 +3,7 @@
 #include "../GameObjects/GameObjects.h"
 #include "../Utils/GameBoardUtils.h"
 #include "../Utils/GameObjectTypeUtils.h"
+
 namespace UserCommon_211388913_322330820
 {
 
@@ -14,9 +15,15 @@ namespace UserCommon_211388913_322330820
 
     // === Constructor === //
     GameBoard::GameBoard() : board_details(0, 0, 0, 0) {}
-    GameBoard::GameBoard(const SatelliteView &sat_view, size_t width, size_t height, size_t max_steps, size_t num_shells)
-        : board_details(width, height, num_shells, max_steps)
+
+    // === Init Board === //
+    void GameBoard::initFromDetails(const SatelliteView &sat_view, size_t width, size_t height, size_t max_steps, size_t num_shells)
+        
     {
+        board_details.width = width;
+        board_details.height = height;
+        board_details.tanks_num_shells = num_shells;
+        board_details.max_steps = max_steps;
         for (size_t x = 0; x < width; ++x)
         {
             for (size_t y = 0; y < height; ++y)
