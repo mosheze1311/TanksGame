@@ -1,8 +1,13 @@
+# === Compiler and Flags ===
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++20 -fPIC
+CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address -fPIC
 LDFLAGS = -shared -undefined dynamic_lookup
 
+# === Build Folder and Target Executable ===
+BUILD_DIR = build
 TARGET = GameManager_211388913_322330820.so
+
+# === List of Source Files ===
 SRCS = \
 	GameManager.cpp \
 	RegisterManager.cpp \
@@ -21,32 +26,31 @@ SRCS = \
 	../UserCommon/BoardSatelliteView/BoardSatelliteView.cpp \
 	../UserCommon/GameCollisionHandler/GameCollisionHandler.cpp \
 	../UserCommon/Utils/GameBoardUtils.cpp \
-	../UserCommon/Logger/Logger.cpp
+	../UserCommon/Logger/Logger.cpp 
 
+# === Convert SRCS paths to OBJS paths in build ===
 OBJS := $(SRCS)
-OBJS := $(patsubst GameManager.cpp, build/GameManager/GameManager.o, $(OBJS))
-OBJS := $(patsubst RegisterManager.cpp, build/GameManager/RegisterManager.o, $(OBJS))
-OBJS := $(patsubst ../UserCommon/%, build/UserCommon/%, $(OBJS:.cpp=.o))
+OBJS := $(patsubst ../%, %, $(OBJS)) # remove ../ before creating build paths
+OBJS := $(patsubst %, $(BUILD_DIR)/%, $(OBJS:.cpp=.o))
 
-# Rule to create the executable
+# === Rule to Create the Executable ===
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS)  $(OBJS) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) -o $(TARGET)
 
 
-# Rule to compile GameManager and RegisterManager
-build/GameManager/%.o: %.cpp
+# === Compilation Rules ===
+$(BUILD_DIR)/%.o: ../%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Rule to compile UserCommon files
-build/UserCommon/%.o: ../UserCommon/%.cpp
+$(BUILD_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean rule to remove object files and the executable
+# === Clean Rules ===
 clean:
-	rm -f $(OBJS) $(TARGET)
-	rm -f *.l
+	rm -r -f $(BUILD_DIR)
+	rm -f $(TARGET)
 
 # Optional: automatic clean on make
 .PHONY: clean

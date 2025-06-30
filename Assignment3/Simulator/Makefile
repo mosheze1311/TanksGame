@@ -1,11 +1,12 @@
-# Compiler and flags
+# === Compiler and Flags ===
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address
 
-# Target executable
+# === Build Folder and Target Executable ===
+BUILD_DIR = build
 TARGET = simulator_211388913_322330820
 
-# List of source files
+# === List of Source Files ===
 SRCS = \
     main.cpp \
     Simulator.cpp \
@@ -27,24 +28,32 @@ SRCS = \
 	\
 	../UserCommon/BoardSatelliteView/BoardSatelliteView.cpp \
 	../UserCommon/Utils/GameBoardUtils.cpp \
-	../UserCommon/Logger/Logger.cpp
+	../UserCommon/Logger/Logger.cpp 
 
-# Convert source paths to object paths in build/
-OBJS := $(patsubst ../%, build/%, $(SRCS:.cpp=.o))
+	
 
-# Rule to create the executable
+# === Convert SRCS paths to OBJS paths in build ===
+OBJS := $(SRCS)
+OBJS := $(patsubst ../%, %, $(OBJS)) # remove ../ before creating build paths
+OBJS := $(patsubst %, $(BUILD_DIR)/%, $(OBJS:.cpp=.o))
+
+# === Rule to Create the Executable ===
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $(TARGET)
 
-# Rule to compile each .cpp into its corresponding .o in build/
-build/%.o: ../%.cpp
+# === Compilation Rules ===
+$(BUILD_DIR)/%.o: ../%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean rule to remove object files and the executable
+$(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# === Clean Rules ===
 clean:
-	rm -f $(OBJS) $(TARGET)
-	rm -f *.l
+	rm -r -f $(BUILD_DIR)
+	rm -f $(TARGET)
 
 # Optional: automatic clean on make
 .PHONY: clean
