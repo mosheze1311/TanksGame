@@ -4,6 +4,7 @@
 #include "SatelliteView.h"
 
 #include <cstddef> // for size_t
+#include <memory>
 
 class Player
 {

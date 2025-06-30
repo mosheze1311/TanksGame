@@ -1,12 +1,12 @@
 #pragma once
 
-
 #include "GameResult.h"
 #include "SatelliteView.h"
 #include "Player.h"
 #include "TankAlgorithm.h"
 
 #include <functional>
+#include <memory>
 
 class AbstractGameManager
 {

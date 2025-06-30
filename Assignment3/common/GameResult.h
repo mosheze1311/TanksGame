@@ -2,6 +2,7 @@
 
 #include "SatelliteView.h"
 
+#include <memory>
 #include <vector>
 
 struct GameResult {
