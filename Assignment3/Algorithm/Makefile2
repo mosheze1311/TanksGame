@@ -1,12 +1,13 @@
-# === Compiler Config ===
+# === Compiler and Flags ===
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++20 -fPIC
+CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address -fPIC
 LDFLAGS = -shared -undefined dynamic_lookup
 
-# === Output ===
-TARGET = TankAlgorithm_211388913_322330820.so
+# === Build Folder and Target Executable ===
+BUILD_DIR = build
+TARGET = TankAlgorithm_211388913_322330820_Passive.so
 
-# === Source Files ===
+# === List of Source Files ===
 SRCS = \
 	RegisterAlgorithm2.cpp \
 	\
@@ -31,24 +32,29 @@ SRCS = \
 	../UserCommon/BoardSatelliteView/BoardSatelliteView.cpp \
 	../UserCommon/GameCollisionHandler/GameCollisionHandler.cpp \
 	\
-	../UserCommon/Utils/GameBoardUtils.cpp \
+	../UserCommon/AbstractGameBoardView/AbstractGameBoardView.cpp \
 	\
 	../UserCommon/Logger/Logger.cpp
 
-# === Object Files ===
-OBJS = $(SRCS:.cpp=.o)
+# === Convert SRCS paths to OBJS paths in build ===
+OBJS := $(SRCS)
+OBJS := $(patsubst ../%, %, $(OBJS)) # remove ../ before creating build paths
+OBJS := $(patsubst %, $(BUILD_DIR)/%, $(OBJS:.cpp=.o))
 
-# === Default Target ===
-all: $(TARGET)
-
-# === Link into .so ===
+# === Rule to Create the Executable ===
 $(TARGET): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJS) -o $(TARGET)
 
-# === Compile .cpp to .o ===
-%.o: %.cpp
+# === Compilation Rules ===
+$(BUILD_DIR)/%.o: ../%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# === Cleanup ===
+$(BUILD_DIR)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# === Clean Rules ===
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -r -f $(BUILD_DIR)
+	rm -f $(TARGET)

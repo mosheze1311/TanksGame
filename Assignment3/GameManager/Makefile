@@ -1,7 +1,8 @@
 # === Compiler and Flags ===
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address -fPIC
-LDFLAGS = -shared -undefined dynamic_lookup
+LDFLAGS = -shared # these are linux flags
+LDFLAGS = -shared -undefined dynamic_lookup # these are macos flags
 
 # === Build Folder and Target Executable ===
 BUILD_DIR = build
@@ -25,7 +26,7 @@ SRCS = \
 	\
 	../UserCommon/BoardSatelliteView/BoardSatelliteView.cpp \
 	../UserCommon/GameCollisionHandler/GameCollisionHandler.cpp \
-	../UserCommon/Utils/GameBoardUtils.cpp \
+	../UserCommon/AbstractGameBoardView/AbstractGameBoardView.cpp \
 	../UserCommon/Logger/Logger.cpp 
 
 # === Convert SRCS paths to OBJS paths in build ===
