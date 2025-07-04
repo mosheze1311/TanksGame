@@ -17,3 +17,6 @@ tanks_collision_damage=1
 steps_after_shells_end=40
 shoot_cooldown_steps=4
 backward_wait_steps=2
+
+# Simulator
+full_names_on_output=0
