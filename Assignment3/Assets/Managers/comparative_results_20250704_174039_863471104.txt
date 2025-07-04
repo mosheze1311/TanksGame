@@ -1,0 +1,17 @@
+game_map=input1.txt
+algorithm1=TankAlgorithm_211388913_322330820_Passive.so
+algorithm2=TankAlgorithm_211388913_322330820_Aggressive.so
+
+GameManager_211388913_322330820.so
+Player 2 won with 1 tanks still alive
+12
+%   #  # @
+    ##    
+ #  #  @  
+ @ @      
+          
+    ##   #
+# @  # ###
+#  #@ @   
+    #  @# 
+2 @ @#    
