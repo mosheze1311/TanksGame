@@ -1,6 +1,9 @@
-#include <string>
+#pragma once
+
 #include <chrono>
+#include <cmath>
 #include <iomanip>
+#include <string>
 
 namespace UserCommon_211388913_322330820
 {

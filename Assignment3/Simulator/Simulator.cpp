@@ -1,14 +1,12 @@
 #include "Simulator.h"
-#include "Registrar/Registrar.h"
-
 #include "../UserCommon/Utils/Timestamp.h"
 #include "../UserCommon/Utils/GameResultUtils.h"
 #include "../UserCommon/Utils/SatelliteViewUtils.h"
+#include "../UserCommon/Config/ConfigReader.h"
 
+#include <iostream>
 #include <dlfcn.h>
-#include <iostream> // TODO: delete this include
 
-using namespace UserCommon_211388913_322330820;
 // === Private Functions === //
 // === Loading SO Files === //
 void Simulator::loadSOFile(const std::string &filepath)
@@ -16,19 +14,20 @@ void Simulator::loadSOFile(const std::string &filepath)
     void *handle = dlopen(filepath.c_str(), RTLD_NOW);
     if (!handle)
     {
-        Logger::runtime().logLine("Cannot load .so file: " + filepath);
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Cannot load .so file: " + filepath + " | dlerror: " + dlerror());
         return;
     }
-
-    // Print the loaded file name
-    std::cout << "Loaded file: " << filepath << '\n';
+    
+    this->so_handlers.push_back(handle);
+    
 }
-void Simulator::loadAlgorithmFile(const std::string &algorithm_file)
-{
-    Registrar<TankAlgorithmFactory>::getRegistrar().createEntry(algorithm_file);
-    Registrar<PlayerFactory>::getRegistrar().createEntry(algorithm_file);
 
-    loadSOFile(algorithm_file);
+void Simulator::loadAlgorithmFile(const std::string &algorithm_filepath)
+{
+    Registrar<TankAlgorithmFactory>::getRegistrar().createEntry(algorithm_filepath);
+    Registrar<PlayerFactory>::getRegistrar().createEntry(algorithm_filepath);
+
+    loadSOFile(algorithm_filepath);
 
     try
     {
@@ -37,16 +36,16 @@ void Simulator::loadAlgorithmFile(const std::string &algorithm_file)
     }
     catch (InvalidRegistrationEntryException &e)
     {
-        Logger::runtime().logLine("Algorithm/Player were not loaded correctly to registrar");
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Algorithm/Player were not loaded correctly to registrar");
         Registrar<TankAlgorithmFactory>::getRegistrar().deleteLastEntry();
         Registrar<PlayerFactory>::getRegistrar().deleteLastEntry();
     }
 }
-void Simulator::loadManagerFile(const std::string &manager_file)
+void Simulator::loadManagerFile(const std::string &manager_filepath)
 {
-    Registrar<GameManagerFactory>::getRegistrar().createEntry(manager_file);
+    Registrar<GameManagerFactory>::getRegistrar().createEntry(manager_filepath);
 
-    loadSOFile(manager_file);
+    loadSOFile(manager_filepath);
 
     try
     {
@@ -54,7 +53,7 @@ void Simulator::loadManagerFile(const std::string &manager_file)
     }
     catch (InvalidRegistrationEntryException &e)
     {
-        Logger::runtime().logLine("Manager was not loaded correctly to registrar");
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Manager was not loaded correctly to registrar");
         Registrar<GameManagerFactory>::getRegistrar().deleteLastEntry();
     }
 }
@@ -68,11 +67,11 @@ void Simulator::readMapFile(const std::string &game_map_file)
     }
     catch (const MapReadException &e)
     {
-        Logger::runtime().logLine("Failed to read map file: " + game_map_file);
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Failed to read map file: " + game_map_file);
     }
 }
 
-// === Run Modes === //
+// === Comparative Mode === //
 void Simulator::runComparativeMode()
 {
     auto &comparative_args = dynamic_cast<ParsedComparativeCmdArguments &>(*args);
@@ -80,12 +79,12 @@ void Simulator::runComparativeMode()
     readMapFile(comparative_args.getGameMap());
     if (maps_details.empty())
     {
-        Logger::runtime().logLine("No valid maps loaded for comparative mode.\n");
+        UserCommon_211388913_322330820::Logger::runtime().logLine("No valid maps loaded for comparative mode.\n");
         return;
     }
 
     // load managers
-    for (const auto &entry : std::filesystem::directory_iterator(comparative_args.getGameManagerFolders()))
+    for (const auto &entry : std::filesystem::directory_iterator(comparative_args.getGameManagerFolder()))
     {
         if (entry.path().extension() == ".so")
         {
@@ -97,124 +96,111 @@ void Simulator::runComparativeMode()
     loadAlgorithmFile(comparative_args.getAlgorithm1());
     loadAlgorithmFile(comparative_args.getAlgorithm2());
 
-    // TODO: run all with threads
     this->runManagersOnComparativeMode();
 
     // create output file
-    createComparativeOutput();
+    std::string output = createComparativeOutput();
+    this->logToOutputFile(output);
 }
+
 void Simulator::runManagersOnComparativeMode()
 {
-    GameResult a{};
-    BoardSatelliteView a_view = this->maps_details[0].getSatelliteView();
-    a.winner = 1;
-    a.reason = GameResult::ALL_TANKS_DEAD;
-    a.remaining_tanks = {1, 0};
-    a.gameState = std::make_unique<BoardSatelliteView>(a_view);
-    GameResult b{};
-    BoardSatelliteView b_view = this->maps_details[0].getSatelliteView();
-    b.winner = 1;
-    b.reason = GameResult::ALL_TANKS_DEAD;
-    b.gameState = std::make_unique<BoardSatelliteView>(b_view);
-    b.remaining_tanks = {1, 0};
-    GameResult c{};
-    BoardSatelliteView c_view = this->maps_details[0].getSatelliteView();
-    c.winner = 2;
-    c.reason = GameResult::ALL_TANKS_DEAD;
-    c.gameState = std::make_unique<BoardSatelliteView>(c_view);
-    c.remaining_tanks = {0, 1};
-    GameResult d{};
-    BoardSatelliteView d_view = this->maps_details[0].getSatelliteView();
-    d.winner = 0;
-    d.reason = GameResult::ALL_TANKS_DEAD;
-    d.gameState = std::make_unique<BoardSatelliteView>(d_view);
-    d.remaining_tanks = {0, 0};
-
+    size_t tasks_count = Registrar<GameManagerFactory>::getRegistrar().count();
+    size_t num_threads = static_cast<size_t>(this->args->getNumThreads());
+    ThreadPool pool(std::min(num_threads, tasks_count));
     for (auto manager_factory_entry : Registrar<GameManagerFactory>::getRegistrar())
     {
-        auto manager = manager_factory_entry.getFactory()(true);
-        auto player_ptr = Registrar<PlayerFactory>::getRegistrar()[0].getFactory()(1, 1ul, 1ul, 1ul, 1ul);
-        auto algoFactory = Registrar<TankAlgorithmFactory>::getRegistrar()[0].getFactory();
-        auto sat_view = this->maps_details[0].getSatelliteView();
-                            GameResult e = manager->run(this->maps_details[0].getWidth(), this->maps_details[0].getHeight(),
-                                                        sat_view,
-                                                        this->maps_details[0].getMaxSteps(), this->maps_details[0].getNumShells(),
-                                                        *player_ptr, *player_ptr, algoFactory, algoFactory);
-        comparative_results["fifth"] = std::move(e);
-
-        break;
-    }
-
-    comparative_results["first"] = std::move(a);
-    comparative_results["third"] = std::move(c);
-    comparative_results["second"] = std::move(b);
-    comparative_results["fourth"] = std::move(d);
-}
-
-void Simulator::runCompetitiveMode()
-{
-    auto &competitive_args = dynamic_cast<ParsedCompetitiveCmdArguments &>(*args);
-
-    for (const auto &entry : std::filesystem::directory_iterator(competitive_args.getGameMapsFolder()))
-    {
-        if (entry.path().extension() == ".txt")
+        auto runGame = [this, manager_factory_entry]()
         {
-            readMapFile(entry.path().string());
-        }
+            this->runSingleComparativeManager(manager_factory_entry);
+        };
+        num_threads == 0 ? runGame() : pool.enqueueTask(runGame);
     }
-
-    // load manager
-    loadManagerFile(competitive_args.getGameManager());
-
-    // load algorithms
-    for (const auto &entry : std::filesystem::directory_iterator(competitive_args.getAlgorithmsFolder()))
-    {
-        if (entry.path().extension() == ".so")
-        {
-            loadAlgorithmFile(entry.path().string());
-        }
-    }
-
-    // TODO: run all with threads and update scores
-
-    // create output file
-    createCompetitiveOutput();
 }
-void Simulator::runManagersOnCompetitiveMode()
+
+void Simulator::runSingleComparativeManager(RegistrarEntry<GameManagerFactory> manager_factory_entry)
 {
-    competitive_results["algo1"] = 10;
-    competitive_results["algo2"] = 40;
-    competitive_results["algo3"] = 15;
-    competitive_results["algo4"] = 12;
-    competitive_results["algo5"] = 0;
-    competitive_results["algo6"] = 13;
+    // Extract map details
+    auto &map_details = this->maps_details[0];
+    size_t width = map_details.getWidth();
+    size_t height = map_details.getHeight();
+    size_t max_steps = map_details.getMaxSteps();
+    size_t num_shells = map_details.getNumShells();
+
+    // Create players
+    auto player1_ptr = Registrar<PlayerFactory>::getRegistrar()[0].getFactory()(1, width, height, max_steps, num_shells);
+    auto player2_ptr = Registrar<PlayerFactory>::getRegistrar()[1].getFactory()(2, width, height, max_steps, num_shells);
+
+    // Extract algorithms factories
+    auto algo1Factory = Registrar<TankAlgorithmFactory>::getRegistrar()[0].getFactory();
+    auto algo2Factory = Registrar<TankAlgorithmFactory>::getRegistrar()[1].getFactory();
+
+    // Create and run game manager
+    auto manager = manager_factory_entry.getFactory()(this->args->isVerbose());
+    GameResult res = manager->run(
+        width, height,
+        map_details.getSatelliteView(),
+        max_steps, num_shells,
+        *player1_ptr, *player2_ptr,
+        algo1Factory, algo2Factory);
+
+    
+    // Insert result to map
+    this->insertComparativeResult(manager_factory_entry.getName(), std::move(res));
 }
 
-// === Output Files === //
+void Simulator::insertComparativeResult(std::string key, GameResult res)
+{
+    std::lock_guard<std::mutex> lock(this->result_mutex);
+    this->comparative_results[key] = std::move(res);
+}
+
+// === Comparative Output File === //
 std::string Simulator::getComparativeOutputFileName() const
 {
-    return "comparative_results_" + getTimestampForNow() + ".txt";
+    auto comp_args = static_cast<ParsedComparativeCmdArguments &>(*(this->args));
+    std::string managers_folder = comp_args.getGameManagerFolder();
+    return managers_folder + "/comparative_results_" + UserCommon_211388913_322330820::getTimestampForNow() + ".txt";
 }
-std::string Simulator::getCompetitiveOutputFileName() const
+
+std::string Simulator::createComparativeOutput() const
 {
-    return "competition_" + getTimestampForNow() + ".txt";
+    auto &comparative_args = dynamic_cast<ParsedComparativeCmdArguments &>(*args);
+    std::ostringstream oss;
+
+    oss << "game_map=" << getNameForOutputFile(comparative_args.getGameMap()) << std::endl;
+    oss << "algorithm1=" << getNameForOutputFile(comparative_args.getAlgorithm1()) << std::endl;
+    oss << "algorithm2=" << getNameForOutputFile(comparative_args.getAlgorithm2()) << std::endl;
+    oss << std::endl;
+
+    std::vector<std::pair<std::string, std::vector<std::string>>> sorted_grouped_managers = createSortedGroupedManagers();
+    //  print managers result groups
+    for (size_t i = 0; i < sorted_grouped_managers.size(); ++i)
+    {
+        auto &[representative_manager, group] = sorted_grouped_managers[i];
+        oss << createManagersGroupLine(representative_manager, group);
+
+        if (i != sorted_grouped_managers.size() - 1)
+            oss << std::endl;
+    }
+    return oss.str();
 }
-std::vector<std::pair<std::string, std::vector<std::string>>> Simulator::createSortedGroupedManagers(const std::map<std::string, GameResult> &managers_results) const
+
+std::vector<std::pair<std::string, std::vector<std::string>>> Simulator::createSortedGroupedManagers() const
 {
     /*
     This is a helper function for the createComparativeOutput() method
     */
 
     using namespace UserCommon_211388913_322330820::GameResultUtils; // use the namespace to get the GameResult == operator
-
     // first group the managers with equal result objects
     std::vector<std::pair<std::string, std::vector<std::string>>> sorted_grouped_managers;
-    for (auto &[manager, result] : managers_results)
+    for (auto &[manager, result] : this->comparative_results)
     {
         bool group_exists = false;
         for (auto &[first_manager, equal_managers] : sorted_grouped_managers)
         {
-            if (result == managers_results.at(first_manager))
+            if (result == this->comparative_results.at(first_manager))
             {
                 group_exists = true;
                 equal_managers.push_back(manager);
@@ -236,60 +222,214 @@ std::vector<std::pair<std::string, std::vector<std::string>>> Simulator::createS
 
     return sorted_grouped_managers;
 }
-void Simulator::logManagerGroup(const std::string &representative_manager, const std::vector<std::string> &group,
-                                const std::string &comparative_output_file) const
+
+std::string Simulator::createManagersGroupLine(const std::string &representative_manager, const std::vector<std::string> &group) const
 {
+    std::ostringstream oss;
     for (size_t i = 0; i < group.size(); ++i)
     {
         std::string manager = group[i];
         std::string separator = i < group.size() - 1 ? ", " : "\n";
-        Logger::output(comparative_output_file).log(manager + separator);
+        oss << getNameForOutputFile(manager) << separator;
     }
-
     const GameResult &result = comparative_results.at(representative_manager);
-    Logger::output(comparative_output_file).log(GameResultUtils::toString(result));
+    oss << UserCommon_211388913_322330820::GameResultUtils::toString(result);
+    return oss.str();
 }
 
-void Simulator::createComparativeOutput() const
-{
-    auto &comparative_args = dynamic_cast<ParsedComparativeCmdArguments &>(*args);
-    std::string comparative_output_file = getComparativeOutputFileName();
-
-    Logger::output(comparative_output_file).logLine("game_map=" + comparative_args.getGameMap());
-    Logger::output(comparative_output_file).logLine("algorithm1=" + comparative_args.getAlgorithm1());
-    Logger::output(comparative_output_file).logLine("algorithm2=" + comparative_args.getAlgorithm2());
-    Logger::output(comparative_output_file).logLine("");
-
-    std::vector<std::pair<std::string, std::vector<std::string>>> sorted_grouped_managers = createSortedGroupedManagers(comparative_results);
-    //  print managers result groups
-    for (size_t i = 0; i < sorted_grouped_managers.size(); ++i)
-    {
-        auto &[representative_manager, group] = sorted_grouped_managers[i];
-        logManagerGroup(representative_manager, group, comparative_output_file);
-
-        if (i != sorted_grouped_managers.size() - 1)
-            Logger::output(comparative_output_file).logLine("");
-    }
-}
-
-void Simulator::createCompetitiveOutput() const
+// === Competitive Mode === //
+void Simulator::runCompetitiveMode()
 {
     auto &competitive_args = dynamic_cast<ParsedCompetitiveCmdArguments &>(*args);
-    std::string competition_output_file = getCompetitiveOutputFileName();
 
-    Logger::output(competition_output_file).logLine("game_maps_folder=" + competitive_args.getGameMapsFolder());
-    Logger::output(competition_output_file).logLine("game_manager=" + competitive_args.getGameManager());
-    Logger::output(competition_output_file).logLine("");
+    // read maps
+    for (const auto &entry : std::filesystem::directory_iterator(competitive_args.getGameMapsFolder()))
+    {
+        if (entry.path().extension() == ".txt")
+        {
+            readMapFile(entry.path().string());
+        }
+    }
+
+    // load manager
+    loadManagerFile(competitive_args.getGameManager());
+
+    // load algorithms
+    for (const auto &entry : std::filesystem::directory_iterator(competitive_args.getAlgorithmsFolder()))
+    {
+        if (entry.path().extension() == ".so")
+        {
+            loadAlgorithmFile(entry.path().string());
+        }
+    }
+
+    // run matches using threads
+    this->runManagersOnCompetitiveMode();
+
+    // create output file
+    std::string output = createCompetitiveOutput();
+    this->logToOutputFile(output);
+}
+
+void Simulator::runManagersOnCompetitiveMode()
+{
+    size_t N = Registrar<TankAlgorithmFactory>::getRegistrar().count();
+    size_t K = this->maps_details.size();
+    size_t tasks_count = K * N; // approximately
+    size_t num_threads = static_cast<size_t>(this->args->getNumThreads());
+    ThreadPool pool(std::min(num_threads, tasks_count)); // TODO: maybe assign the min value to num_threads
+    for (size_t k = 0; k < K; ++k)
+    {
+        for (size_t i = 0; i < N; ++i)
+        {
+            size_t j = (i + 1 + (k % (N - 1))) % N;
+
+            if (((2 * (k + 1)) - N) % (2 * (N - 1)) == 0 && j < i) // skip double pairing
+                continue;
+
+            auto runGame = [this, k, i, j]()
+            {
+                this->runSingleCompetitiveMatch(k, i, j);
+            };
+            num_threads == 0 ? runGame() : pool.enqueueTask(runGame);
+        }
+    }
+}
+
+void Simulator::runSingleCompetitiveMatch(size_t map_idx, size_t algorithm1_entry_idx, size_t algorithm2_entry_idx)
+{
+
+    auto &map_details = this->maps_details[map_idx];
+    size_t width = map_details.getWidth();
+    size_t height = map_details.getHeight();
+    size_t max_steps = map_details.getMaxSteps();
+    size_t num_shells = map_details.getNumShells();
+
+    auto algo1_entry = Registrar<TankAlgorithmFactory>::getRegistrar()[algorithm1_entry_idx];
+    auto algo2_entry = Registrar<TankAlgorithmFactory>::getRegistrar()[algorithm2_entry_idx];
+    auto algo1Factory = algo1_entry.getFactory();
+    auto algo2Factory = algo2_entry.getFactory();
+
+    auto player1_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm1_entry_idx].getFactory()(algorithm1_entry_idx, width, height, max_steps, num_shells);
+    auto player2_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm2_entry_idx].getFactory()(algorithm2_entry_idx, width, height, max_steps, num_shells);
+
+    auto manager_factory_entry = Registrar<GameManagerFactory>::getRegistrar()[0];
+    auto manager = manager_factory_entry.getFactory()(this->args->isVerbose());
+    GameResult res = manager->run(
+        width, height,
+        map_details.getSatelliteView(),
+        max_steps, num_shells,
+        *player1_ptr, *player2_ptr,
+        algo1Factory, algo2Factory);
+
+    if (res.winner == 0)
+    {
+        this->insertCompetitiveResult(algo1_entry.getName(), 1ul);
+        this->insertCompetitiveResult(algo2_entry.getName(), 1ul);
+    }
+    else if (res.winner == 1)
+    {
+        this->insertCompetitiveResult(algo1_entry.getName(), 3ul);
+        this->insertCompetitiveResult(algo2_entry.getName(), 0ul);
+    }
+    else // res.winner == 2
+    {
+        this->insertCompetitiveResult(algo1_entry.getName(), 0ul);
+        this->insertCompetitiveResult(algo2_entry.getName(), 3ul);
+    }
+}
+
+void Simulator::insertCompetitiveResult(std::string key, size_t points)
+{
+    std::lock_guard<std::mutex> lock(this->result_mutex);
+    this->competitive_results[key] += points;
+}
+
+// === Competitive Output File === //
+std::string Simulator::getCompetitiveOutputFileName() const
+{
+    auto comp_args = static_cast<ParsedCompetitiveCmdArguments &>(*(this->args));
+    std::string algorithms_folder = comp_args.getAlgorithmsFolder();
+    return algorithms_folder + "/competition_" + UserCommon_211388913_322330820::getTimestampForNow() + ".txt";
+}
+
+std::string Simulator::createCompetitiveOutput() const
+{
+    auto &competitive_args = dynamic_cast<ParsedCompetitiveCmdArguments &>(*args);
+    std::ostringstream oss;
+    oss << "game_maps_folder=" << getNameForOutputFile(competitive_args.getGameMapsFolder()) << std::endl;
+    oss << "game_manager=" << getNameForOutputFile(competitive_args.getGameManager()) << std::endl;
+    oss << std::endl;
 
     std::vector<std::pair<std::string, size_t>> sorted_algorithms(competitive_results.begin(), competitive_results.end());
     std::sort(sorted_algorithms.begin(), sorted_algorithms.end(), [](const auto &a, const auto &b)
               {
                   return a.second > b.second; // descending order by score
               });
-    for (const auto &entry : sorted_algorithms)
+    for (const auto &[algo_path, score] : sorted_algorithms)
     {
-        Logger::output(competition_output_file).logLine(entry.first + " " + std::to_string(entry.second));
+        oss << getNameForOutputFile(algo_path) << " " << score << std::endl;
     }
+
+    return oss.str();
+}
+
+// === Shared Functions === //
+std::string Simulator::getOutputFileName() const
+{
+    switch (args->getSimulatorMode())
+    {
+    case SimulatorMode::Competitive:
+        return getCompetitiveOutputFileName();
+    case SimulatorMode::Comparative:
+        return getComparativeOutputFileName();
+    default:
+        throw std::logic_error("Simulator::getOutputFileName illegal mode"); // should not get here
+    }
+}
+
+void Simulator::logToOutputFile(const std::string &output) const
+{
+    std::string output_mode_file = getOutputFileName();
+    try
+    {
+        UserCommon_211388913_322330820::Logger::output(output_mode_file).log(output);
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "could not write simulator output to file" << std::endl;
+        std::cout << output;
+    }
+}
+
+void Simulator::closeRegistrars()
+{
+    Registrar<GameManagerFactory>::getRegistrar().clear();
+    Registrar<TankAlgorithmFactory>::getRegistrar().clear();
+    Registrar<PlayerFactory>::getRegistrar().clear();
+}
+
+void Simulator::closeSOHandlers(){
+    // clear dependencies
+    this->closeRegistrars();
+    this->comparative_results.clear();
+    this->competitive_results.clear();
+
+    // close so handlers
+    for (void *handler : this->so_handlers)
+    {
+        dlclose(handler);
+    }
+}
+
+std::string Simulator::getNameForOutputFile(const std::string &path) const
+{
+    bool is_full_name = UserCommon_211388913_322330820::ConfigReader::getConfig().getFullNamesOnOutput() == 1;
+    if (is_full_name)
+        return path;
+
+    std::string filename = std::filesystem::path(path).filename().string();
+    return filename;
 }
 
 // === Public Functions == //
@@ -299,7 +439,7 @@ Simulator::Simulator(std::unique_ptr<ParsedCmdArguments> args)
 {
 }
 
-// === Public API === //
+// === Public API === //    
 void Simulator::run()
 {
     std::cout << "Running Simulator with Args:\n";
@@ -317,4 +457,6 @@ void Simulator::run()
         std::cerr << "Unknown simulator mode.\n";
         break;
     }
+
+    this->closeSOHandlers();
 }

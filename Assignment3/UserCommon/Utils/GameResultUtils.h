@@ -2,6 +2,7 @@
 
 #include "../../common/GameResult.h"
 #include "../../common/SatelliteView.h"
+#include "../Config/ConfigReader.h"
 #include "SatelliteViewUtils.h"
 
 namespace UserCommon_211388913_322330820
@@ -85,7 +86,6 @@ namespace UserCommon_211388913_322330820
 			oss << endOfGameLine(result) << std::endl;
 			oss << result.rounds << std::endl;
 			oss << SatelliteViewUtils::toString(*(result.gameState));
-
 			return oss.str();
 		}
 	}

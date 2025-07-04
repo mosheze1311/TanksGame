@@ -49,7 +49,7 @@ namespace Algorithm_211388913_322330820
 
         // if will be able to shoot in the future, wait
         if (this->inShootRange(target) &&
-            GameBoardUtils::isStraightLine(start, target, sat_view.getWidth(), sat_view.getHeight()) && this->getRemainingShells() > 0)
+            sat_view.isStraightLine(start, target) && this->getRemainingShells() > 0)
         {
             return ActionRequest::DoNothing;
         }

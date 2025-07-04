@@ -5,8 +5,6 @@
 #include <sstream>
 #include <iostream>
 
-using namespace UserCommon_211388913_322330820;
-
 // === Consturctor === //
 MapFileParser::MapFileParser(const std::string &input_file_path)
 {
@@ -97,7 +95,7 @@ MapFileParser::MapFileParser(const std::string &input_file_path)
 // === Input File Handling === //
 void MapFileParser::logInputError(const std::string &error_message, bool can_recover)
 {
-    Logger::input().logLine(error_message);
+    UserCommon_211388913_322330820::Logger::input().logLine(error_message);
     if (!can_recover)
         std::cout << error_message << std::endl;
 }
@@ -147,7 +145,7 @@ bool MapFileParser::parseBoardLine(const std::string &line, size_t expected_widt
     for (size_t col = 0; col < cols; col++)
     {
         obj_char = line[col];
-        if (!GameObjectTypeUtils::isValidObjectChar(obj_char))
+        if (!UserCommon_211388913_322330820::GameObjectTypeUtils::isValidObjectChar(obj_char))
         {
             if (obj_char != MapFileParser::empty_space_char)
                 MapFileParser::logInputError("Board line " + std::to_string(row) + ": Invalid char '" + std::string(1, obj_char) + "' in board column " + std::to_string(col) + ". Treated as empty space", true);
@@ -155,7 +153,7 @@ bool MapFileParser::parseBoardLine(const std::string &line, size_t expected_widt
             continue;
         }
 
-        this->sat_view.addObjectAt(BoardCell(col, row), static_cast<GameObjectType>(obj_char));
+        this->sat_view.addObjectAt(UserCommon_211388913_322330820::BoardCell(col, row), static_cast<UserCommon_211388913_322330820::GameObjectType>(obj_char));
     }
 
     return true;
@@ -181,8 +179,11 @@ size_t MapFileParser::getMaxSteps() const
 {
     return this->max_steps;
 }
-
-const BoardSatelliteView &MapFileParser::getSatelliteView() const
+std::string MapFileParser::getMapName() const
+{
+    return this->map_name;
+}
+const SatelliteView &MapFileParser::getSatelliteView() const
 {
     return this->sat_view;
 }

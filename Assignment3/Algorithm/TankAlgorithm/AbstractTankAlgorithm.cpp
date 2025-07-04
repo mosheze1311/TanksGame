@@ -73,18 +73,6 @@ namespace Algorithm_211388913_322330820
         return !cooldowns.isPendingBackwards() && cooldowns.isDoneShootCooldown() && hasShells();
     }
 
-    void AbstractTankAlgorithm::executeShoot()
-    {
-        if (canTankShoot())
-        {
-            BoardCell shell_location = this->assumed_location + this->direction;
-            this->sat_view.addShell(shell_location, this->direction);
-
-            this->cooldowns.beginShoot();
-            this->setRemainingShells(this->getRemainingShells() - 1);
-        }
-    }
-
     bool AbstractTankAlgorithm::canMoveToCell(const BoardCell &cell) const
     {
         return !sat_view.isWallOnCell(cell);
@@ -400,16 +388,56 @@ namespace Algorithm_211388913_322330820
         switch (action)
         {
         case ActionRequest::GetBattleInfo:
-
-            if (cooldowns.isPendingBackwards())
-            {
-                cooldowns.cancelBackwardWait();
-            }
+            this->adjustToGetBattleInfo();
             break;
 
         case ActionRequest::MoveForward:
+            this->adjustToForward();
+            break;
 
-            if (cooldowns.isPendingBackwards())
+        case ActionRequest::MoveBackward:
+            this->adjustToBackward();
+            break;
+
+        case ActionRequest::RotateLeft45:
+        case ActionRequest::RotateLeft90:
+        case ActionRequest::RotateRight45:
+        case ActionRequest::RotateRight90:
+            this->adjustToRotation(action);
+            break;
+
+        case ActionRequest::Shoot:
+            this->adjustToShoot();
+            break;
+
+        case ActionRequest::DoNothing:
+        default:
+            break;
+        }
+    }
+    
+    void AbstractTankAlgorithm::adjustToRotation(ActionRequest rotation){
+        if (!cooldowns.isPendingBackwards())
+        {
+            int steps = (rotation == ActionRequest::RotateLeft45 || rotation == ActionRequest::RotateRight45) ? 1 : 2;
+            bool isLeft = (rotation == ActionRequest::RotateLeft45 || rotation == ActionRequest::RotateLeft90);
+            this->direction = isLeft
+                                  ? DirectionUtils::rotateLeft(this->direction, steps)
+                                  : DirectionUtils::rotateRight(this->direction, steps);
+        }
+    }
+
+    void AbstractTankAlgorithm::adjustToGetBattleInfo()
+    {
+        if (cooldowns.isPendingBackwards())
+        {
+            cooldowns.cancelBackwardWait();
+        }
+    }
+
+    void AbstractTankAlgorithm::adjustToForward()
+    {
+        if (cooldowns.isPendingBackwards())
             {
                 cooldowns.cancelBackwardWait();
             }
@@ -425,56 +453,44 @@ namespace Algorithm_211388913_322330820
                     this->setCurrentLocation(forward_cell);
                 }
             }
-            break;
+    }
 
-        case ActionRequest::MoveBackward:
-            if (cooldowns.isPendingBackwards())
+    void AbstractTankAlgorithm::adjustToBackward()
+    {
+        if (cooldowns.isPendingBackwards())
+        {
+            return;
+        }
+        else if (cooldowns.canImmediateBackwards())
+        {
+            BoardCell backward_cell = getNextCellInDirection(
+                this->assumed_location,
+                DirectionUtils::getOppositeDirection(this->direction));
+            if (canMoveToCell(backward_cell))
             {
-                break;
-            }
-            else if (cooldowns.canImmediateBackwards())
-            {
-                BoardCell backward_cell = getNextCellInDirection(
-                    this->assumed_location,
-                    DirectionUtils::getOppositeDirection(this->direction));
-                if (canMoveToCell(backward_cell))
-                {
-                    this->assumed_location = backward_cell;
-                    cooldowns.extendBackwardsStreak();
-                }
-                else
-                {
-                    cooldowns.cancelBackwardWait();
-                }
+                this->assumed_location = backward_cell;
+                cooldowns.extendBackwardsStreak();
             }
             else
             {
-                cooldowns.startBackwardWait();
+                cooldowns.cancelBackwardWait();
             }
-            break;
+        }
+        else
+        {
+            cooldowns.startBackwardWait();
+        }
+    }
 
-        // TODO: extract this to a function
-        case ActionRequest::RotateLeft45:
-        case ActionRequest::RotateLeft90:
-        case ActionRequest::RotateRight45:
-        case ActionRequest::RotateRight90:
-            if (!cooldowns.isPendingBackwards())
-            {
-                int steps = (action == ActionRequest::RotateLeft45 || action == ActionRequest::RotateRight45) ? 1 : 2;
-                bool isLeft = (action == ActionRequest::RotateLeft45 || action == ActionRequest::RotateLeft90);
-                this->direction = isLeft
-                                      ? DirectionUtils::rotateLeft(this->direction, steps)
-                                      : DirectionUtils::rotateRight(this->direction, steps);
-            }
-            break;
+    void AbstractTankAlgorithm::adjustToShoot()
+    {
+        if (canTankShoot())
+        {
+            BoardCell shell_location = this->assumed_location + this->direction;
+            this->sat_view.addShell(shell_location, this->direction);
 
-        case ActionRequest::Shoot:
-            this->executeShoot();
-            break;
-
-        case ActionRequest::DoNothing:
-        default:
-            break;
+            this->cooldowns.beginShoot();
+            this->setRemainingShells(this->getRemainingShells() - 1);
         }
     }
 
@@ -504,36 +520,36 @@ namespace Algorithm_211388913_322330820
     // === Wrappers for GameBoardUtils Functions === //
     int AbstractTankAlgorithm::distance(const BoardCell &from, const BoardCell &to) const
     {
-        return GameBoardUtils::distance(from, to, getBoardWidth(), getBoardHeight());
+        return sat_view.distance(from, to);
     }
 
     BoardCell AbstractTankAlgorithm::createAdjustedBoardCell(const BoardCell &c) const
     {
-        return GameBoardUtils::createAdjustedBoardCell(c, getBoardWidth(), getBoardHeight());
+        return sat_view.createAdjustedBoardCell(c);
     }
 
     BoardCell AbstractTankAlgorithm::getNextCellInDirection(const BoardCell &c, Direction dir) const
     {
-        return GameBoardUtils::getNextCellInDirection(c, dir, getBoardWidth(), getBoardHeight());
+        return sat_view.getNextCellInDirection(c, dir);
     }
 
     BoardCell AbstractTankAlgorithm::getNextCellInStraightLine(const BoardCell &from, const BoardCell &to) const
     {
-        return GameBoardUtils::getNextCellInStraightLine(from, to, getBoardWidth(), getBoardHeight());
+        return sat_view.getNextCellInStraightLine(from, to);
     }
 
     bool AbstractTankAlgorithm::isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir) const
     {
-        return GameBoardUtils::isDirectionMatch(from, to, dir, getBoardWidth(), getBoardHeight());
+        return sat_view.isDirectionMatch(from, to, dir);
     }
 
     std::vector<BoardCell> AbstractTankAlgorithm::getAdjacentCells(const BoardCell &cell) const
     {
-        return GameBoardUtils::getAdjacentCells(cell, getBoardWidth(), getBoardHeight());
+        return sat_view.getAdjacentCells(cell);
     }
 
     bool AbstractTankAlgorithm::isStraightLine(const BoardCell &from, const BoardCell &to) const
     {
-        return GameBoardUtils::isStraightLine(from, to, getBoardWidth(), getBoardHeight());
+        return sat_view.isStraightLine(from, to);
     }
 }

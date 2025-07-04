@@ -1,27 +1,20 @@
 #include "GameBoard.h"
 
 #include "../GameObjects/GameObjects.h"
-#include "../Utils/GameBoardUtils.h"
 #include "../Utils/GameObjectTypeUtils.h"
 
 namespace UserCommon_211388913_322330820
 {
 
-    // === BoardDetails Constructor === //
-    GameBoard::BoardDetails::BoardDetails(size_t width, size_t height,
-                                          size_t num_shells, size_t max_steps) : width(width), height(height),
-                                                                                 max_steps(max_steps), tanks_num_shells(num_shells),
-                                                                                 walls(0), mines(0), shells(0), remaining_shells(0) {};
-
     // === Constructor === //
-    GameBoard::GameBoard() : board_details(0, 0, 0, 0) {}
+    GameBoard::GameBoard() : AbstractGameBoardView(0, 0, 0, 0) {}
 
     // === Init Board === //
     void GameBoard::initFromDetails(const SatelliteView &sat_view, size_t width, size_t height, size_t max_steps, size_t num_shells)
-        
+
     {
-        board_details.width = width;
-        board_details.height = height;
+        this->setWidth(width);
+        this->setHeight(height);
         board_details.tanks_num_shells = num_shells;
         board_details.max_steps = max_steps;
         for (size_t x = 0; x < width; ++x)
@@ -149,91 +142,7 @@ namespace UserCommon_211388913_322330820
         this->board_details.remaining_shells--;
     }
 
-    BoardCell GameBoard::createBoardCell(int x, int y) const
-    {
-        return this->createAdjustedBoardCell(BoardCell(x, y));
-    }
-
-    BoardCell GameBoard::createAdjustedBoardCell(const BoardCell &c) const
-    {
-        return GameBoardUtils::createAdjustedBoardCell(c, this->getWidth(), this->getHeight());
-    }
-
     // === Getters === //
-    size_t GameBoard::getWidth() const
-    {
-        return this->board_details.width;
-    }
-
-    size_t GameBoard::getHeight() const
-    {
-        return this->board_details.height;
-    }
-
-    size_t GameBoard::getMaxSteps() const
-    {
-        return this->board_details.max_steps;
-    }
-
-    size_t GameBoard::getTanksNumShells() const
-    {
-        return this->board_details.tanks_num_shells;
-    }
-
-    std::map<GameObjectType, size_t> GameBoard::getTanksCountPerType() const
-    {
-        return this->board_details.tanks_count;
-    }
-
-    int GameBoard::getGameObjectCount(const GameObjectType type) const
-    {
-        switch (type)
-        {
-        case GameObjectType::TANK1:
-        case GameObjectType::TANK2:
-        case GameObjectType::TANK3:
-        case GameObjectType::TANK4:
-        case GameObjectType::TANK5:
-        case GameObjectType::TANK6:
-        case GameObjectType::TANK7:
-        case GameObjectType::TANK8:
-        case GameObjectType::TANK9:
-            try
-            {
-                return this->board_details.tanks_count.at(type);
-            }
-            catch (const std::out_of_range &e)
-            {
-                return 0;
-            }
-        case GameObjectType::WALL:
-            return this->board_details.walls;
-        case GameObjectType::SHELL:
-            return this->board_details.shells;
-        case GameObjectType::MINE:
-            return this->board_details.mines;
-
-        default: // should not get here
-            return 0;
-        }
-    }
-
-    int GameBoard::getTotalRemainingShells() const
-    {
-        return this->board_details.remaining_shells;
-    }
-
-    std::vector<BoardCell> GameBoard::getOccupiedCells() const
-    {
-        std::vector<BoardCell> occupied_cells;
-        for (auto iter : this->board)
-        {
-            occupied_cells.push_back(iter.first);
-        }
-
-        return occupied_cells;
-    }
-
     std::unordered_set<GameObject *> GameBoard::getObjectsOnCell(const BoardCell &c) const
     {
         auto it = board.find(c);
@@ -243,17 +152,7 @@ namespace UserCommon_211388913_322330820
         }
         return {};
     }
-
-    std::unordered_set<GameObjectType> GameBoard::getObjectsTypesOnCell(const BoardCell &c) const
-    {
-        std::unordered_set<GameObjectType> res;
-        for (GameObject *go : this->getObjectsOnCell(c))
-        {
-            res.insert(go->getObjectType());
-        }
-        return res;
-    }
-
+    
     std::optional<BoardCell> GameBoard::getObjectLocation(const GameObject *obj) const
     {
         auto iter = this->objects_locations.find(const_cast<GameObject *>(obj));
@@ -324,6 +223,28 @@ namespace UserCommon_211388913_322330820
         return res;
     }
 
+    // === Override === //
+    std::vector<BoardCell> GameBoard::getOccupiedCells() const
+    {
+        std::vector<BoardCell> occupied_cells;
+        for (auto iter : this->board)
+        {
+            occupied_cells.push_back(iter.first);
+        }
+
+        return occupied_cells;
+    }
+
+    std::unordered_set<GameObjectType> GameBoard::getObjectsTypesOnCell(const BoardCell &c) const
+    {
+        std::unordered_set<GameObjectType> res;
+        for (GameObject *go : this->getObjectsOnCell(c))
+        {
+            res.insert(go->getObjectType());
+        }
+        return res;
+    }
+
     // === Board State === //
     bool GameBoard::isOccupiedCell(const BoardCell &c) const
     {
@@ -332,29 +253,7 @@ namespace UserCommon_211388913_322330820
 
     bool GameBoard::isObjectOnBoard(const GameObject *obj) const
     {
-        // TODO: const cast
         return this->objects_locations.find(const_cast<GameObject *>(obj)) != this->objects_locations.end();
-    }
-
-    // === Setters === //
-    void GameBoard::setWidth(size_t width)
-    {
-        this->board_details.width = width;
-    }
-
-    void GameBoard::setHeight(size_t height)
-    {
-        this->board_details.height = height;
-    }
-
-    void GameBoard::setMaxSteps(size_t max_steps)
-    {
-        this->board_details.max_steps = max_steps;
-    }
-
-    void GameBoard::setTanksNumShells(size_t tanks_num_shells)
-    {
-        this->board_details.tanks_num_shells = tanks_num_shells;
     }
 
     // === Modify Board Functions === //

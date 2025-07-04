@@ -4,13 +4,15 @@
 
 #include "SpecialSatelliteViewChars.h"
 
-#include "../GameBoard/GameBoard.h"
+#include "../AbstractGameBoardView/AbstractGameBoardView.h"
+#include "../GameObjects/GameObjectType.h"
 
 #include <vector>
 #include <map>
+
+#include <iostream>
 namespace UserCommon_211388913_322330820
 {
-
     class BoardSatelliteView : public SatelliteView
     {
     private:
@@ -23,7 +25,8 @@ namespace UserCommon_211388913_322330820
     public:
         // === Constructor === //
         BoardSatelliteView();
-        explicit BoardSatelliteView(const GameBoard &board); // for GameManager
+        ~BoardSatelliteView() override = default;
+        explicit BoardSatelliteView(const AbstractGameBoardView &board); // for GameManager
 
         // === Setters For Map Parser - Not From Interface === //
         void setCallerTankLocation(const BoardCell &c);

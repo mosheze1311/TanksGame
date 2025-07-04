@@ -5,9 +5,8 @@
 
 #include "../GameBoard/GameBoard.h"
 #include "../GameObjects/GameObjects.h"
+#include "../AbstractGameBoardView/AbstractGameBoardView.h"
 #include "../BoardSatelliteView/BoardSatelliteView.h"
-#include "../GameBoardView/GameBoardView.h"
-#include "../Utils/GameBoardUtils.h"
 #include "../Utils/DirectionUtils.h"
 
 #include <map>
@@ -42,12 +41,23 @@ namespace UserCommon_211388913_322330820
         // === Attributes === //
         GameBoardShallowCopy previous_board;
         GameBoard &updated_board;
-        static const CollisionMap explosion_map;
-        static const CollisionMap prevention_map;
+        
+        // === Static Members - Collision maps === //
+        inline static const CollisionMap explosion_map = {
+            {CollisionObjectType::MINE, {CollisionObjectType::TANK}},
+            {CollisionObjectType::TANK, {CollisionObjectType::MINE, CollisionObjectType::TANK, CollisionObjectType::SHELL}},
+            {CollisionObjectType::SHELL, {CollisionObjectType::SHELL, CollisionObjectType::TANK, CollisionObjectType::WALL}},
+            {CollisionObjectType::WALL, {CollisionObjectType::SHELL}}};
+
+        inline static const CollisionMap prevention_map = {
+            {CollisionObjectType::MINE, {CollisionObjectType::WALL}},
+            {CollisionObjectType::TANK, {CollisionObjectType::WALL}},
+            {CollisionObjectType::SHELL, {}},
+            {CollisionObjectType::WALL, {CollisionObjectType::TANK, CollisionObjectType::MINE}}};
 
         // === Static Functions === //
         // check for collisions regarding the collision map
-        static bool isCollidingOnCell(const CollisionMap &collision_map, const GameBoardView &board, GameObjectType obj_type, BoardCell c);
+        static bool isCollidingOnCell(const CollisionMap &collision_map, const AbstractGameBoardView &board, GameObjectType obj_type, BoardCell c);
 
         // explosion list
         static const std::unordered_set<CollisionObjectType> getCollidingTypes(const CollisionMap &collision_map, GameObjectType t);
@@ -72,8 +82,8 @@ namespace UserCommon_211388913_322330820
         void handleCollisions();
 
         // === Static Functions === //
-        static bool isObjectAllowedToStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c);
+        static bool isObjectAllowedToStepOn(const AbstractGameBoardView &board, GameObjectType obj_type, BoardCell c);
 
-        static bool canObjectSafelyStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c);
+        static bool canObjectSafelyStepOn(const AbstractGameBoardView &board, GameObjectType obj_type, BoardCell c);
     };
 }

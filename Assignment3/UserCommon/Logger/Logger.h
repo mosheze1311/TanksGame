@@ -17,11 +17,11 @@ namespace UserCommon_211388913_322330820
         {
         };
 
-        // === Static Members === //
-        static std::mutex output_mutex;
-        static std::map<std::string, std::unique_ptr<Logger>> output_map;
+        // === Nifty Idiom Static Members === //
+        static std::mutex &getOutputMutex();
+        static std::map<std::string, std::unique_ptr<Logger>>& getOutputMap();
 
-        // === Attributes ===  //
+        // === Attributes === //
         std::ofstream logFile;
         std::mutex logMutex;
 

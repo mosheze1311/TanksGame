@@ -101,7 +101,7 @@ namespace UserCommon_211388913_322330820
     {
         if (auto current_cell = this->getCurrentCell())
         {
-            return GameBoardUtils::getNextCellInDirection(current_cell.value(), this->getDirection(), board.getWidth(), board.getHeight());
+            return board.getNextCellInDirection(current_cell.value(), this->getDirection());
         }
         return std::nullopt;
     }
@@ -119,7 +119,7 @@ namespace UserCommon_211388913_322330820
     {
         if (auto current_cell = this->getCurrentCell())
         {
-            return GameBoardUtils::getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()), board.getWidth(), board.getHeight());
+            return board.getNextCellInDirection(current_cell.value(), DirectionUtils::getOppositeDirection(this->getDirection()));
         }
         return std::nullopt;
     }

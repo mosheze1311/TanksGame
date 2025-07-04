@@ -49,8 +49,8 @@ public:
 
     // === Public Functions === //
     // === Getters === //
-    std::string getName() { return this->name; }
-    Factory getFactory() { return this->factory; }
+    std::string getName() const { return this->name; }
+    Factory getFactory() const { return this->factory; }
 
     // === Setters === //
     virtual void setFactory(const Factory &factory)

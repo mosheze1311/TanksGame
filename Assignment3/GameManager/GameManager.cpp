@@ -1,12 +1,11 @@
-#include "../UserCommon/Config/ConfigReader.h"
-
 #include "GameManager.h"
 
+#include "../UserCommon/Config/ConfigReader.h"
 #include "../UserCommon/GameCollisionHandler/GameCollisionHandler.h"
+#include "../UserCommon/Utils/Timestamp.h"
 #include "../UserCommon/Utils/ActionRequestUtils.h"
 #include "../UserCommon/Utils/GameResultUtils.h"
 
-#include <chrono>
 using namespace GameManager_211388913_322330820;
 // === Constructor === //
 GameManager::GameManager(bool verbose) : verbose(verbose) {};
@@ -78,6 +77,7 @@ void GameManager::setRemainingSteps(int num_steps)
 {
     this->remaining_steps = num_steps;
 }
+
 void GameManager::setGameResult(size_t winner, GameResult::Reason reason, const std::map<GameObjectType, size_t> &players_tanks_count)
 {
     this->game_result.winner = winner;
@@ -97,23 +97,7 @@ void GameManager::setGameResult(size_t winner, GameResult::Reason reason, const 
 // === Log Functions === //
 void GameManager::initOutputFile()
 {
-    // Get current time
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::chrono::duration<double> ts = now.time_since_epoch();
-
-    //  Format timestamp to date/time
-    std::ostringstream oss;
-    oss << std::put_time(std::localtime(&now_c), "%Y%m%d_%H%M%S");
-
-    // Append high-precision fraction
-    constexpr size_t NUM_DIGITS = 9;
-    size_t NUM_DIGITS_P = std::pow(10, NUM_DIGITS);
-    size_t fractional_part = size_t(ts.count() * NUM_DIGITS_P) % NUM_DIGITS_P;
-
-    oss << "_" << std::setw(NUM_DIGITS) << std::setfill('0') << fractional_part;
-
-    this->output_file_name = "output_GameManager_211388913_322330820" + oss.str() + ".txt";
+    this->output_file_name = "output_GameManager_211388913_322330820" + getTimestampForNow() + ".txt";
 }
 
 void GameManager::writeToOutputFile(const std::string &text) const

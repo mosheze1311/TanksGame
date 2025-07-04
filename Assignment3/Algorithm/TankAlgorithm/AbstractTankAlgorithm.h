@@ -45,12 +45,17 @@ namespace Algorithm_211388913_322330820
         // Called internally by getAction(), which also handles state adjustments before and after getActionLogic().
         virtual ActionRequest getActionLogic() const = 0;
 
+        // === Adjusting self parameters to the requested action === //
         void adjustSelfToAction(ActionRequest action);
+        void adjustToForward();
+        void adjustToBackward();
+        void adjustToRotation(ActionRequest rotation);
+        void adjustToShoot();
+        void adjustToGetBattleInfo ();
 
         // === Manage Shooting === //
         bool canTankShoot() const;
         bool hasShells() const;
-        void executeShoot();
 
         // === Step Logic === //
         void advanceStep();
@@ -90,7 +95,6 @@ namespace Algorithm_211388913_322330820
         BoardCell getCurrentLocation() const;
         Direction getTankDirection() const;
         size_t getCurrentStep() const;
-        size_t getShootCooldown() const;
         size_t getTankIdx() const;
         GameObjectType getTankType() const;
 

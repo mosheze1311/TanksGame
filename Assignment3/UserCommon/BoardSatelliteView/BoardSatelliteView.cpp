@@ -4,7 +4,7 @@ namespace UserCommon_211388913_322330820
 
     // === Constructor === //
     BoardSatelliteView::BoardSatelliteView() {};
-    BoardSatelliteView::BoardSatelliteView(const GameBoard &board) : width(board.getWidth()), height(board.getHeight())
+    BoardSatelliteView::BoardSatelliteView(const AbstractGameBoardView &board) : width(board.getWidth()), height(board.getHeight())
     {
         // if more than one object on cell, and one of the objects is a shell - saves the shell.
         // else - saves the first one in the unordered-set.

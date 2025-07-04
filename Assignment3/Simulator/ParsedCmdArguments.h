@@ -1,12 +1,14 @@
 #pragma once
 
-#include <string>
-#include <set>
-#include <map>
+#include <algorithm>
 #include <iostream>
-#include <sstream>
-#include <memory>
 #include <filesystem>
+#include <map>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -25,6 +27,7 @@ public:
     std::set<std::string> unexpected_args;
     std::set<std::string> missing_values;
 
+    std::map<std::string, std::string> bad_integers;
     std::map<std::string, std::string> bad_filenames;
     std::map<std::string, std::string> bad_dirs;
 
@@ -36,6 +39,7 @@ public:
         oss << formatSetSection("  Missing required arguments:\n", expected_args);
         oss << formatSetSection("  Unexpected arguments:\n", unexpected_args);
         oss << formatSetSection("  Arguments with missing values:\n", missing_values);
+        oss << formatMapSection("  Arguments with invalid integer values:\n", bad_integers);
         oss << formatMapSection("  Arguments with invalid files:\n", bad_filenames);
         oss << formatMapSection("  Arguments with invalid directories:\n", bad_dirs);
 
@@ -65,7 +69,6 @@ private:
         return oss.str();
     }
 };
-
 
 inline std::ostream &operator<<(std::ostream &os, const BadArgsException &ex)
 {
@@ -108,7 +111,6 @@ protected:
                 return;
             }
         }
-        // TODO: maybe raise error if we want it???
     }
     void parseArgFromArgs(const std::string &name, int &attr, const std::vector<std::string> &arguments_vec)
     {
@@ -121,20 +123,16 @@ protected:
         {
             attr = std::stoi(temp);
         }
-        catch (const std::invalid_argument &e)
+        catch (const std::exception &e)
         {
-            std::cerr << "Invalid argument for '" << name << "': expected an integer, got '" << temp << "'\n";
-            // TODO: maybe raise error if we want it???
-        }
-        catch (const std::out_of_range &e)
-        {
-            std::cerr << "Out of range argument for '" << name << "': '" << temp << "' is too large\n";
-            // TODO: maybe raise error if we want it???
+            BadArgsException ex;
+            ex.bad_integers[name] = temp;
+            throw ex;
         }
     }
 
     // === CMD Arguments Validation === //
-    void validateArguments(std::vector<std::string> &arguments_vec)
+    void validateArguments(const std::vector<std::string> &arguments_vec)
     {
         std::set<std::string> optional_args = this->getOptionalArgs();
         std::set<std::string> required_args = this->getRequiredArgs();
@@ -145,6 +143,7 @@ protected:
         std::set<std::string> unexpected_args;
         std::set<std::string> missing_values;
 
+        std::map<std::string, std::string> bad_integers;
         std::map<std::string, std::string> bad_filenames;
         std::map<std::string, std::string> bad_dirs;
         for (size_t i = 0; i < arguments_vec.size(); ++i)
@@ -176,7 +175,7 @@ protected:
                 bad_filenames[arg] = value;
             }
 
-            if (dir_args.contains(arg) && !this->folderHasMatchingFiles(value, dir_args[arg])) // argument value should be a folder with so files
+            if (dir_args.contains(arg) && !this->folderHasMatchingFiles(value, dir_args[arg])) // argument value should be a folder with specific files
             {
                 bad_dirs[arg] = value;
             }
@@ -189,9 +188,10 @@ protected:
                 expected_args,
                 unexpected_args,
                 missing_values,
+
+                bad_integers,
                 bad_filenames,
-                bad_dirs
-            );
+                bad_dirs);
         }
     }
 
@@ -234,13 +234,12 @@ protected:
 
 public:
     // === Constructors === //
-    ParsedCmdArguments(SimulatorMode mode, int num_threads, bool verbose)
-        : mode(mode), num_threads(num_threads), verbose(verbose) {};
-
     ParsedCmdArguments(SimulatorMode mode, const std::vector<std::string> &arguments_vec) : mode(mode)
     {
         this->parseArgFromArgs("num_threads", this->num_threads, arguments_vec);
         this->parseFlagFromArgs("-verbose", this->verbose, arguments_vec);
+        if (this->num_threads <= 1)
+            this->num_threads = 0;
     };
 
     // === Destructor === //
@@ -274,6 +273,7 @@ public:
         return oss.str();
     }
 };
+
 class ParsedComparativeCmdArguments : public ParsedCmdArguments
 {
 
@@ -301,14 +301,7 @@ protected:
 
 public:
     // === Constructors === //
-    ParsedComparativeCmdArguments(std::string game_map, std::string game_managers_folder,
-                                  std::string algorithm1, std::string algorithm2,
-                                  int num_threads, bool verbose)
-        : ParsedCmdArguments(SimulatorMode::Comparative, num_threads, verbose),
-          game_map(game_map), game_managers_folder(game_managers_folder),
-          algorithm1(algorithm1), algorithm2(algorithm2) {}
-
-    ParsedComparativeCmdArguments(std::vector<std::string> arguments_vec) : ParsedCmdArguments(SimulatorMode::Comparative, arguments_vec)
+    explicit ParsedComparativeCmdArguments(const std::vector<std::string> &arguments_vec) : ParsedCmdArguments(SimulatorMode::Comparative, arguments_vec)
     {
         this->validateArguments(arguments_vec);
 
@@ -323,16 +316,22 @@ public:
 
     // === Getters === //
     std::string getGameMap() const { return this->game_map; }
-    std::string getGameManagerFolders() const { return this->game_managers_folder; }
+    std::string getGameManagerFolder() const { return this->game_managers_folder; }
     std::string getAlgorithm1() const { return this->algorithm1; }
     std::string getAlgorithm2() const { return this->algorithm2; }
 
     // === Usage Message Getter === //
     std::string getUsageDescriptionMessage() const override
     {
-        // TODO: write messsage
-        return "";
-    };
+        std::ostringstream oss;
+        oss << "Usage for simulator in competition mode:\n"
+            << "game_map=<game_map_filename>\n"
+            << "game_managers_folder=<game_managers_folder>\n"
+            << "algorithm1 = <algorithm_so_filename> algorithm2 = <algorithm_so_filename>\n"
+            << "[num_threads=<num>] [-verbose]";
+
+        return oss.str();
+    }
 
     // === toString helper === //
     std::string toString() const override
@@ -346,6 +345,7 @@ public:
         return oss.str();
     }
 };
+
 class ParsedCompetitiveCmdArguments : public ParsedCmdArguments
 {
 private:
@@ -371,13 +371,7 @@ protected:
 
 public:
     // === Constructors === //
-    ParsedCompetitiveCmdArguments(std::string game_maps_folder, std::string game_manager,
-                                  std::string algorithms_folder, int num_threads, bool verbose)
-        : ParsedCmdArguments(SimulatorMode::Competitive, num_threads, verbose),
-          game_maps_folder(game_maps_folder), game_manager(game_manager),
-          algorithms_folder(algorithms_folder) {};
-
-    ParsedCompetitiveCmdArguments(std::vector<std::string> arguments_vec) : ParsedCmdArguments(SimulatorMode::Competitive, arguments_vec)
+    explicit ParsedCompetitiveCmdArguments(const std::vector<std::string> &arguments_vec) : ParsedCmdArguments(SimulatorMode::Competitive, arguments_vec)
     {
         this->validateArguments(arguments_vec);
 
@@ -397,9 +391,13 @@ public:
     // === Usage Message Getter === //
     std::string getUsageDescriptionMessage() const override
     {
-        // TODO: write messsage
-        return "";
-    };
+        std::ostringstream oss;
+        oss << "Usage for simulator in competition mode:\n"
+            << "game_maps_folder=<game_maps_folder>\n"
+            << "game_manager=<game_manager_so_filename> algorithms_folder=<algorithms_folder>\n"
+            << "[num_threads=<num>] [-verbose]";
+        return oss.str();
+    }
 
     // === toString helper === //
     std::string toString() const override

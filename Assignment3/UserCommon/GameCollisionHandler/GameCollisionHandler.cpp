@@ -7,18 +7,6 @@ namespace UserCommon_211388913_322330820
 
     GameCollisionHandler::~GameCollisionHandler() {}
 
-    // === Static Members - Collision maps === //
-    const CollisionMap GameCollisionHandler::explosion_map = {
-        {CollisionObjectType::MINE, {CollisionObjectType::TANK}},
-        {CollisionObjectType::TANK, {CollisionObjectType::MINE, CollisionObjectType::TANK, CollisionObjectType::SHELL}},
-        {CollisionObjectType::SHELL, {CollisionObjectType::SHELL, CollisionObjectType::TANK, CollisionObjectType::WALL}},
-        {CollisionObjectType::WALL, {CollisionObjectType::SHELL}}};
-
-    const CollisionMap GameCollisionHandler::prevention_map = {
-        {CollisionObjectType::MINE, {CollisionObjectType::WALL}},
-        {CollisionObjectType::TANK, {CollisionObjectType::WALL}},
-        {CollisionObjectType::SHELL, {}},
-        {CollisionObjectType::WALL, {CollisionObjectType::TANK, CollisionObjectType::MINE}}};
 
     // === Member Functions === //
     void GameCollisionHandler::handleCollisions()
@@ -132,7 +120,7 @@ namespace UserCommon_211388913_322330820
             {
                 Shell *shell = static_cast<Shell *>(shell_obj);
                 BoardCell shell_current_location = updated_board.getObjectLocation(shell_obj).value(); // immediate unwrap optioanl since object is on board
-                BoardCell shell_shot_location = GameBoardUtils::getNextCellInDirection(shell_current_location, DirectionUtils::getOppositeDirection(shell->getDirection()), updated_board.getWidth(), updated_board.getHeight());
+                BoardCell shell_shot_location = updated_board.getNextCellInDirection(shell_current_location, DirectionUtils::getOppositeDirection(shell->getDirection()));
                 this->previous_board.addObject(shell, shell_shot_location);
             }
         }
@@ -149,12 +137,12 @@ namespace UserCommon_211388913_322330820
     }
 
     // === Static Functions === //
-    bool GameCollisionHandler::isObjectAllowedToStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c)
+    bool GameCollisionHandler::isObjectAllowedToStepOn(const AbstractGameBoardView &board, GameObjectType obj_type, BoardCell c)
     {
         return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::prevention_map, board, obj_type, c);
     }
 
-    bool GameCollisionHandler::canObjectSafelyStepOn(const GameBoardView &board, GameObjectType obj_type, BoardCell c)
+    bool GameCollisionHandler::canObjectSafelyStepOn(const AbstractGameBoardView &board, GameObjectType obj_type, BoardCell c)
     {
         if (!GameCollisionHandler::isObjectAllowedToStepOn(board, obj_type, c))
         {
@@ -164,7 +152,7 @@ namespace UserCommon_211388913_322330820
         return !GameCollisionHandler::isCollidingOnCell(GameCollisionHandler::explosion_map, board, obj_type, c);
     }
 
-    bool GameCollisionHandler::isCollidingOnCell(const CollisionMap &collision_map, const GameBoardView &board, GameObjectType obj_type, BoardCell c)
+    bool GameCollisionHandler::isCollidingOnCell(const CollisionMap &collision_map, const AbstractGameBoardView &board, GameObjectType obj_type, BoardCell c)
     {
         const std::unordered_set<CollisionObjectType> collidors = getCollidingTypes(collision_map, obj_type);
         if (collidors.empty())

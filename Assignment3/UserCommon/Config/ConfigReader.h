@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../GameObjects/Direction.h"
+#include "../Logger/Logger.h"
 
 #include <fstream>
 #include <string>
@@ -48,13 +49,19 @@ namespace UserCommon_211388913_322330820
         size_t shoot_cooldown_steps = 4;
         size_t backward_wait_steps = 2;
 
+        // simulator
+        size_t full_names_on_output = 0;
+
         // === Constructor === //
         explicit ConfigReader(const std::string file_path)
         {
             std::ifstream config_file(file_path, std::ios::in);
 
             if (!config_file)
+            {
+                Logger::runtime().logLine("Config file inaccessible - using default values");
                 return; // can't open file - stick to default values
+            }
 
             std::string line;
             while (std::getline(config_file, line))
@@ -89,6 +96,7 @@ namespace UserCommon_211388913_322330820
                 {"steps_after_shells_end", &ConfigReader::steps_after_shells_end},
                 {"shoot_cooldown_steps", &ConfigReader::shoot_cooldown_steps},
                 {"backward_wait_steps", &ConfigReader::backward_wait_steps},
+                {"full_names_on_output", &ConfigReader::full_names_on_output},
             };
 
             auto it = key_map.find(key);
@@ -185,11 +193,12 @@ namespace UserCommon_211388913_322330820
         size_t getStepsAfterShellsEnd() const { return steps_after_shells_end; }
         size_t getShootCooldownSteps() const { return shoot_cooldown_steps; }
         size_t getBackwardWaitSteps() const { return backward_wait_steps; }
+        size_t getFullNamesOnOutput() const { return full_names_on_output; }
 
         // === static instance getter === //
         static ConfigReader &getConfig()
         {
-            static ConfigReader instance(std::string(__FILE__).substr(0, std::string(__FILE__).find_last_of("/\\") + 1) + "../config.txt");
+            static ConfigReader instance((std::filesystem::path(__FILE__).parent_path() / "config.txt").string());
             return instance;
         }
     };

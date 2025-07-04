@@ -2,22 +2,13 @@
 
 #include "SatelliteAnalyticsView.h"
 
-#include "../../UserCommon/Utils/GameBoardUtils.h"
 namespace Algorithm_211388913_322330820
 {
     using namespace DirectionUtils; // for multiplying direction by a const
 
-    /*
-        TODO: need to check the following (and maybe more):
-            4. I added a printing function for debugging - it should be deleted when done
-            6. check for size_t errors because it is very dangerous - check that nothing can get overlapped to huge numbers, and calculations cant be wrong
-
-        should test this class carefully
-    */
-
     // === Constructor === //
     SatelliteAnalyticsView::SatelliteAnalyticsView(size_t height, size_t width, size_t max_steps_gap, int player_idx)
-        : player_idx(player_idx), max_steps_gap(max_steps_gap), width(width), height(height) {};
+        : AbstractGameBoardView(width, height, 0, 0), player_idx(player_idx), max_steps_gap(max_steps_gap) {};
 
     // === Private Functions === //
     // === Internal Logic === //
@@ -38,12 +29,7 @@ namespace Algorithm_211388913_322330820
 
     void SatelliteAnalyticsView::addObject(const BoardCell &location, GameObjectType t, AssumedDirection d)
     {
-        addObjectInternal(this->createAdjustedCell(location), t, d);
-    }
-
-    BoardCell SatelliteAnalyticsView::createAdjustedCell(const BoardCell &c) const
-    {
-        return GameBoardUtils::createAdjustedBoardCell(c, this->getWidth(), this->getHeight());
+        addObjectInternal(this->createAdjustedBoardCell(location), t, d);
     }
 
     void SatelliteAnalyticsView::addObjectInternal(const BoardCell &location, GameObjectType obj_type, AssumedDirection dir)
@@ -112,7 +98,7 @@ namespace Algorithm_211388913_322330820
                 assumed_dir = AssumedDirection::DOWN;
 
             Direction shell_dir = static_cast<Direction>(assumed_dir);
-            BoardCell new_shell_location = this->createAdjustedCell(old_shell_location + shell_dir);
+            BoardCell new_shell_location = this->createAdjustedBoardCell(old_shell_location + shell_dir);
             // remove from previous cell
             removeObjectInternal(old_shell_location, GameObjectType::SHELL);
 
@@ -150,9 +136,9 @@ namespace Algorithm_211388913_322330820
     void SatelliteAnalyticsView::initAnalyticalView(const SatelliteView &sat_view)
     {
         this->clearView();
-        for (size_t x = 0; x < width; ++x)
+        for (size_t x = 0; x < getWidth(); ++x)
         {
-            for (size_t y = 0; y < height; ++y)
+            for (size_t y = 0; y < getHeight(); ++y)
             {
                 char obj_char = sat_view.getObjectAt(x, y);
                 if (!GameObjectTypeUtils::isValidObjectChar(obj_char)) // empty/out of bounds/caller tank
@@ -168,7 +154,7 @@ namespace Algorithm_211388913_322330820
     {
         // assuming that the satellite view is taken at the beginning of the step - before shell movement happened
 
-        return this->createAdjustedCell(old_location + (static_cast<Direction>(assumed_dir) * static_cast<int>(steps_gap * ConfigReader::getConfig().getShellsSpeed())));
+        return this->createAdjustedBoardCell(old_location + (static_cast<Direction>(assumed_dir) * static_cast<int>(steps_gap * ConfigReader::getConfig().getShellsSpeed())));
     }
 
     bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap) const
@@ -207,16 +193,6 @@ namespace Algorithm_211388913_322330820
 
     // === Public Functions === //
     // === Getters === //
-    size_t SatelliteAnalyticsView::getWidth() const
-    {
-        return this->width;
-    }
-
-    size_t SatelliteAnalyticsView::getHeight() const
-    {
-        return this->height;
-    };
-
     size_t SatelliteAnalyticsView::getMaxStepGap() const
     {
         return this->max_steps_gap;
@@ -244,23 +220,10 @@ namespace Algorithm_211388913_322330820
 
     std::vector<std::pair<char, AssumedDirection>> SatelliteAnalyticsView::getObjectsAt(const BoardCell &c) const
     {
-        BoardCell adjusted_cell = GameBoardUtils::createAdjustedBoardCell(c, this->getWidth(), this->getHeight());
+        BoardCell adjusted_cell = this->createAdjustedBoardCell(c);
         return getObjectsAtInternal(adjusted_cell);
     }
 
-    std::unordered_set<GameObjectType> SatelliteAnalyticsView::getObjectsTypesOnCell(const BoardCell &c) const
-    {
-
-        std::vector<std::pair<char, AssumedDirection>> objects_on_cell = getObjectsAt(c);
-        std::unordered_set<GameObjectType> object_types_on_cell;
-
-        for (auto obj_pair : objects_on_cell)
-        {
-            object_types_on_cell.insert(static_cast<GameObjectType>(obj_pair.first));
-        }
-
-        return object_types_on_cell;
-    }
     // Const version - return a copy wrapped in std::optional
     std::optional<AssumedDirection> SatelliteAnalyticsView::getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const
     {
@@ -273,7 +236,7 @@ namespace Algorithm_211388913_322330820
 
     std::optional<std::pair<GameObjectType, AssumedDirection>> SatelliteAnalyticsView::getObjectAt(GameObjectType requested_type, const BoardCell &location) const
     {
-        BoardCell adjusted_cell = createAdjustedCell(location);
+        BoardCell adjusted_cell = createAdjustedBoardCell(location);
         auto it = analytical_view.find(adjusted_cell);
         if (it == analytical_view.end())
             return std::nullopt;
@@ -287,6 +250,32 @@ namespace Algorithm_211388913_322330820
         }
 
         return std::nullopt;
+    }
+
+    // === Override === //
+    std::unordered_set<GameObjectType> SatelliteAnalyticsView::getObjectsTypesOnCell(const BoardCell &c) const
+    {
+
+        std::vector<std::pair<char, AssumedDirection>> objects_on_cell = getObjectsAt(c);
+        std::unordered_set<GameObjectType> object_types_on_cell;
+
+        for (auto obj_pair : objects_on_cell)
+        {
+            object_types_on_cell.insert(static_cast<GameObjectType>(obj_pair.first));
+        }
+
+        return object_types_on_cell;
+    }
+
+    std::vector<BoardCell> SatelliteAnalyticsView::getOccupiedCells() const
+    {
+        std::vector<BoardCell> occupied_cells;
+        for (auto iter : this->analytical_view)
+        {
+            occupied_cells.push_back(iter.first);
+        }
+
+        return occupied_cells;
     }
 
     // === Movement validation === //
@@ -386,7 +375,7 @@ namespace Algorithm_211388913_322330820
 
     void SatelliteAnalyticsView::addShell(const BoardCell &location, Direction dir)
     {
-        BoardCell adjusted_location = this->createAdjustedCell(location);
+        BoardCell adjusted_location = this->createAdjustedBoardCell(location);
         addObjectInternal(adjusted_location, GameObjectType::SHELL, static_cast<AssumedDirection>(dir));
     }
 }

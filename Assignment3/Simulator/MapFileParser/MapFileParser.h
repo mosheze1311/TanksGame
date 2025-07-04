@@ -47,5 +47,6 @@ public:
     size_t getHeight() const;
     size_t getNumShells() const;
     size_t getMaxSteps() const;
-    const UserCommon_211388913_322330820::BoardSatelliteView &getSatelliteView() const;
+    std::string getMapName() const;
+    const SatelliteView &getSatelliteView() const;
 };

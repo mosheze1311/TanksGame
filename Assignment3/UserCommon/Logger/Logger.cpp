@@ -1,10 +1,7 @@
 #include "Logger.h"
+
 namespace UserCommon_211388913_322330820
 {
-    // === Static Members === //
-    std::map<std::string, std::unique_ptr<Logger>> Logger::output_map;
-    std::mutex Logger::output_mutex;
-
     // ===  Constructors === //
     Logger::Logger(const std::string &filename, SecretToken)
     {
@@ -34,13 +31,13 @@ namespace UserCommon_211388913_322330820
 
     Logger &Logger::output(const std::string &file_name)
     {
-        std::lock_guard<std::mutex> lock(output_mutex);
-        if (!output_map.contains(file_name))
+        std::lock_guard<std::mutex> lock(Logger::getOutputMutex());
+        if (!getOutputMap().contains(file_name))
         {
-            output_map.emplace(file_name, std::make_unique<Logger>(file_name, SecretToken{}));
+            getOutputMap().emplace(file_name, std::make_unique<Logger>(file_name, SecretToken{}));
         }
 
-        return *output_map.at(file_name);
+        return *(getOutputMap().at(file_name));
     }
 
     // === Logging Methods === //
@@ -63,5 +60,19 @@ namespace UserCommon_211388913_322330820
     void Logger::logLine(const std::string &message)
     {
         this->logInternal(message, true);
+    }
+
+
+    std::mutex& Logger::getOutputMutex()
+    {
+        static std::mutex output_mutex;
+        return output_mutex;
+    }
+
+
+    std::map<std::string, std::unique_ptr<Logger>>& Logger::getOutputMap()
+    {
+        static std::map<std::string, std::unique_ptr<Logger>> output_map;
+        return output_map;
     }
 }

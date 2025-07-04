@@ -1,22 +1,19 @@
 #pragma once
 #include "../GameBoard/GameBoard.h"
+#include "../AbstractGameBoardView/AbstractGameBoardView.h"
 namespace UserCommon_211388913_322330820
 {
 
     // a shallow copy of a board that does not own the objects.
-    class GameBoardShallowCopy
+    class GameBoardShallowCopy : public AbstractGameBoardView
     {
     private:
-        int width;
-        int height;
         std::unordered_map<GameObject *, BoardCell> objects_locations;
         std::map<BoardCell, std::unordered_set<GameObject *>> board;
 
     public:
-        GameBoardShallowCopy(const GameBoard &b)
+        GameBoardShallowCopy(const GameBoard &b) : AbstractGameBoardView(b.getWidth(), b.getHeight(), b.getMaxSteps(), b.getTanksNumShells())
         {
-            this->width = b.getWidth();
-            this->height = b.getHeight();
             for (GameObject *obj : b.getAllGameObjects())
             {
                 BoardCell c = b.getObjectLocation(obj).value();
@@ -69,5 +66,27 @@ namespace UserCommon_211388913_322330820
             this->objects_locations[obj] = c;
             this->board[c].insert(obj);
         };
+
+        // === Overriden Getters === //
+        std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const override
+        {
+            std::unordered_set<GameObjectType> res;
+            for (GameObject *go : this->getObjectsOnCell(c))
+            {
+                res.insert(go->getObjectType());
+            }
+            return res;
+        }
+        
+        std::vector<BoardCell> getOccupiedCells() const override
+        {
+            std::vector<BoardCell> occupied_cells;
+            for (auto iter : this->board)
+            {
+                occupied_cells.push_back(iter.first);
+            }
+
+            return occupied_cells;
+        }
     };
 }
