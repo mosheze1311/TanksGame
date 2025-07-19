@@ -1,6 +1,6 @@
 random1
 MaxSteps = 100
-NumShells = 10
+NumShells = 25
 Rows = 10
 Cols = 10
     #  # @

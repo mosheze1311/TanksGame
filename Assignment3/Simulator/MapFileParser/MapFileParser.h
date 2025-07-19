@@ -18,6 +18,7 @@ class MapFileParser
 {
 private:
     // === Attibutes === //
+    std::string file_name;
     std::string map_name;
     size_t width;
     size_t height;
@@ -48,5 +49,6 @@ public:
     size_t getNumShells() const;
     size_t getMaxSteps() const;
     std::string getMapName() const;
+    std::string getFileName() const;
     const SatelliteView &getSatelliteView() const;
 };

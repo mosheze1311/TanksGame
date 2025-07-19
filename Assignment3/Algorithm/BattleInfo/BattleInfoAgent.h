@@ -6,6 +6,8 @@
 
 #include "../../UserCommon/GameBoard/GameBoard.h"
 #include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
+#include "../Tactics/Tactic.h"
+#include "../Formation/Formation.h"
 
 #include <optional>
 #include <queue>
@@ -32,6 +34,7 @@ namespace Algorithm_211388913_322330820
         size_t current_step;
         size_t remaining_shells;
         Direction dir;
+        std::unique_ptr<Tactic> tactic;
 
         // no need for constructor - updated by algorithm only after init
     };
@@ -40,9 +43,14 @@ namespace Algorithm_211388913_322330820
     {
         BoardCell caller_tank_location;
         size_t steps_gap_for_get_info;
+        std::set<Formation> formations;
 
-        PlayerToTankDetails(BoardCell &caller_tank_location, size_t steps_gap_for_get_info)
-            : caller_tank_location(caller_tank_location), steps_gap_for_get_info(steps_gap_for_get_info) {}
+        PlayerToTankDetails(const BoardCell &caller_tank_location,
+                            size_t steps_gap_for_get_info,
+                            const std::set<Formation> &formations)
+            : caller_tank_location(caller_tank_location),
+              steps_gap_for_get_info(steps_gap_for_get_info),
+              formations(formations) {}
     };
 
     // === Class Declaration === //
@@ -55,7 +63,7 @@ namespace Algorithm_211388913_322330820
         SatelliteAnalyticsView &advanced_sat_view;
         const SatelliteView &new_satellite_image;
 
-        const PlayerToTankDetails player_to_tank;
+        PlayerToTankDetails player_to_tank;
         TankToPlayerDetails tank_to_player;
 
         // === Two-Steps Update View API === //
@@ -63,7 +71,7 @@ namespace Algorithm_211388913_322330820
 
     public:
         // === Constructor === //
-        BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, const PlayerToTankDetails &player_to_tank, const GameDetails &details);
+        BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, PlayerToTankDetails &player_to_tank, const GameDetails &details);
 
         // === Getters (for Player) === //
         size_t getCurrentStep() const;
@@ -78,13 +86,19 @@ namespace Algorithm_211388913_322330820
         size_t getBoardHeight() const;
         BoardCell getTankLocation() const;
         size_t getStepToGetInfo(size_t current_step) const;
+        Formation getFormation() const;
+        std::unique_ptr<Tactic> getTactic() const;
 
         // === Setters (for TankAlgorithm) === //
         void setCurrentStep(size_t step);
         void setTankDirection(Direction dir);
         void setRemainingShells(size_t shells);
+        void setTactic(std::unique_ptr<Tactic> new_tactic);
 
         // === Two-Steps Update View API === //
         SatelliteAnalyticsView updateAndGetAnalyticsView(size_t current_step, const SatelliteAnalyticsView &tank_algorithm_sat_view);
+
+        
+
     };
 }

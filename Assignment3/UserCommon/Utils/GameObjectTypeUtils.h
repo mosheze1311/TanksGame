@@ -3,6 +3,7 @@
 #include "../GameObjects/GameObjectType.h"
 
 #include <array>
+#include <iostream> // TODO: delete include
 namespace UserCommon_211388913_322330820
 {
 
@@ -43,6 +44,7 @@ namespace UserCommon_211388913_322330820
         {
             char playerChar = static_cast<char>(type);
             int playerId = playerChar - '0';
+
             return playerId;
         }
 
@@ -70,6 +72,11 @@ namespace UserCommon_211388913_322330820
             default:
                 return false;
             }
+        }
+
+        static bool isAllyTank(char tank_char, int player_idx)
+        {
+            return tank_char == static_cast<char>(playerIndexToTankType(player_idx));
         }
     };
 }

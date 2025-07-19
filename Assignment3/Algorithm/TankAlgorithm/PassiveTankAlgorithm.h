@@ -20,5 +20,9 @@ namespace Algorithm_211388913_322330820
 
         // === Destructor === //
         ~PassiveTankAlgorithm() override = default;
+
+        // === Clone === //
+        std::unique_ptr<AbstractTankAlgorithm> clone() const override;
+        
     };
 }

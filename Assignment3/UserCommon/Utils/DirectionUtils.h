@@ -57,6 +57,14 @@ namespace UserCommon_211388913_322330820
         }
 
         // === Operators === //
+        constexpr inline auto operator<(Direction a, Direction b)
+        {
+            return static_cast<int>(a) < static_cast<int>(b);
+        }
+        constexpr inline bool operator==(Direction a, Direction b) noexcept
+        {
+            return static_cast<int>(a) == static_cast<int>(b);
+        }
         constexpr inline std::pair<int, int> operator*(int times, Direction dir)
         {
             std::pair<int, int> offsets = directionOffsets(dir);

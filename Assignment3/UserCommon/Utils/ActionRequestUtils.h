@@ -2,12 +2,12 @@
 #include "../../common/ActionRequest.h"
 
 #include <string>
+#include <set>
 namespace UserCommon_211388913_322330820
 {
-
     namespace ActionRequestUtils
     {
-        std::string actionToString(const ActionRequest tank_action)
+        inline std::string actionToString(const ActionRequest tank_action)
         {
             switch (tank_action)
             {
@@ -34,5 +34,21 @@ namespace UserCommon_211388913_322330820
                 return "UNKNOWN";
             }
         }
+
+        inline std::set<ActionRequest> getAllRequests()
+        {
+            return {
+                ActionRequest::MoveForward,
+                ActionRequest::MoveBackward,
+                ActionRequest::RotateLeft45,
+                ActionRequest::RotateLeft90,
+                ActionRequest::RotateRight45,
+                ActionRequest::RotateRight90,
+                ActionRequest::Shoot,
+                ActionRequest::GetBattleInfo,
+                ActionRequest::DoNothing};
+        }
+
     }
+
 }

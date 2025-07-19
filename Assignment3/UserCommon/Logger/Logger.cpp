@@ -50,6 +50,8 @@ namespace UserCommon_211388913_322330820
             logFile << message;
             if (newline)
                 logFile << std::endl;
+            else
+                logFile.flush();
         }
     }
 

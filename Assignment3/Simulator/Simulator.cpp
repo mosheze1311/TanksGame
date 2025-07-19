@@ -17,9 +17,7 @@ void Simulator::loadSOFile(const std::string &filepath)
         UserCommon_211388913_322330820::Logger::runtime().logLine("Cannot load .so file: " + filepath + " | dlerror: " + dlerror());
         return;
     }
-    
     this->so_handlers.push_back(handle);
-    
 }
 
 void Simulator::loadAlgorithmFile(const std::string &algorithm_filepath)
@@ -36,7 +34,7 @@ void Simulator::loadAlgorithmFile(const std::string &algorithm_filepath)
     }
     catch (InvalidRegistrationEntryException &e)
     {
-        UserCommon_211388913_322330820::Logger::runtime().logLine("Algorithm/Player were not loaded correctly to registrar");
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Algorithm/Player were not loaded correctly to registrar" + e.reason);
         Registrar<TankAlgorithmFactory>::getRegistrar().deleteLastEntry();
         Registrar<PlayerFactory>::getRegistrar().deleteLastEntry();
     }
@@ -91,10 +89,20 @@ void Simulator::runComparativeMode()
             loadManagerFile(entry.path().string());
         }
     }
+    if (Registrar<GameManagerFactory>::getRegistrar().count() < 1)
+    {
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Could not load any managers, exiting...");
+        return;
+    }
 
     // load algorithms
     loadAlgorithmFile(comparative_args.getAlgorithm1());
     loadAlgorithmFile(comparative_args.getAlgorithm2());
+    if (Registrar<TankAlgorithmFactory>::getRegistrar().count() != 2)
+    {
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Could not load both algorithms, exiting...");
+        return;
+    }
 
     this->runManagersOnComparativeMode();
 
@@ -120,16 +128,20 @@ void Simulator::runManagersOnComparativeMode()
 
 void Simulator::runSingleComparativeManager(RegistrarEntry<GameManagerFactory> manager_factory_entry)
 {
+
     // Extract map details
     auto &map_details = this->maps_details[0];
     size_t width = map_details.getWidth();
     size_t height = map_details.getHeight();
     size_t max_steps = map_details.getMaxSteps();
     size_t num_shells = map_details.getNumShells();
+    std::string map_file_name = map_details.getFileName();
 
     // Create players
     auto player1_ptr = Registrar<PlayerFactory>::getRegistrar()[0].getFactory()(1, width, height, max_steps, num_shells);
+    auto player1_name = Registrar<PlayerFactory>::getRegistrar()[0].getName();
     auto player2_ptr = Registrar<PlayerFactory>::getRegistrar()[1].getFactory()(2, width, height, max_steps, num_shells);
+    auto player2_name = Registrar<PlayerFactory>::getRegistrar()[1].getName();
 
     // Extract algorithms factories
     auto algo1Factory = Registrar<TankAlgorithmFactory>::getRegistrar()[0].getFactory();
@@ -140,11 +152,11 @@ void Simulator::runSingleComparativeManager(RegistrarEntry<GameManagerFactory> m
     GameResult res = manager->run(
         width, height,
         map_details.getSatelliteView(),
+        map_file_name,
         max_steps, num_shells,
-        *player1_ptr, *player2_ptr,
+        *player1_ptr, player1_name, *player2_ptr, player2_name,
         algo1Factory, algo2Factory);
 
-    
     // Insert result to map
     this->insertComparativeResult(manager_factory_entry.getName(), std::move(res));
 }
@@ -253,6 +265,10 @@ void Simulator::runCompetitiveMode()
 
     // load manager
     loadManagerFile(competitive_args.getGameManager());
+    if (Registrar<GameManagerFactory>::getRegistrar().count() != 1){
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Could not load manager, exiting...");
+        return;
+    }
 
     // load algorithms
     for (const auto &entry : std::filesystem::directory_iterator(competitive_args.getAlgorithmsFolder()))
@@ -261,6 +277,11 @@ void Simulator::runCompetitiveMode()
         {
             loadAlgorithmFile(entry.path().string());
         }
+    }
+    if (Registrar<TankAlgorithmFactory>::getRegistrar().count() < 2)
+    {
+        UserCommon_211388913_322330820::Logger::runtime().logLine("Could not load 2 algorithms, exiting...");
+        return;
     }
 
     // run matches using threads
@@ -298,8 +319,8 @@ void Simulator::runManagersOnCompetitiveMode()
 
 void Simulator::runSingleCompetitiveMatch(size_t map_idx, size_t algorithm1_entry_idx, size_t algorithm2_entry_idx)
 {
-
     auto &map_details = this->maps_details[map_idx];
+    std::string map_name = map_details.getFileName();
     size_t width = map_details.getWidth();
     size_t height = map_details.getHeight();
     size_t max_steps = map_details.getMaxSteps();
@@ -310,16 +331,19 @@ void Simulator::runSingleCompetitiveMatch(size_t map_idx, size_t algorithm1_entr
     auto algo1Factory = algo1_entry.getFactory();
     auto algo2Factory = algo2_entry.getFactory();
 
-    auto player1_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm1_entry_idx].getFactory()(algorithm1_entry_idx, width, height, max_steps, num_shells);
-    auto player2_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm2_entry_idx].getFactory()(algorithm2_entry_idx, width, height, max_steps, num_shells);
+    auto player1_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm1_entry_idx].getFactory()(1, width, height, max_steps, num_shells);
+    auto player1_name = Registrar<PlayerFactory>::getRegistrar()[0].getName();
+    auto player2_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm2_entry_idx].getFactory()(2, width, height, max_steps, num_shells);
+    auto player2_name = Registrar<PlayerFactory>::getRegistrar()[1].getName();
+
 
     auto manager_factory_entry = Registrar<GameManagerFactory>::getRegistrar()[0];
     auto manager = manager_factory_entry.getFactory()(this->args->isVerbose());
     GameResult res = manager->run(
         width, height,
-        map_details.getSatelliteView(),
+        map_details.getSatelliteView(), map_name,
         max_steps, num_shells,
-        *player1_ptr, *player2_ptr,
+        *player1_ptr, player1_name ,*player2_ptr, player2_name,
         algo1Factory, algo2Factory);
 
     if (res.winner == 0)
@@ -409,7 +433,8 @@ void Simulator::closeRegistrars()
     Registrar<PlayerFactory>::getRegistrar().clear();
 }
 
-void Simulator::closeSOHandlers(){
+void Simulator::closeSOHandlers()
+{
     // clear dependencies
     this->closeRegistrars();
     this->comparative_results.clear();
@@ -439,7 +464,7 @@ Simulator::Simulator(std::unique_ptr<ParsedCmdArguments> args)
 {
 }
 
-// === Public API === //    
+// === Public API === //
 void Simulator::run()
 {
     std::cout << "Running Simulator with Args:\n";

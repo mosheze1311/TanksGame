@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../../UserCommon/Config/ConfigReader.h"
-
+#include "../BattleInfo/BattleInfoAgent.h"
+#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
 #include "../../common/TankAlgorithm.h"
 
-#include "../BattleInfo/BattleInfoAgent.h"
+#include "../../UserCommon/Config/ConfigReader.h"
 #include "../../UserCommon/BoardSatelliteView/BoardSatelliteView.h"
 #include "../../UserCommon/GameCollisionHandler/GameCollisionHandler.h"
-#include "../SatelliteAnalyticsView/SatelliteAnalyticsView.h"
+#include "../../UserCommon/Utils/ActionRequestUtils.h"
 #include "../../UserCommon/Utils/TankCooldownHandler.h"
 #include "../../UserCommon/Utils/GameObjectTypeUtils.h"
 
@@ -18,6 +18,7 @@ namespace Algorithm_211388913_322330820
     using namespace UserCommon_211388913_322330820;
     class AbstractTankAlgorithm : public TankAlgorithm
     {
+        friend class ScaredWolf; // TODO: this should not be here. fix the static member - getBestProbSurvivalAction, maybe move to ScaredWolf.
     protected:
         // === Attributes === //
         int tank_idx;
@@ -36,9 +37,6 @@ namespace Algorithm_211388913_322330820
 
         // these parameters are initiated on the first GetBattleInfo
         SatelliteAnalyticsView sat_view;
-        int width = 0;
-        int height = 0;
-
     protected:
         // Determines the tank's next action based on the current game state.
         // Must be implemented by derived classes to define tank behavior logic.
@@ -51,7 +49,7 @@ namespace Algorithm_211388913_322330820
         void adjustToBackward();
         void adjustToRotation(ActionRequest rotation);
         void adjustToShoot();
-        void adjustToGetBattleInfo ();
+        void adjustToGetBattleInfo();
 
         // === Manage Shooting === //
         bool canTankShoot() const;
@@ -72,10 +70,11 @@ namespace Algorithm_211388913_322330820
         std::optional<BoardCell> getEscapingRoute(Direction enemy_dir) const;
 
         // === Pathfinding === //
-        void Dijkstra(GameObjectType tank_type, const BoardCell &start, const BoardCell &target,
-                      std::map<BoardCell, int> &distances, std::map<BoardCell, BoardCell> &parents) const;
+        std::optional<BoardCell> findNextCellInPath(const BoardCell &start, const BoardCell &target) const;
+        void Dijkstra(const BoardCell &start, const BoardCell &target,const std::set<BoardCell> & forbidden ,std::map<BoardCell, int> &distances, std::map<BoardCell, BoardCell> &parents) const;
+        std::set<BoardCell> getAlliesReservedCells() const;
 
-        // === Target Estimation === //
+            // === Target Estimation === //
         BoardCell approxClosestEnemyTankLocation() const;
 
         // === Setters === //
@@ -85,8 +84,6 @@ namespace Algorithm_211388913_322330820
         void setTankDirection(Direction dir);
         void setTankIndex(size_t idx);
         void setMaxSteps(size_t max_steps);
-        void setBoardHeight(int height);
-        void setBoardWidth(int width);
 
         // === Getters === //
         int getBoardWidth() const;
@@ -104,14 +101,12 @@ namespace Algorithm_211388913_322330820
         bool isShellChasingTank(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const;
         bool inShootRange(const BoardCell &to) const;
 
-        // === Wrappers for GameBoardUtils Functions === //
-        int distance(const BoardCell &from, const BoardCell &to) const;
-        BoardCell createAdjustedBoardCell(const BoardCell &c) const;
-        BoardCell getNextCellInDirection(const BoardCell &c, Direction dir) const;
-        BoardCell getNextCellInStraightLine(const BoardCell &from, const BoardCell &to) const;
-        std::vector<BoardCell> getAdjacentCells(const BoardCell &cell) const;
-        bool isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir) const;
-        bool isStraightLine(const BoardCell &from, const BoardCell &to) const;
+        // === Survival Tactic === //
+        static std::pair<ActionRequest, float> getBestProbSurvivalAction(const AbstractTankAlgorithm &algo, int steps_to_calculate, ActionRequest default_action);
+        static float bestScoreFor(const AbstractTankAlgorithm &algo, ActionRequest action, int steps_to_calculate);
+
+        // === Aggresive Algorithm === //
+        ActionRequest getTankAggressiveAction() const;
 
     public:
         // === Constructor === //
@@ -120,8 +115,12 @@ namespace Algorithm_211388913_322330820
         // === Destructor === //
         virtual ~AbstractTankAlgorithm() override = default;
 
+        // === clone === //
+        virtual std::unique_ptr<AbstractTankAlgorithm> clone() const = 0;
+
         // === Interface Implementation === //
         ActionRequest getAction() override;
         void updateBattleInfo(BattleInfo &info) override;
     };
+
 }

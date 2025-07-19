@@ -40,4 +40,9 @@ namespace Algorithm_211388913_322330820
 
         return ActionRequest::Shoot;
     }
+
+    std::unique_ptr<AbstractTankAlgorithm> PassiveTankAlgorithm::clone() const
+    {
+        return std::make_unique<PassiveTankAlgorithm>(*this);
+    }
 }

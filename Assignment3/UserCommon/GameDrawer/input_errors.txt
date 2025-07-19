@@ -1,0 +1,24 @@
+Line 2: Expected '=' in line
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space
+Actual board did not contain enough rows - filled by empty space

@@ -43,16 +43,6 @@ namespace Algorithm_211388913_322330820
         this->max_steps = max_steps;
     }
 
-    void AbstractTankAlgorithm::setBoardHeight(int height)
-    {
-        this->height = height;
-    }
-
-    void AbstractTankAlgorithm::setBoardWidth(int width)
-    {
-        this->width = width;
-    }
-
     // === Getters === //
     size_t AbstractTankAlgorithm::getRemainingShells() const { return num_of_shells; }
     BoardCell AbstractTankAlgorithm::getCurrentLocation() const { return assumed_location; }
@@ -60,8 +50,8 @@ namespace Algorithm_211388913_322330820
     size_t AbstractTankAlgorithm::getCurrentStep() const { return current_step; }
     size_t AbstractTankAlgorithm::getTankIdx() const { return tank_idx; }
     GameObjectType AbstractTankAlgorithm::getTankType() const { return GameObjectTypeUtils::playerIndexToTankType(this->player_idx); }
-    int AbstractTankAlgorithm::getBoardWidth() const { return width; };
-    int AbstractTankAlgorithm::getBoardHeight() const { return height; };
+    int AbstractTankAlgorithm::getBoardWidth() const { return sat_view.getWidth(); };
+    int AbstractTankAlgorithm::getBoardHeight() const { return sat_view.getHeight(); };
 
     // === Cooldown / Wait Management === //
     bool AbstractTankAlgorithm::hasShells() const
@@ -85,7 +75,7 @@ namespace Algorithm_211388913_322330820
         if (cooldowns.isBackwardsDue())
         {
             // if can move backwards - move
-            BoardCell backwards_cell = this->createAdjustedBoardCell(this->getCurrentLocation() - this->getTankDirection());
+            BoardCell backwards_cell = sat_view.createAdjustedBoardCell(this->getCurrentLocation() - this->getTankDirection());
             if (canMoveToCell(backwards_cell))
             {
                 this->setCurrentLocation(backwards_cell);
@@ -131,18 +121,32 @@ namespace Algorithm_211388913_322330820
             return ActionRequest::MoveForward;
         }
     }
-
-    ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const BoardCell &target) const
+    std::set<BoardCell> AbstractTankAlgorithm::getAlliesReservedCells() const
     {
-        BoardCell start = this->assumed_location;
+        std::set<BoardCell> reserved_cells;
+        for (const BoardCell &neighbor_cell : sat_view.getAdjacentCells(getCurrentLocation()))
+        {
+            for (const BoardCell &ally_location : sat_view.getAlliesTanksLocations())
+            {
+                if (sat_view.distance(ally_location, neighbor_cell) <= 1)
+                {
+                    reserved_cells.insert(neighbor_cell);
+                }
+            }
+        }
+        return reserved_cells;
+    }
+    std::optional<BoardCell> AbstractTankAlgorithm::findNextCellInPath(const BoardCell &start, const BoardCell &target) const
+    {
         std::map<BoardCell, int> distances;
         std::map<BoardCell, BoardCell> parents;
-        this->Dijkstra(this->getTankType(), start, target, distances, parents);
+        std::set<BoardCell> allies_reserved = getAlliesReservedCells();
+        this->Dijkstra(start, target, allies_reserved, distances, parents);
 
         // if cant reach target shoot and hope for good
         if (distances.find(target) == distances.end())
         {
-            return ActionRequest::Shoot;
+            return std::nullopt;
         }
 
         // getting the next cell in the shortest path
@@ -152,12 +156,22 @@ namespace Algorithm_211388913_322330820
             next_cell_in_path = parents[next_cell_in_path];
         }
 
+        return next_cell_in_path;
+    }
+    ActionRequest AbstractTankAlgorithm::advanceTankToTarget(const BoardCell &target) const
+    {
+        BoardCell start = this->assumed_location;
+        auto next_cell_opt = findNextCellInPath(start, target);
+        if (next_cell_opt == std::nullopt)
+            return ActionRequest::Shoot;
+
+        BoardCell next_cell_in_path = *next_cell_opt;
         // decisions - try to advance to next cell
-        if (next_cell_in_path == this->getNextCellInDirection(start, this->getTankDirection()))
+        if (next_cell_in_path == sat_view.getNextCellInDirection(start, this->getTankDirection()))
         {
             return ActionRequest::MoveForward;
         }
-        if (next_cell_in_path == this->getNextCellInDirection(start, DirectionUtils::getOppositeDirection(this->getTankDirection())))
+        if (next_cell_in_path == sat_view.getNextCellInDirection(start, DirectionUtils::getOppositeDirection(this->getTankDirection())))
         {
             return ActionRequest::MoveBackward;
         }
@@ -167,31 +181,31 @@ namespace Algorithm_211388913_322330820
     ActionRequest AbstractTankAlgorithm::adjustDirection(const BoardCell &to) const
     {
         // assumption: from, to are adjacent cells
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 1)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 1)))
         {
             return ActionRequest::RotateRight45;
         }
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 2)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 2)))
         {
             return ActionRequest::RotateRight90;
         }
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 3)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateRight(this->getTankDirection(), 3)))
         {
             return ActionRequest::RotateRight90; // will need additional 45 deg turn
         }
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 1)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 1)))
         {
             return ActionRequest::RotateLeft45;
         }
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 2)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 2)))
         {
             return ActionRequest::RotateLeft90;
         }
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 3)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 3)))
         {
             return ActionRequest::RotateLeft90; // will need additional 45 deg turn
         }
-        if (to == getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 4)))
+        if (to == sat_view.getNextCellInDirection(this->assumed_location, DirectionUtils::rotateLeft(this->getTankDirection(), 4)))
         {
             return ActionRequest::RotateLeft90; // will need additional 90 deg turn
         }
@@ -210,7 +224,7 @@ namespace Algorithm_211388913_322330820
         int closest_dist = -1;
         for (BoardCell enemy_loc : sat_view.getEnemyTanksLocations())
         {
-            int curr_dist = this->distance(this->assumed_location, enemy_loc);
+            int curr_dist = sat_view.distance(this->assumed_location, enemy_loc);
             if (closest_dist == -1 || closest_dist > curr_dist)
             {
                 closest_dist = curr_dist;
@@ -221,20 +235,33 @@ namespace Algorithm_211388913_322330820
     }
 
     // === Pathfinding === //
-    void AbstractTankAlgorithm::Dijkstra(GameObjectType tank_type, const BoardCell &start, const BoardCell &target, std::map<BoardCell, int> &distances, std::map<BoardCell, BoardCell> &parents) const
+    void AbstractTankAlgorithm::Dijkstra(const BoardCell &start, const BoardCell &target, const std::set<BoardCell> &forbidden, std::map<BoardCell, int> &distances, std::map<BoardCell, BoardCell> &parents) const
     {
+        struct DijkstraStatus
+        {
+        public:
+            BoardCell current;
+            Direction dir;
+            BoardCell parent;
+            bool operator<(const DijkstraStatus &other) const
+            {
+                return std::tie(current, dir, parent) < std::tie(other.current, other.dir, other.parent);
+            };
+        };
         std::priority_queue<
-            std::pair<int, std::pair<BoardCell, BoardCell>>,
-            std::vector<std::pair<int, std::pair<BoardCell, BoardCell>>>,
-            std::greater<std::pair<int, std::pair<BoardCell, BoardCell>>>>
+            std::pair<int, DijkstraStatus>,
+            std::vector<std::pair<int, DijkstraStatus>>,
+            std::greater<std::pair<int, DijkstraStatus>>>
             q;
-        q.push({0, {start, start}});
+        q.push({0, {start, this->getTankDirection(), start}});
         std::set<BoardCell> visited;
         while (!q.empty())
         {
             // access and pop first item in heap
-            auto [dist, current_and_parent_pair] = q.top();
-            auto [c, parent] = current_and_parent_pair;
+            auto [dist, details] = q.top();
+            BoardCell c = details.current;
+            BoardCell parent = details.parent;
+            Direction dir = details.dir;
             q.pop();
 
             // skip visited since inserting cells multiple times
@@ -253,12 +280,19 @@ namespace Algorithm_211388913_322330820
                 break;
 
             // adding neighbors to heap - only if tank can safely step there
-            for (BoardCell neighbor : getAdjacentCells(c))
+            int dirs_count = 8;
+            for (int new_dir_num = 0; new_dir_num < dirs_count; ++new_dir_num)
             {
-                if (neighbor == target || GameCollisionHandler::canObjectSafelyStepOn(sat_view, tank_type, neighbor))
-                {
+                Direction new_dir = static_cast<Direction>(new_dir_num);
+                BoardCell neighbor = c + new_dir;
+                if (forbidden.contains(neighbor))
+                    continue;
 
-                    q.push({dist + 1, {neighbor, c}});
+                int diff = new_dir_num - static_cast<int>(dir);
+                int rotation_cost = (5 - std::abs(std::abs(diff) - 4)) / 2; // formula gives amount of rotations needed
+                if (neighbor == target || GameCollisionHandler::canObjectSafelyStepOn(sat_view, this->getTankType(), neighbor))
+                {
+                    q.push({dist + rotation_cost + 1, {neighbor, new_dir, c}});
                 }
             }
         }
@@ -270,14 +304,26 @@ namespace Algorithm_211388913_322330820
         BoardCell start = this->assumed_location;
         if (this->inShootRange(target) && this->canTankShoot())
         {
-            if (isDirectionMatch(start, target, this->getTankDirection()))
-                return ActionRequest::Shoot;
-
-            else if (isStraightLine(start, target))
+            if (sat_view.isDirectionMatch(start, target, this->getTankDirection()))
             {
-                BoardCell adjust_to = getNextCellInStraightLine(start, target);
+                int dist_to_target = sat_view.distance(assumed_location, target);
+                for (BoardCell ally : sat_view.getAlliesTanksLocations())
+                {
+                    if (sat_view.isDirectionMatch(assumed_location, ally, this->getTankDirection()) && 
+                        sat_view.distance(assumed_location, ally) < dist_to_target)
+                        {
+                        return std::nullopt;
+                        }
+                }
+                return ActionRequest::Shoot;
+            }
+
+            else if (sat_view.isStraightLine(start, target))
+            {
+                BoardCell adjust_to = sat_view.getNextCellInStraightLine(start, target);
                 return adjustDirection(adjust_to);
             }
+
             else
             { // Cell is not in direct range to target. can do nothing here.
             }
@@ -300,7 +346,7 @@ namespace Algorithm_211388913_322330820
         {
             for (int y = up; y <= down; ++y)
             {
-                BoardCell cell = this->createAdjustedBoardCell(BoardCell(x, y));
+                BoardCell cell = sat_view.createAdjustedBoardCell(BoardCell(x, y));
 
                 auto objects = sat_view.getObjectsAt(cell);
                 for (auto [object_type_char, object_assumed_direction] : objects)
@@ -314,8 +360,8 @@ namespace Algorithm_211388913_322330820
 
                     Direction obj_direction = static_cast<Direction>(object_assumed_direction);
 
-                    if (isStraightLine(cell, this->assumed_location) &&
-                        isDirectionMatch(cell, this->assumed_location, obj_direction))
+                    if (sat_view.isStraightLine(cell, this->assumed_location) &&
+                        sat_view.isDirectionMatch(cell, this->assumed_location, obj_direction))
                     {
                         return getTankEvasionAction(obj_direction);
                     }
@@ -328,12 +374,12 @@ namespace Algorithm_211388913_322330820
 
     std::optional<BoardCell> AbstractTankAlgorithm::getEscapingRoute(Direction enemy_dir) const
     {
-        std::vector<BoardCell> neighbors = getAdjacentCells(this->assumed_location);
+        std::vector<BoardCell> neighbors = sat_view.getAdjacentCells(this->assumed_location);
         for (BoardCell neighbor : neighbors)
         {
             // check if stepped out from enemy direction
-            if (isDirectionMatch(this->assumed_location, neighbor, enemy_dir) ||
-                isDirectionMatch(this->assumed_location, neighbor, DirectionUtils::getOppositeDirection(enemy_dir)))
+            if (sat_view.isDirectionMatch(this->assumed_location, neighbor, enemy_dir) ||
+                sat_view.isDirectionMatch(this->assumed_location, neighbor, DirectionUtils::getOppositeDirection(enemy_dir)))
                 continue;
 
             if (GameCollisionHandler::canObjectSafelyStepOn(sat_view, this->getTankType(), neighbor))
@@ -356,7 +402,7 @@ namespace Algorithm_211388913_322330820
 
     void AbstractTankAlgorithm::updateBattleInfo(BattleInfo &info)
     {
-        auto current_info = dynamic_cast<BattleInfoAgent &>(info);
+        BattleInfoAgent &current_info = dynamic_cast<BattleInfoAgent &>(info);
 
         // if first time getting battle info - must init some of the details from it.
         if (this->getCurrentStep() == 1)
@@ -364,8 +410,6 @@ namespace Algorithm_211388913_322330820
             // set game settings and save them
             this->setRemainingShells(current_info.getInitialNumShells());
             this->setMaxSteps(current_info.getMaxSteps());
-            this->setBoardHeight(current_info.getBoardHeight());
-            this->setBoardWidth(current_info.getBoardWidth());
         }
 
         // correction to location
@@ -415,8 +459,9 @@ namespace Algorithm_211388913_322330820
             break;
         }
     }
-    
-    void AbstractTankAlgorithm::adjustToRotation(ActionRequest rotation){
+
+    void AbstractTankAlgorithm::adjustToRotation(ActionRequest rotation)
+    {
         if (!cooldowns.isPendingBackwards())
         {
             int steps = (rotation == ActionRequest::RotateLeft45 || rotation == ActionRequest::RotateRight45) ? 1 : 2;
@@ -438,21 +483,21 @@ namespace Algorithm_211388913_322330820
     void AbstractTankAlgorithm::adjustToForward()
     {
         if (cooldowns.isPendingBackwards())
-            {
-                cooldowns.cancelBackwardWait();
-            }
-            else
-            {
+        {
+            cooldowns.cancelBackwardWait();
+        }
+        else
+        {
 
-                BoardCell forward_cell = getNextCellInDirection(
-                    this->assumed_location,
-                    this->direction);
+            BoardCell forward_cell = sat_view.getNextCellInDirection(
+                this->assumed_location,
+                this->direction);
 
-                if (canMoveToCell(forward_cell))
-                {
-                    this->setCurrentLocation(forward_cell);
-                }
+            if (canMoveToCell(forward_cell))
+            {
+                this->setCurrentLocation(forward_cell);
             }
+        }
     }
 
     void AbstractTankAlgorithm::adjustToBackward()
@@ -463,7 +508,7 @@ namespace Algorithm_211388913_322330820
         }
         else if (cooldowns.canImmediateBackwards())
         {
-            BoardCell backward_cell = getNextCellInDirection(
+            BoardCell backward_cell = sat_view.getNextCellInDirection(
                 this->assumed_location,
                 DirectionUtils::getOppositeDirection(this->direction));
             if (canMoveToCell(backward_cell))
@@ -497,7 +542,7 @@ namespace Algorithm_211388913_322330820
     // === Manage Shooting Range === //
     bool AbstractTankAlgorithm::inShootRange(const BoardCell &cell) const
     {
-        return this->distance(this->assumed_location, cell) <= SHOOTING_RANGE;
+        return sat_view.distance(this->assumed_location, cell) <= SHOOTING_RANGE;
     }
 
     bool AbstractTankAlgorithm::isShellChasingTank(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const
@@ -509,47 +554,95 @@ namespace Algorithm_211388913_322330820
 
         Direction shell_dir = static_cast<Direction>(shell_assumed_dir);
 
-        size_t dist = this->distance(this->assumed_location, shell_loc);
-        if (dist <= ConfigReader::getConfig().getShellsSpeed() * 3 && isDirectionMatch(shell_loc, this->assumed_location, shell_dir))
+        size_t dist = sat_view.distance(this->assumed_location, shell_loc);
+        if (dist <= ConfigReader::getConfig().getShellsSpeed() * 3 &&
+            sat_view.isDirectionMatch(shell_loc, this->assumed_location, shell_dir))
         {
             return true;
         }
         return false;
     }
 
-    // === Wrappers for GameBoardUtils Functions === //
-    int AbstractTankAlgorithm::distance(const BoardCell &from, const BoardCell &to) const
+    // === Aggresive Algorithm === //
+    ActionRequest AbstractTankAlgorithm::getTankAggressiveAction() const
     {
-        return sat_view.distance(from, to);
+        // try to chase the enemy tank or shoot at it.
+
+        // dijkstra to closest tank
+        // if can shoot it - shoot
+        // if can't shoot it - chase
+
+        BoardCell start = this->assumed_location;
+        BoardCell target = this->approxClosestEnemyTankLocation();
+
+        // try to shoot enemy
+        if (auto shoot_action_opt = this->evaluateShootingOpportunity(target))
+        {
+            return shoot_action_opt.value();
+        }
+
+        // if will be able to shoot in the future, wait
+        if (this->inShootRange(target) &&
+            sat_view.isStraightLine(start, target) && this->hasShells())
+        {
+            return ActionRequest::GetBattleInfo;
+        }
+
+        return advanceTankToTarget(target);
     }
 
-    BoardCell AbstractTankAlgorithm::createAdjustedBoardCell(const BoardCell &c) const
+    // === Survival Tactic === //
+    std::pair<ActionRequest, float> AbstractTankAlgorithm::getBestProbSurvivalAction(const AbstractTankAlgorithm &algo,
+                                                                                     int steps_to_calculate, ActionRequest default_action)
     {
-        return sat_view.createAdjustedBoardCell(c);
+        if (steps_to_calculate == 0)
+            return {ActionRequest::GetBattleInfo, 0};
+
+        std::map<ActionRequest, float> evasion_actions_scores;
+        for (ActionRequest action : ActionRequestUtils::getAllRequests())
+        {
+            evasion_actions_scores[action] = AbstractTankAlgorithm::bestScoreFor(algo, action, steps_to_calculate);
+        }
+
+        // find best action and its score
+        ActionRequest best_action = default_action;
+        float max_score = evasion_actions_scores[default_action];
+
+        for (const auto &[action, score] : evasion_actions_scores)
+        {
+            if (score > max_score)
+            {
+                max_score = score;
+                best_action = action;
+            }
+        }
+
+        return {best_action, max_score};
     }
 
-    BoardCell AbstractTankAlgorithm::getNextCellInDirection(const BoardCell &c, Direction dir) const
+    float AbstractTankAlgorithm::bestScoreFor(const AbstractTankAlgorithm &algo,
+                                              ActionRequest action,
+                                              int steps_to_calculate)
     {
-        return sat_view.getNextCellInDirection(c, dir);
+        // copy of the analytics view
+        std::unique_ptr<AbstractTankAlgorithm> algo_copy = algo.clone();
+
+        // simmulate action and step advancement on algo_copy
+        algo_copy->adjustSelfToAction(action);
+        bool is_dead = !GameCollisionHandler::canObjectSafelyStepOn(algo_copy->sat_view, GameObjectTypeUtils::playerIndexToTankType(algo_copy->player_idx), algo_copy->getCurrentLocation());
+        if (is_dead)
+            return 0;
+        algo_copy->sat_view.setMonitoredCell(algo_copy->getCurrentLocation());
+        algo_copy->advanceStep();
+        is_dead = is_dead || algo_copy->sat_view.isMonidoredCellHit();
+
+        // calculate score for action
+        float score = is_dead ? 0 : 1;
+        if (!is_dead)
+        {
+            score += 0.7 * getBestProbSurvivalAction(*algo_copy, steps_to_calculate - 1, ActionRequest::GetBattleInfo).second;
+        }
+        return score;
     }
 
-    BoardCell AbstractTankAlgorithm::getNextCellInStraightLine(const BoardCell &from, const BoardCell &to) const
-    {
-        return sat_view.getNextCellInStraightLine(from, to);
-    }
-
-    bool AbstractTankAlgorithm::isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir) const
-    {
-        return sat_view.isDirectionMatch(from, to, dir);
-    }
-
-    std::vector<BoardCell> AbstractTankAlgorithm::getAdjacentCells(const BoardCell &cell) const
-    {
-        return sat_view.getAdjacentCells(cell);
-    }
-
-    bool AbstractTankAlgorithm::isStraightLine(const BoardCell &from, const BoardCell &to) const
-    {
-        return sat_view.isStraightLine(from, to);
-    }
 }

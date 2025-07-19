@@ -6,7 +6,7 @@
 #include <iostream>
 
 // === Consturctor === //
-MapFileParser::MapFileParser(const std::string &input_file_path)
+MapFileParser::MapFileParser(const std::string &input_file_path): file_name(input_file_path)
 {
     /*
    return: true iff the board could be initialized using the input file.
@@ -186,4 +186,8 @@ std::string MapFileParser::getMapName() const
 const SatelliteView &MapFileParser::getSatelliteView() const
 {
     return this->sat_view;
+}
+std::string MapFileParser::getFileName() const
+{
+    return this->file_name;
 }

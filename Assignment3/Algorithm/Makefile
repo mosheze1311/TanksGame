@@ -5,7 +5,7 @@ LDFLAGS = -shared -undefined dynamic_lookup
 
 # === Build Folder and Target Executable ===
 BUILD_DIR = build
-TARGET = TankAlgorithm_211388913_322330820_Aggressive.so
+TARGET = Algorithm_211388913_322330820_Aggressive.so
 
 # === List of Source Files ===
 SRCS = \
@@ -14,6 +14,8 @@ SRCS = \
 	TankAlgorithm/AbstractTankAlgorithm.cpp \
 	TankAlgorithm/AggressiveTankAlgorithm.cpp \
 	TankAlgorithm/PassiveTankAlgorithm.cpp \
+	Tactics/Tactic.cpp \
+	Formation/Formation.cpp \
 	BattleInfo/BattleInfoAgent.cpp \
 	SatelliteAnalyticsView/SatelliteAnalyticsView.cpp \
 	Players/AbstractPlayer.cpp \

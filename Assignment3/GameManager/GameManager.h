@@ -29,6 +29,8 @@ namespace GameManager_211388913_322330820
         GameBoard board;
 
         size_t remaining_steps;
+        size_t current_step = 0;
+        std::optional<size_t> turn_shells_ran_out;
         bool are_steps_limited_by_shells = false;
 
         std::map<int, TankAlgorithmFactory> algo_factories_map;
@@ -38,13 +40,16 @@ namespace GameManager_211388913_322330820
         std::string output_file_name;
 
         GameResult game_result;
+
         // === Getters === //
         size_t getRemainingSteps() const; // private getter for readability
         std::vector<GameObjectType> getActiveTankTypes(const std::map<GameObjectType, size_t> players_tanks_count) const;
+        std::string getFileNameOnly(std::string file_path) const;
+        size_t getCurrentStep() const; 
 
         // === Setters === //
         void setRemainingSteps(int num_shells);
-        void setGameResult(size_t winner, GameResult::Reason reason, const std::map<GameObjectType, size_t>& players_tanks_count);
+        void setGameResult(size_t winner, GameResult::Reason reason, const std::map<GameObjectType, size_t> &players_tanks_count);
 
         // === Gameplay Function === //
         void advanceStepsClock();
@@ -56,7 +61,7 @@ namespace GameManager_211388913_322330820
         bool concludeGame();   // Checks if a game is finsihed in a specific turn
 
         // === Log Functions === //
-        void initOutputFile();
+        void initOutputFile(const string &map_name, const string &player1, string const &player2);
         void writeToOutputFile(const std::string &text) const;
 
         void logStepActions(const std::map<int, ActionRequest> &actions, std::vector<bool> is_valid_action) const;
@@ -67,14 +72,16 @@ namespace GameManager_211388913_322330820
         void logEndOfGameLine() const;
 
         // === Prepare Run Functions === //
-        void prepareForRun(size_t map_width, size_t map_height,
-                           const SatelliteView &map,
-                           size_t max_steps, size_t num_shells,
-                           Player &player1, Player &player2,
-                           TankAlgorithmFactory player1_tank_algo_factory,
-                           TankAlgorithmFactory player2_tank_algo_factory);
-        
-        void createAlgorithms();
+        void prepareForRun(
+            size_t map_width, size_t map_height,
+            const SatelliteView &map, // <= a snapshot, NOT updated
+            string map_name,
+            size_t max_steps, size_t num_shells,
+            Player &player1, string name1, Player &player2, string name2,
+            TankAlgorithmFactory player1_tank_algo_factory,
+            TankAlgorithmFactory player2_tank_algo_factory);
+
+            void createAlgorithms();
 
         // === Helper Functions === //
         void applyShellsLimitRuleOnRemainingSteps();
@@ -96,11 +103,15 @@ namespace GameManager_211388913_322330820
 
         // === Public API === //
         // === Runs Game === //
-        GameResult run(size_t map_width, size_t map_height,
-                       const SatelliteView &map, // <= assume it is a snapshot, NOT updated
-                       size_t max_steps, size_t num_shells, Player &player1, Player &player2,
-                       TankAlgorithmFactory player1_tank_algo_factory,
-                       TankAlgorithmFactory player2_tank_algo_factory) override;
+        GameResult run(
+            size_t map_width, size_t map_height,
+            const SatelliteView &map, // <= a snapshot, NOT updated
+            string map_name,
+            size_t max_steps, size_t num_shells,
+            Player &player1, string name1, Player &player2, string name2,
+            TankAlgorithmFactory player1_tank_algo_factory,
+            TankAlgorithmFactory player2_tank_algo_factory)
+            override;
     };
 
 };

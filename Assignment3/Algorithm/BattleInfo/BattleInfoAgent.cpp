@@ -2,13 +2,13 @@
 namespace Algorithm_211388913_322330820
 {
     // === Constructor === //
-    BattleInfoAgent::BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, const PlayerToTankDetails &player_to_tank, const GameDetails &details)
+    BattleInfoAgent::BattleInfoAgent(SatelliteAnalyticsView &advanced_sat_view, const SatelliteView &sat_view, PlayerToTankDetails &player_to_tank, const GameDetails &details)
         : game_details(details),
 
           advanced_sat_view(advanced_sat_view),
           new_satellite_image(sat_view),
 
-          player_to_tank(player_to_tank)
+          player_to_tank(std::move(player_to_tank))
     {
     }
 
@@ -20,6 +20,10 @@ namespace Algorithm_211388913_322330820
     size_t BattleInfoAgent::getRemainingShells() const { return tank_to_player.remaining_shells; }
 
     Direction BattleInfoAgent::getTankDirection() const { return tank_to_player.dir; }
+
+    std::unique_ptr<Tactic> BattleInfoAgent::getTactic() const {
+        return tank_to_player.tactic ?  tank_to_player.tactic->clone() : nullptr; 
+    }
 
     // === Getters (for TankAlgorithm) === //
     BoardCell BattleInfoAgent::getTankLocation() const
@@ -41,6 +45,19 @@ namespace Algorithm_211388913_322330820
         return current_step + player_to_tank.steps_gap_for_get_info;
     }
 
+    Formation BattleInfoAgent::getFormation() const {
+
+        BoardCell tank_loc = getTankLocation();
+        for (auto formation: player_to_tank.formations){
+            if (formation.contains(tank_loc))
+                return formation;
+        }
+
+        Formation f;
+        f.insert(tank_loc);
+        return f;
+    }
+
     // === Setters (for TankAlgorithm) === //
     void BattleInfoAgent::setCurrentStep(size_t step)
     {
@@ -57,6 +74,11 @@ namespace Algorithm_211388913_322330820
         tank_to_player.dir = dir;
     }
 
+    void BattleInfoAgent::setTactic(std::unique_ptr<Tactic> new_tactic)
+    {
+        tank_to_player.tactic = std::move(new_tactic);
+    }
+
     // === Two-Steps Update View API === //
     // private
     void BattleInfoAgent::updateViewForStep(size_t current_step)
@@ -71,4 +93,5 @@ namespace Algorithm_211388913_322330820
         this->advanced_sat_view.updateShellsDirectionsFromView(tank_algorithm_sat_view);
         return this->advanced_sat_view;
     }
+
 }

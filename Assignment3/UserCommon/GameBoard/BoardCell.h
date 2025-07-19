@@ -33,7 +33,7 @@ namespace UserCommon_211388913_322330820
         // === Overloading Comparison Operators === //
         // Allow using BoardCell as a key in a map
         bool operator<(const BoardCell &other) const;
-
+        
         // Allow comparing cells (default compares all fields by value)
         bool operator==(const BoardCell &other) const = default;
 
@@ -49,6 +49,9 @@ namespace UserCommon_211388913_322330820
 
         // Returns a new cell offset negatively by the given delta
         BoardCell operator-(const std::pair<int, int> &offsets) const;
+
+        // Returns the offset delta of the cells
+        std::pair<int, int> operator-(const BoardCell &other) const;
     };
 
     // === Overloading << Operator for Printing === //

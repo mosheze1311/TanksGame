@@ -27,7 +27,6 @@ namespace UserCommon_211388913_322330820
 
     std::string getTimestampForNow()
     {
-        auto now = std::chrono::system_clock::now();
-        return getTimestampFor(now);
+        return getTimestampFor(std::chrono::system_clock::now());
     }
 }

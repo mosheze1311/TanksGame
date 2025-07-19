@@ -1,6 +1,6 @@
 BigMap
-MaxSteps = 1000
-NumShells = 16
+MaxSteps = 300
+NumShells = 50
 Rows = 40
 Cols = 80
  # @#  ##@ #      ###     @#      #   #  #    # #@ ##   #  #@ #  @   # ## @@ @##

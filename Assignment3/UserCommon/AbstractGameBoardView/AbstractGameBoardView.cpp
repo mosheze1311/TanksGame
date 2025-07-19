@@ -1,10 +1,11 @@
 #include "AbstractGameBoardView.h"
 
+#include <utility>
 namespace UserCommon_211388913_322330820
 {
     // === BoardDetails Constructor === //
     AbstractGameBoardView::BoardDetails::BoardDetails(size_t width, size_t height, size_t max_steps, size_t num_shells) : width(width), height(height), max_steps(max_steps), tanks_num_shells(num_shells),
-                                                                                                                        walls(0), mines(0), shells(0), remaining_shells(0) {};
+                                                                                                                          walls(0), mines(0), shells(0), remaining_shells(0) {};
 
     AbstractGameBoardView::AbstractGameBoardView(size_t width, size_t height, size_t max_steps, size_t num_shells) : board_details(width, height, max_steps, num_shells) {};
 
@@ -18,7 +19,7 @@ namespace UserCommon_211388913_322330820
     {
         return this->board_details.height;
     }
-    
+
     size_t AbstractGameBoardView::getMaxSteps() const
     {
         return this->board_details.max_steps;
@@ -131,33 +132,39 @@ namespace UserCommon_211388913_322330820
         return false;
     }
 
-    bool AbstractGameBoardView::isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir) const 
+    bool AbstractGameBoardView::isDirectionMatch(const BoardCell &from, const BoardCell &to, Direction dir) const
     {
         if (!AbstractGameBoardView::isStraightLine(from, to))
         {
             return false;
         }
 
-        return getNextCellInDirection(from, dir) == getNextCellInStraightLine(from, to);
+        BoardCell next_in_dir = getNextCellInDirection(from, dir);
+        BoardCell next_in_straight = getNextCellInStraightLine(from, to);
+        return next_in_dir == next_in_straight;
     }
 
     BoardCell AbstractGameBoardView::getNextCellInStraightLine(const BoardCell &from, const BoardCell &to) const
     {
         // assuming that from, to form a straight line in some direction.
         std::vector<BoardCell> neighbors = getAdjacentCells(from);
-        int min_dist = distance(from, to);
-        BoardCell next = from;
+        int dist = distance(from, to);
 
-        for (BoardCell neighbor : neighbors)
+        for (BoardCell next : neighbors)
         {
-            int neighbor_dist = this->distance(neighbor, to);
-            if (neighbor_dist < min_dist && this->isStraightLine(neighbor, to))
+            std::pair<int, int> offsets = to - from;
+            std::pair<int, int> next_offsets = to - next;
+            int max_offset = std::max(std::abs(offsets.first), std::abs(offsets.second));
+            std::pair<int,int> single_digit_offsets = {offsets.first / max_offset, offsets.second / max_offset};
+            std::pair<int, int> fixed_next_offsets = {next_offsets.first + single_digit_offsets.first,
+                                                      next_offsets.second + single_digit_offsets.second};
+            int next_dist = this->distance(next, to);
+            if (next_dist < dist && offsets == fixed_next_offsets)
             {
-                min_dist = neighbor_dist;
-                next = neighbor;
+                return next;
             }
         }
-        return next;
+        return from;
     }
 
     BoardCell AbstractGameBoardView::getNextCellInDirection(const BoardCell &c, const Direction dir) const
@@ -180,13 +187,14 @@ namespace UserCommon_211388913_322330820
     }
 
     // === BoardCell Normalization === //
-    BoardCell AbstractGameBoardView::createBoardCell(int x, int y) const{
+    BoardCell AbstractGameBoardView::createBoardCell(int x, int y) const
+    {
         int w = static_cast<int>(getWidth());
         int h = static_cast<int>(getHeight());
         // The width, height parameters are signed int to prevent implicit conversion of the X,Y cell attributes to unsigned when performing % operation
         return BoardCell(((x % w) + w) % w, ((y % h) + h) % h);
     }
-    
+
     BoardCell AbstractGameBoardView::createAdjustedBoardCell(const BoardCell &c) const
     {
         return createBoardCell(c.getX(), c.getY());

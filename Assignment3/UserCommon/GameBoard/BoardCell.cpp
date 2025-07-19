@@ -50,9 +50,15 @@ namespace UserCommon_211388913_322330820
         return *this - DirectionUtils::directionOffsets(dir);
     }
 
+    std::pair<int, int> BoardCell::operator - (const BoardCell &other) const
+    {
+        return {this->getX() - other.getX(), this->getY() - other.getY()};
+    }
     // === Overloading << Operator for Printing === //
     std::ostream &operator<<(std::ostream &os, const BoardCell &cell)
     {
         return os << "(" << cell.getX() << ", " << cell.getY() << ")";
     }
+
+
 }

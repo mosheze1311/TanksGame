@@ -23,8 +23,8 @@ namespace Algorithm_211388913_322330820
             }
             else
             {
-                steps_gap = this->tanks_alive;
-                return std::max(tanks_alive, analysis_max_steps_gap);
+                steps_gap = this->my_tanks_locations.size();
+                return std::max(steps_gap, analysis_max_steps_gap);
             }
         }
 

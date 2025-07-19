@@ -11,16 +11,18 @@ using namespace GameManager_211388913_322330820;
 GameManager::GameManager(bool verbose) : verbose(verbose) {};
 
 // === Prepare Run Functions === //
-void GameManager::prepareForRun(size_t map_width, size_t map_height,
-                                const SatelliteView &map,
-                                size_t max_steps, size_t num_shells,
-                                Player &player1, Player &player2,
-                                TankAlgorithmFactory player1TankAlgoFactory,
-                                TankAlgorithmFactory player2TankAlgoFactory)
-{
+void GameManager::prepareForRun(
+    size_t map_width, size_t map_height,
+    const SatelliteView &map, // <= a snapshot, NOT updated
+    string map_name,
+    size_t max_steps, size_t num_shells,
+    Player &player1, string name1, Player &player2, string name2,
+    TankAlgorithmFactory player1TankAlgoFactory,
+    TankAlgorithmFactory player2TankAlgoFactory)
 
+{
     // Init output log file
-    this->initOutputFile();
+    this->initOutputFile(map_name, name1, name2);
 
     // Init board and game details
     this->board.initFromDetails(map, map_width, map_height, max_steps, num_shells);
@@ -61,7 +63,6 @@ size_t GameManager::getRemainingSteps() const
 
 std::vector<GameObjectType> GameManager::getActiveTankTypes(const std::map<GameObjectType, size_t> players_tanks_count) const
 {
-
     std::vector<GameObjectType> tanks_types_alive;
     for (auto &[type, tank_count] : players_tanks_count)
     {
@@ -70,6 +71,11 @@ std::vector<GameObjectType> GameManager::getActiveTankTypes(const std::map<GameO
     }
 
     return tanks_types_alive;
+}
+
+size_t GameManager::getCurrentStep() const
+{
+    return current_step;
 }
 
 // === Setters === //
@@ -81,7 +87,7 @@ void GameManager::setRemainingSteps(int num_steps)
 void GameManager::setGameResult(size_t winner, GameResult::Reason reason, const std::map<GameObjectType, size_t> &players_tanks_count)
 {
     this->game_result.winner = winner;
-    this->game_result.rounds = this->board.getMaxSteps() - this->getRemainingSteps();
+    this->game_result.rounds = this->current_step;
     this->game_result.reason = reason;
 
     size_t n_players = players_tanks_count.size();
@@ -94,10 +100,15 @@ void GameManager::setGameResult(size_t winner, GameResult::Reason reason, const 
     this->game_result.gameState = std::make_unique<BoardSatelliteView>(this->TakeSatelliteImage());
 }
 
-// === Log Functions === //
-void GameManager::initOutputFile()
+std::string GameManager::getFileNameOnly(std::string filepath) const
 {
-    this->output_file_name = "output_GameManager_211388913_322330820" + getTimestampForNow() + ".txt";
+    return std::filesystem::path(filepath).stem().string();
+}
+
+// === Log Functions === //
+void GameManager::initOutputFile(const string &map_name, const string &player1, const string &player2)
+{
+    this->output_file_name = "manager_output_" + getFileNameOnly(map_name) + "_" + getFileNameOnly(player1) + "_VS_" + getFileNameOnly(player2) + getTimestampForNow() + ".txt";
 }
 
 void GameManager::writeToOutputFile(const std::string &text) const
@@ -231,7 +242,7 @@ bool GameManager::concludeGame()
 
     if (this->getRemainingSteps() == 0)
     {
-        setGameResult(0, this->are_steps_limited_by_shells ? GameResult::Reason::MAX_STEPS : GameResult::Reason::MAX_STEPS,
+        setGameResult(0, this->are_steps_limited_by_shells ? GameResult::Reason::ZERO_SHELLS : GameResult::Reason::MAX_STEPS,
                       players_tanks_count);
         return true;
     }
@@ -265,6 +276,7 @@ void GameManager::moveShells(int times, GameCollisionHandler &c_handler)
 void GameManager::advanceStepsClock()
 {
     this->remaining_steps--;
+    this->current_step++;
 }
 
 BoardSatelliteView GameManager::TakeSatelliteImage()
@@ -302,16 +314,22 @@ void GameManager::applyShellsLimitRuleOnRemainingSteps()
 }
 
 // === Public Functions === //
-GameResult GameManager::run(size_t map_width, size_t map_height,
-                            const SatelliteView &map,
-                            size_t max_steps, size_t num_shells,
-                            Player &player1, Player &player2,
-                            TankAlgorithmFactory player1_tank_algo_factory,
-                            TankAlgorithmFactory player2_tank_algo_factory)
-{
+GameResult GameManager::run(
+    size_t map_width, size_t map_height,
+    const SatelliteView &map, // <= a snapshot, NOT updated
+    string map_name,
+    size_t max_steps, size_t num_shells,
+    Player &player1, string name1, Player &player2, string name2,
+    TankAlgorithmFactory player1_tank_algo_factory,
+    TankAlgorithmFactory player2_tank_algo_factory)
 
-    this->prepareForRun(map_width, map_height, map, max_steps,
-                        num_shells, player1, player2,
+{
+    this->prepareForRun(map_width, map_height, map, map_name,
+
+                        max_steps,
+                        num_shells,
+
+                        player1, name1, player2, name2,
                         player1_tank_algo_factory,
                         player2_tank_algo_factory);
 

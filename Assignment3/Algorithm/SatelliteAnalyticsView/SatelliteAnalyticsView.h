@@ -14,73 +14,90 @@
 
 #include <vector>
 #include <map>
+#include <optional>
 #include <set>
 namespace Algorithm_211388913_322330820
 {
-using namespace UserCommon_211388913_322330820;
+    using namespace UserCommon_211388913_322330820;
 #define AnalyticalViewMap std::map<BoardCell, std::vector<std::pair<GameObjectType, AssumedDirection>>> // now allows multiple objects per cell
 
-class SatelliteAnalyticsView : public AbstractGameBoardView
-{
-private:
-    // === Attributes === //
-    int player_idx;
-    size_t max_steps_gap;
+    class SatelliteAnalyticsView : public AbstractGameBoardView
+    {
+    private:
+        // === Attributes === //
+        int player_idx;
+        size_t max_steps_gap;
 
-    AnalyticalViewMap analytical_view;
-    size_t last_updated_step = 0;
+        AnalyticalViewMap analytical_view;
+        size_t last_updated_step = 0;
 
-    std::set<BoardCell> shells_locations;
-    std::set<BoardCell> enemies_locations;
-    std::set<BoardCell> mines_locations;
+        std::set<BoardCell> shells_locations;
+        std::set<BoardCell> enemies_locations;
+        std::set<BoardCell> mines_locations;
 
-    // === INIT Helpers === //
-    BoardCell shellExpectedLocation(const BoardCell &old_location, AssumedDirection assumed_dir, size_t steps_gap) const;
-    bool isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap) const;
-    AssumedDirection findMatchingShellDirection(const BoardCell &old_location, size_t steps_gap) const;
+        BoardCell monitored_location;
+        bool monitored_cell_flag;
 
-    // === INIT === //
-    void initAnalyticalView(const SatelliteView &sat_view);
-    void clearView();
+        std::set<BoardCell> allies_locations;
 
-    // === Move Objects on View === //
-    void advanceShells();
-    void advanceShellsOnce();
+        // === INIT Helpers === //
+        BoardCell shellExpectedLocation(const BoardCell &old_location, AssumedDirection assumed_dir, size_t steps_gap) const;
+        bool isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap) const;
+        AssumedDirection findMatchingShellDirection(const BoardCell &old_location, size_t steps_gap) const;
 
-    // === Internal Logic === //
-    std::vector<std::pair<char, AssumedDirection>> getObjectsAtInternal(const BoardCell &c) const;
-    void addObject(const BoardCell &location, GameObjectType t, AssumedDirection d);
-    void addObjectInternal(const BoardCell &location, GameObjectType obj_type, AssumedDirection dir);
-    void removeObjectInternal(const BoardCell &old_shell_location, GameObjectType obj_type);
+        // === INIT === //
+        void initAnalyticalView(const SatelliteView &sat_view);
+        void clearView();
 
-public:
-    // === Constructor === //
-    SatelliteAnalyticsView(size_t height, size_t width, size_t max_steps_gap, int player_idx);
+        // === Move Objects on View === //
+        void advanceShells();
+        void advanceShellsOnce();
 
-    //=== Destructor ===//
-    ~SatelliteAnalyticsView() override = default;
+        // === Internal Logic === //
+        std::vector<std::pair<char, AssumedDirection>> getObjectsAtInternal(const BoardCell &c) const;
+        void addObject(const BoardCell &location, GameObjectType t, AssumedDirection d);
+        void addObjectInternal(const BoardCell &location, GameObjectType obj_type, AssumedDirection dir);
+        void removeObjectInternal(const BoardCell &old_shell_location, GameObjectType obj_type);
 
-    //=== Getters ===//
-    size_t getMaxStepGap() const;
-    size_t getEnemyTanksNum() const;
-    std::set<BoardCell> getEnemyTanksLocations() const;
-    std::set<BoardCell> getShellsLocations() const;
-    std::set<BoardCell> getMinesLocations() const;
-    std::vector<std::pair<char, AssumedDirection>> getObjectsAt(const BoardCell &c) const;
-    std::optional<AssumedDirection> getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const;
-    std::optional<std::pair<GameObjectType, AssumedDirection>> getObjectAt(GameObjectType obj_type, const BoardCell &location) const;
-    // === Override === //
-    std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const override;
-    std::vector<BoardCell> getOccupiedCells() const override;
+    public:
+        // === Constructor === //
+        SatelliteAnalyticsView(size_t height, size_t width, size_t max_steps_gap, int player_idx);
 
-    // === Movement validation === //
-    bool isWallOnCell(const BoardCell &cell) const;
+        //=== Destructor ===//
+        ~SatelliteAnalyticsView() override = default;
 
-    // === Update View Functions === //
-    void updateAnalyticalView(const SatelliteView &sat_view, size_t current_step);
-    void updateShellsDirectionsFromView(const SatelliteAnalyticsView &other);
+        //=== Getters ===//
+        size_t getMaxStepGap() const;
+        size_t getEnemyTanksNum() const;
+        std::set<BoardCell> getEnemyTanksLocations() const;
+        std::set<BoardCell> getAlliesTanksLocations() const;
+        std::set<BoardCell> getShellsLocations() const;
+        std::set<BoardCell> getMinesLocations() const;
+        std::vector<std::pair<char, AssumedDirection>> getObjectsAt(const BoardCell &c) const;
+        std::optional<AssumedDirection> getDirectionOfObjectAt(GameObjectType t, const BoardCell &c) const;
+        std::optional<std::pair<GameObjectType, AssumedDirection>> getObjectAt(GameObjectType obj_type, const BoardCell &location) const;
+        int getAlliesTanksNum() const;
+        int getTankDifference() const;
 
-    void applyApproxBoardChanges(); // this function should be called at the beginning of each step to update the view
-    void addShell(const BoardCell &location, Direction dir);
-};
+        // === Override === //
+        std::unordered_set<GameObjectType> getObjectsTypesOnCell(const BoardCell &c) const override;
+        std::vector<BoardCell> getOccupiedCells() const override;
+
+        // === Movement validation === //
+        bool isWallOnCell(const BoardCell &cell) const;
+
+        // === Update View Functions === //
+        void updateAnalyticalView(const SatelliteView &sat_view, size_t current_step);
+        void updateShellsDirectionsFromView(const SatelliteAnalyticsView &other);
+
+        void applyApproxBoardChanges(); // this function should be called at the beginning of each step to update the view
+        void addShell(const BoardCell &location, Direction dir);
+
+        // === Setters === //
+        void setMonitoredCell(BoardCell cell);
+
+        // ===  === //
+        bool isMonidoredCellHit();
+    };
+
 }

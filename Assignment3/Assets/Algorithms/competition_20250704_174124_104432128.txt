@@ -1,5 +1,0 @@
-game_maps_folder=Maps
-game_manager=GameManager_211388913_322330820.so
-
-TankAlgorithm_211388913_322330820_Aggressive.so 18
-TankAlgorithm_211388913_322330820_Passive.so 3

@@ -10,6 +10,12 @@ namespace Algorithm_211388913_322330820
     {
     }
 
+    // === clone === //
+    std::unique_ptr<AbstractTankAlgorithm> AggressiveTankAlgorithm::clone() const
+    {
+        return std::make_unique<AggressiveTankAlgorithm>(*this);
+    }
+
     // === Public Methods === //
     ActionRequest AggressiveTankAlgorithm::getActionLogic() const
     {
@@ -29,31 +35,5 @@ namespace Algorithm_211388913_322330820
         return this->getTankAggressiveAction();
     }
 
-    // === Aggresive Algorithm === //
-    ActionRequest AggressiveTankAlgorithm::getTankAggressiveAction() const
-    {
-        // try to chase the enemy tank or shoot at it.
-
-        // dijkstra to closest tank
-        // if can shoot it - shoot
-        // if can't shoot it - chase
-
-        BoardCell start = this->assumed_location;
-        BoardCell target = this->approxClosestEnemyTankLocation();
-
-        // try to shoot enemy
-        if (auto shoot_action_opt = this->evaluateShootingOpportunity(target))
-        {
-            return shoot_action_opt.value();
-        }
-
-        // if will be able to shoot in the future, wait
-        if (this->inShootRange(target) &&
-            sat_view.isStraightLine(start, target) && this->getRemainingShells() > 0)
-        {
-            return ActionRequest::DoNothing;
-        }
-
-        return advanceTankToTarget(target);
-    }
+   
 }

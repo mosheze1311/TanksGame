@@ -47,6 +47,10 @@ namespace Algorithm_211388913_322330820
         else if (GameObjectTypeUtils::isTankObject(obj_type) &&
                  GameObjectTypeUtils::tankTypeToPlayerIndex(obj_type) != this->player_idx)
             enemies_locations.insert(location);
+
+        else if (GameObjectTypeUtils::isTankObject(obj_type) &&
+                 GameObjectTypeUtils::tankTypeToPlayerIndex(obj_type) == this->player_idx)
+            allies_locations.insert(location);
     }
 
     void SatelliteAnalyticsView::removeObjectInternal(const BoardCell &location, GameObjectType obj_type)
@@ -69,6 +73,10 @@ namespace Algorithm_211388913_322330820
         else if (GameObjectTypeUtils::isTankObject(obj_type) &&
                  GameObjectTypeUtils::tankTypeToPlayerIndex(obj_type) != this->player_idx)
             enemies_locations.erase(location);
+
+        else if (GameObjectTypeUtils::isTankObject(obj_type) &&
+                 GameObjectTypeUtils::tankTypeToPlayerIndex(obj_type) == this->player_idx)
+            allies_locations.erase(location);
     }
 
     void SatelliteAnalyticsView::advanceShellsOnce()
@@ -109,6 +117,12 @@ namespace Algorithm_211388913_322330820
         {
             // add to new cell
             addObjectInternal(shell_loc, GameObjectType::SHELL, ass_dir);
+
+            // update flag for tracked location
+            if (shell_loc == this->monitored_location)
+            {
+                this->monitored_cell_flag = true;
+            }
         }
 
         // handle end of step collisions with walls.
@@ -129,6 +143,7 @@ namespace Algorithm_211388913_322330820
     {
         shells_locations.clear();
         enemies_locations.clear();
+        allies_locations.clear();
         mines_locations.clear();
         analytical_view.clear();
     }
@@ -136,9 +151,9 @@ namespace Algorithm_211388913_322330820
     void SatelliteAnalyticsView::initAnalyticalView(const SatelliteView &sat_view)
     {
         this->clearView();
-        for (size_t x = 0; x < getWidth(); ++x)
+        for (size_t y = 0; y < getHeight(); ++y)
         {
-            for (size_t y = 0; y < getHeight(); ++y)
+            for (size_t x = 0; x < getWidth(); ++x)
             {
                 char obj_char = sat_view.getObjectAt(x, y);
                 if (!GameObjectTypeUtils::isValidObjectChar(obj_char)) // empty/out of bounds/caller tank
@@ -203,6 +218,11 @@ namespace Algorithm_211388913_322330820
         return this->enemies_locations;
     }
 
+    std::set<BoardCell> SatelliteAnalyticsView::getAlliesTanksLocations() const
+    {
+        return this->allies_locations;
+    }
+
     std::set<BoardCell> SatelliteAnalyticsView::getShellsLocations() const
     {
         return this->shells_locations;
@@ -250,6 +270,11 @@ namespace Algorithm_211388913_322330820
         }
 
         return std::nullopt;
+    }
+
+    int SatelliteAnalyticsView::getAlliesTanksNum() const
+    {
+        return this->allies_locations.size() + 1;
     }
 
     // === Override === //
@@ -343,7 +368,9 @@ namespace Algorithm_211388913_322330820
 
     void SatelliteAnalyticsView::applyApproxBoardChanges()
     {
+        this->monitored_cell_flag = false; // reset tracking flag
         advanceShells();
+        this->monitored_location = BoardCell(-1, -1); // discard location, no longer tracking
     }
 
     void SatelliteAnalyticsView::updateShellsDirectionsFromView(const SatelliteAnalyticsView &other)
@@ -377,5 +404,22 @@ namespace Algorithm_211388913_322330820
     {
         BoardCell adjusted_location = this->createAdjustedBoardCell(location);
         addObjectInternal(adjusted_location, GameObjectType::SHELL, static_cast<AssumedDirection>(dir));
+    }
+
+    // === Setters === //
+    void SatelliteAnalyticsView::setMonitoredCell(BoardCell cell)
+    {
+        this->monitored_location = cell;
+    }
+
+    // ===  === //
+    bool SatelliteAnalyticsView::isMonidoredCellHit()
+    {
+        return monitored_cell_flag;
+    }
+
+    int SatelliteAnalyticsView::getTankDifference() const
+    {
+        return getAlliesTanksNum() - getEnemyTanksNum();
     }
 }
