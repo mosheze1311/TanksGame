@@ -8,6 +8,7 @@ namespace UserCommon_211388913_322330820
     {
         // if more than one object on cell, and one of the objects is a shell - saves the shell.
         // else - saves the first one in the unordered-set.
+        this->caller_tank_location = BoardCell(width,height); // out of bounds to prevent display
         for (BoardCell c : board.getOccupiedCells())
         {
             auto objects_types = board.getObjectsTypesOnCell(c);

@@ -90,7 +90,7 @@ void GameManager::setGameResult(size_t winner, GameResult::Reason reason, const 
     this->game_result.rounds = this->current_step;
     this->game_result.reason = reason;
 
-    size_t n_players = players_tanks_count.size();
+    size_t n_players = 2;
     this->game_result.remaining_tanks = std::vector<size_t>(n_players);
     for (auto &[tank_type, count] : players_tanks_count)
     {

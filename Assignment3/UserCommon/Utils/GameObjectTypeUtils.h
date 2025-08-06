@@ -14,13 +14,6 @@ namespace UserCommon_211388913_322330820
         inline static const std::array<GameObjectType, 12> valid_types = {
             GameObjectType::TANK1,
             GameObjectType::TANK2,
-            GameObjectType::TANK3,
-            GameObjectType::TANK4,
-            GameObjectType::TANK5,
-            GameObjectType::TANK6,
-            GameObjectType::TANK7,
-            GameObjectType::TANK8,
-            GameObjectType::TANK9,
             GameObjectType::WALL,
             GameObjectType::MINE,
             GameObjectType::SHELL,
@@ -61,13 +54,6 @@ namespace UserCommon_211388913_322330820
             {
             case GameObjectType::TANK1:
             case GameObjectType::TANK2:
-            case GameObjectType::TANK3:
-            case GameObjectType::TANK4:
-            case GameObjectType::TANK5:
-            case GameObjectType::TANK6:
-            case GameObjectType::TANK7:
-            case GameObjectType::TANK8:
-            case GameObjectType::TANK9:
                 return true;
             default:
                 return false;

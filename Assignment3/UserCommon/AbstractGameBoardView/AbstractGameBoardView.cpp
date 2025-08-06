@@ -41,13 +41,6 @@ namespace UserCommon_211388913_322330820
         {
         case GameObjectType::TANK1:
         case GameObjectType::TANK2:
-        case GameObjectType::TANK3:
-        case GameObjectType::TANK4:
-        case GameObjectType::TANK5:
-        case GameObjectType::TANK6:
-        case GameObjectType::TANK7:
-        case GameObjectType::TANK8:
-        case GameObjectType::TANK9:
             try
             {
                 return this->board_details.tanks_count.at(type);
@@ -155,7 +148,7 @@ namespace UserCommon_211388913_322330820
             std::pair<int, int> offsets = to - from;
             std::pair<int, int> next_offsets = to - next;
             int max_offset = std::max(std::abs(offsets.first), std::abs(offsets.second));
-            std::pair<int,int> single_digit_offsets = {offsets.first / max_offset, offsets.second / max_offset};
+            std::pair<int, int> single_digit_offsets = {offsets.first / max_offset, offsets.second / max_offset};
             std::pair<int, int> fixed_next_offsets = {next_offsets.first + single_digit_offsets.first,
                                                       next_offsets.second + single_digit_offsets.second};
             int next_dist = this->distance(next, to);
@@ -191,6 +184,10 @@ namespace UserCommon_211388913_322330820
     {
         int w = static_cast<int>(getWidth());
         int h = static_cast<int>(getHeight());
+        if (w == 0 || h == 0)
+        {
+            return BoardCell(0, 0);
+        }
         // The width, height parameters are signed int to prevent implicit conversion of the X,Y cell attributes to unsigned when performing % operation
         return BoardCell(((x % w) + w) % w, ((y % h) + h) % h);
     }

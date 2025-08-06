@@ -25,6 +25,14 @@ public:
     void createEntry(const std::string &name)
     {
         entries.emplace_back(name);
+
+        // handling duplicate files loading (does not create additional instance so uses same factory)
+        for (auto& entry : entries){
+            if (entry.getName() == name && entry.getFactory() != nullptr){
+                addFactoryToLastEntry(entry.getFactory());
+                break;
+            }
+        }
     }
 
     // === Add Data To Entries === //

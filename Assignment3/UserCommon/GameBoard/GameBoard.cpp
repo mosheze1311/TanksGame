@@ -38,13 +38,6 @@ namespace UserCommon_211388913_322330820
         {
         case GameObjectType::TANK1:
         case GameObjectType::TANK2:
-        case GameObjectType::TANK3:
-        case GameObjectType::TANK4:
-        case GameObjectType::TANK5:
-        case GameObjectType::TANK6:
-        case GameObjectType::TANK7:
-        case GameObjectType::TANK8:
-        case GameObjectType::TANK9:
             return std::make_unique<Tank>(
                 *this,
                 type,
@@ -109,13 +102,6 @@ namespace UserCommon_211388913_322330820
         {
         case GameObjectType::TANK1:
         case GameObjectType::TANK2:
-        case GameObjectType::TANK3:
-        case GameObjectType::TANK4:
-        case GameObjectType::TANK5:
-        case GameObjectType::TANK6:
-        case GameObjectType::TANK7:
-        case GameObjectType::TANK8:
-        case GameObjectType::TANK9:
             this->board_details.tanks_count[obj->getObjectType()] += incremental;
             this->board_details.remaining_shells += incremental * (static_cast<const Tank *>(obj))->getShells();
             break;

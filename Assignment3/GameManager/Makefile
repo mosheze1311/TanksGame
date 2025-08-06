@@ -1,8 +1,8 @@
 # === Compiler and Flags ===
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address -fPIC
-LDFLAGS = -shared # these are linux flags
-LDFLAGS = -shared -undefined dynamic_lookup # these are macos flags
+LDFLAGS = -shared 
+
 
 # === Build Folder and Target Executable ===
 BUILD_DIR = build

@@ -22,8 +22,10 @@ void Simulator::loadSOFile(const std::string &filepath)
 
 void Simulator::loadAlgorithmFile(const std::string &algorithm_filepath)
 {
-    Registrar<TankAlgorithmFactory>::getRegistrar().createEntry(algorithm_filepath);
-    Registrar<PlayerFactory>::getRegistrar().createEntry(algorithm_filepath);
+    fs::path abs_path = fs::absolute(algorithm_filepath).lexically_normal();
+    std::cout << abs_path << std::endl;
+    Registrar<TankAlgorithmFactory>::getRegistrar().createEntry(abs_path);
+    Registrar<PlayerFactory>::getRegistrar().createEntry(abs_path);
 
     loadSOFile(algorithm_filepath);
 
@@ -98,6 +100,7 @@ void Simulator::runComparativeMode()
     // load algorithms
     loadAlgorithmFile(comparative_args.getAlgorithm1());
     loadAlgorithmFile(comparative_args.getAlgorithm2());
+
     if (Registrar<TankAlgorithmFactory>::getRegistrar().count() != 2)
     {
         UserCommon_211388913_322330820::Logger::runtime().logLine("Could not load both algorithms, exiting...");
@@ -265,7 +268,8 @@ void Simulator::runCompetitiveMode()
 
     // load manager
     loadManagerFile(competitive_args.getGameManager());
-    if (Registrar<GameManagerFactory>::getRegistrar().count() != 1){
+    if (Registrar<GameManagerFactory>::getRegistrar().count() != 1)
+    {
         UserCommon_211388913_322330820::Logger::runtime().logLine("Could not load manager, exiting...");
         return;
     }
@@ -336,14 +340,13 @@ void Simulator::runSingleCompetitiveMatch(size_t map_idx, size_t algorithm1_entr
     auto player2_ptr = Registrar<PlayerFactory>::getRegistrar()[algorithm2_entry_idx].getFactory()(2, width, height, max_steps, num_shells);
     auto player2_name = Registrar<PlayerFactory>::getRegistrar()[1].getName();
 
-
     auto manager_factory_entry = Registrar<GameManagerFactory>::getRegistrar()[0];
     auto manager = manager_factory_entry.getFactory()(this->args->isVerbose());
     GameResult res = manager->run(
         width, height,
         map_details.getSatelliteView(), map_name,
         max_steps, num_shells,
-        *player1_ptr, player1_name ,*player2_ptr, player2_name,
+        *player1_ptr, player1_name, *player2_ptr, player2_name,
         algo1Factory, algo2Factory);
 
     if (res.winner == 0)

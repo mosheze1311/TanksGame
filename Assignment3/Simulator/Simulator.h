@@ -14,7 +14,6 @@
 #include <memory>
 #include <mutex>
 #include <vector>
-#include  <iostream>
 #include <filesystem>
 
 class Simulator

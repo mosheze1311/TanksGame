@@ -1,19 +1,18 @@
 # === Compiler and Flags ===
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address -fPIC
-LDFLAGS = -shared -undefined dynamic_lookup
+LDFLAGS = -shared
 
 # === Build Folder and Target Executable ===
 BUILD_DIR = build
-TARGET = Algorithm_211388913_322330820_Aggressive.so
+TARGET = Algorithm_211388913_322330820.so
 
 # === List of Source Files ===
 SRCS = \
-	RegisterAlgorithm.cpp \
+	RegisterAlgorithmCompetition.cpp \
 	\
 	TankAlgorithm/AbstractTankAlgorithm.cpp \
-	TankAlgorithm/AggressiveTankAlgorithm.cpp \
-	TankAlgorithm/PassiveTankAlgorithm.cpp \
+	TankAlgorithm/CompetitionTankAlgorithm.cpp \
 	Tactics/Tactic.cpp \
 	Formation/Formation.cpp \
 	BattleInfo/BattleInfoAgent.cpp \
@@ -55,8 +54,6 @@ $(BUILD_DIR)/%.o: ../%.cpp
 $(BUILD_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-	
 
 # === Clean Rules ===
 clean:

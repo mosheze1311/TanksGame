@@ -40,18 +40,15 @@ namespace Algorithm_211388913_322330820
     };
     ActionRequest CompetitionTankAlgorithm::getActionLogic() const
     {
-        std::cout << "step " << this->current_step << ": ";
 
         ActionRequest default_action = ActionRequest::GetBattleInfo;
         // get battle info on required steps
         if (this->getCurrentStep() == this->step_to_get_info)
         {
-            std::cout << "get battle info" << std::endl;
             default_action = ActionRequest::GetBattleInfo;
         }
         else if (tactic){
             ActionRequest tactic_action =  tactic->getNextTacticAction(*this);
-            std::cout << "tactic action is " << ActionRequestUtils::actionToString(tactic_action) << std::endl;
             default_action = tactic_action;
         }
         ActionRequest res = default_action;
@@ -59,7 +56,6 @@ namespace Algorithm_211388913_322330820
         {
             res = getBestProbSurvivalAction(*this, 3, default_action).first;
         }
-        std::cout << "res is " << ActionRequestUtils::actionToString(res) << std::endl;
         return res;
     }
 
@@ -143,7 +139,6 @@ namespace Algorithm_211388913_322330820
     {
         if (/*this->formation.size() == 1 && */this->getRemainingShells() == 0)
         {
-            std::cout << "ScaredWolf tactic" << std::endl;
             return std::make_unique<ScaredWolf>();
         } // if tank has no shells and alone in formation, scared wolf
 
@@ -161,7 +156,6 @@ namespace Algorithm_211388913_322330820
         // }
 
         // default - attack
-        std::cout << "Attacker tactic" << std::endl;
         return std::make_unique<Attacker>(enemy_location);
     }
 }
