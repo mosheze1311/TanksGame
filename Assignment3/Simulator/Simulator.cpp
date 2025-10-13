@@ -23,7 +23,6 @@ void Simulator::loadSOFile(const std::string &filepath)
 void Simulator::loadAlgorithmFile(const std::string &algorithm_filepath)
 {
     fs::path abs_path = fs::absolute(algorithm_filepath).lexically_normal();
-    std::cout << abs_path << std::endl;
     Registrar<TankAlgorithmFactory>::getRegistrar().createEntry(abs_path);
     Registrar<PlayerFactory>::getRegistrar().createEntry(abs_path);
 
@@ -302,7 +301,7 @@ void Simulator::runManagersOnCompetitiveMode()
     size_t K = this->maps_details.size();
     size_t tasks_count = K * N; // approximately
     size_t num_threads = static_cast<size_t>(this->args->getNumThreads());
-    ThreadPool pool(std::min(num_threads, tasks_count)); // TODO: maybe assign the min value to num_threads
+    ThreadPool pool(std::min(num_threads, tasks_count)); 
     for (size_t k = 0; k < K; ++k)
     {
         for (size_t i = 0; i < N; ++i)
@@ -470,8 +469,6 @@ Simulator::Simulator(std::unique_ptr<ParsedCmdArguments> args)
 // === Public API === //
 void Simulator::run()
 {
-    std::cout << "Running Simulator with Args:\n";
-    std::cout << args->toString();
 
     switch (args->getSimulatorMode())
     {

@@ -53,7 +53,6 @@ private:
         }
     }
     
-    // TODO: make sure the flag is given directly and not just appearing as value for some arg
     SimulatorMode getSimulatorModeFromArgs() const
     {
         for (const std::string &arg : arguments)

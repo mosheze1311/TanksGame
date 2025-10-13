@@ -337,11 +337,7 @@ namespace Algorithm_211388913_322330820
         step_dist = std::min(std::min(getBoardHeight(), getBoardWidth()), step_dist); // for small fields.
         int proximitiy = step_dist * ConfigReader::getConfig().getShellsSpeed();
 
-        int left = this->assumed_location.getX() - proximitiy;
-        int right = this->assumed_location.getX() + proximitiy;
-        int up = this->assumed_location.getY() - proximitiy;
-        int down = this->assumed_location.getY() + proximitiy;
-
+        auto [left, right, up, down] = sat_view.proximityBoundaries(this->assumed_location, proximitiy);
         for (int x = left; x <= right; ++x)
         {
             for (int y = up; y <= down; ++y)
@@ -370,6 +366,37 @@ namespace Algorithm_211388913_322330820
         }
 
         return std::nullopt;
+    }
+
+    bool AbstractTankAlgorithm::isShellApproaching() const
+    {
+        int step_dist = 5;
+        step_dist = std::min(std::min(getBoardHeight(), getBoardWidth()), step_dist); // for small fields.
+        int proximitiy = step_dist * ConfigReader::getConfig().getShellsSpeed();
+
+        auto [left, right, up, down] = sat_view.proximityBoundaries(this->assumed_location, proximitiy);
+
+        for (int x = left; x <= right; ++x)
+        {
+            for (int y = up; y <= down; ++y)
+            {
+                BoardCell cell = sat_view.createAdjustedBoardCell(BoardCell(x, y));
+                if (this->sat_view.getObjectsTypesOnCell(cell).contains(GameObjectType::SHELL))
+                {
+                    AssumedDirection shell_direction = *(sat_view.getDirectionOfObjectAt(GameObjectType::SHELL, cell));
+
+                    if (shell_direction == AssumedDirection::UNKNOWN)
+                        return true;
+
+                    int distance = sat_view.distance(cell, this->assumed_location);
+                    BoardCell next_shell_location = sat_view.createAdjustedBoardCell(cell + static_cast<Direction>(shell_direction));
+                    int next_distance = sat_view.distance(next_shell_location, this->assumed_location);
+                    if (distance > next_distance)
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     std::optional<BoardCell> AbstractTankAlgorithm::getEscapingRoute(Direction enemy_dir) const
@@ -545,7 +572,7 @@ namespace Algorithm_211388913_322330820
         return sat_view.distance(this->assumed_location, cell) <= SHOOTING_RANGE;
     }
 
-    bool AbstractTankAlgorithm::isShellChasingTank(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const
+    bool AbstractTankAlgorithm::isShellInTankDirection(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const
     {
         if (shell_assumed_dir == AssumedDirection::UNKNOWN)
         {
@@ -644,5 +671,7 @@ namespace Algorithm_211388913_322330820
         }
         return score;
     }
-
 }
+
+
+

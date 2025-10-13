@@ -75,6 +75,8 @@ namespace UserCommon_211388913_322330820
         // finds y distance
         int yDistance(const BoardCell &first, const BoardCell &second) const;
 
+        std::tuple<int, int, int, int> proximityBoundaries(const BoardCell &center, int proximity) const;
+
         // === Line, Direction and Neighbors Logic === //
         bool isStraightLine(const BoardCell &from, const BoardCell &to) const;
 

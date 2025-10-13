@@ -45,6 +45,7 @@ private:
     void clearConsole() const
     {
         std::cout << "\033[2J\033[H"; // Clear screen and move cursor to top-left
+        std::cout << "\033c"; 
     }
 
 public:

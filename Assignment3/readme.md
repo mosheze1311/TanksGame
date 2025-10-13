@@ -11,13 +11,8 @@ A deterministic tank battle game for "Advanced Topics in Programming" at TAU. Fe
 
 ## Approved Implementation Choices
 
-1. We implemented a specialized `CompetitionPlayer` class and corresponding `CompetitionAlgorithm`, an advanced strategy adapted for assignment 3.
-2. We extended our static multiton Logger design to ensure synchronized logging across all GameManager instances and Simulator threads.
-3. All Managers and Algorithms are compiled to `.so` files and loaded via a registrar mechanism. Validation is performed on load.
-4. Multithreading is used to improve runtime performance in both modes.
-5. In addition to local Makefiles for each module, we provide a top-level Makefile to streamline building the entire project from root.
-6. We implemented GetBattleInfo so it would cancel backward movements.
-7. After waiting for two steps to execute the MoveBackward command, on the 3rd step, if a MoveForward or GetBattleInfo command is received we cancel the backward movement.
+1. We implemented GetBattleInfo so it would cancel backward movements.
+2. After waiting for two steps to execute the MoveBackward command, on the 3rd step, if a MoveForward or GetBattleInfo command is received we cancel the backward movement.
 All other commands are ignored during this waiting period, and the backward movement proceeds as planned.
 
 ## Project Structure
@@ -77,7 +72,7 @@ Each following line describes a row of the board.
 
 - `#`: Wall  
 - `@`: Mine  
-- `1`–`9`: Tank belonging to Player 1 through Player 9  
+- `1`–`2`: Tank belonging to Player 1 through Player 2  
   (initial direction is defined in the `config.txt` file, there also exist a default value)  
 - Space (` `): Empty cell  
 - Any other character: Treated as Empty cell  

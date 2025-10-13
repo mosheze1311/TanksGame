@@ -13,68 +13,68 @@
 #include <vector>
 using namespace UserCommon_211388913_322330820;
 
-class OutputParser
+
+class InputOutputSimulator
 {
 private:
-    std::ifstream manager_output_file;
-
-public:
-    OutputParser(std::string manager_output_file) : manager_output_file(manager_output_file) {};
-
-    std::vector<std::optional<ActionRequest>> getNextStepActionRequests()
+    class OutputParser
     {
-        std::string line;
-        std::vector<std::optional<ActionRequest>> actions;
-        // Read a non-empty line
+    private:
+        std::ifstream manager_output_file;
 
-        if (!std::getline(manager_output_file, line) || line.empty())
-            return actions;
+    public:
+        OutputParser(std::string manager_output_file) : manager_output_file(manager_output_file) {};
 
-        std::stringstream ss(line);
-        std::string word;
-
-        // Vector to store all words from the line
-        std::vector<std::string> words;
-
-        while (std::getline(ss, word, ','))
+        std::vector<std::optional<ActionRequest>> getNextStepActionRequests()
         {
-            // Trim leading/trailing whitespace
-            word.erase(0, word.find_first_not_of(" \t\r\n"));
-            word.erase(word.find_last_not_of(" \t\r\n") + 1);
+            std::string line;
+            std::vector<std::optional<ActionRequest>> actions;
+            // Read a non-empty line
 
-            // Split by space and take only the first word
-            std::istringstream word_stream(word);
-            std::string first_word;
-            word_stream >> first_word;
+            if (!std::getline(manager_output_file, line) || line.empty())
+                return actions;
 
-            bool found = false;
-            for (int i = 0; i < 9; ++i)
+            std::stringstream ss(line);
+            std::string word;
+
+            // Vector to store all words from the line
+            std::vector<std::string> words;
+
+            while (std::getline(ss, word, ','))
             {
-                ActionRequest request = static_cast<ActionRequest>(i);
-                std::string request_string = ActionRequestUtils::actionToString(request);
-                if (first_word == request_string)
+                // Trim leading/trailing whitespace
+                word.erase(0, word.find_first_not_of(" \t\r\n"));
+                word.erase(word.find_last_not_of(" \t\r\n") + 1);
+
+                // Split by space and take only the first word
+                std::istringstream word_stream(word);
+                std::string first_word;
+                word_stream >> first_word;
+
+                bool found = false;
+                for (int i = 0; i < 9; ++i)
                 {
-                    actions.push_back(request);
-                    found = true;
+                    ActionRequest request = static_cast<ActionRequest>(i);
+                    std::string request_string = ActionRequestUtils::actionToString(request);
+                    if (first_word == request_string)
+                    {
+                        actions.push_back(request);
+                        found = true;
+                    }
+                }
+
+                if (!found)
+                {
+                    actions.push_back(std::nullopt);
                 }
             }
 
-            if (!found)
-            {
-                actions.push_back(std::nullopt);
-            }
+            return actions;
         }
-
-        return actions;
-    }
-};
-
-class InputOutputDrawer
-{
-private:
+    };
 
 public:
-    InputOutputDrawer(std::string input_file, std::string output_file, DrawingType dt)
+    InputOutputSimulator(std::string input_file, std::string output_file, DrawingType dt)
     {
         MapFileParser map_details(input_file);
         OutputParser output_parser(output_file);

@@ -1,6 +1,6 @@
 # === Compiler and Flags ===
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic -fsanitize=address
+CXXFLAGS = -std=c++20 -Wall -Wextra -Werror -pedantic
 LDFLAGS = -rdynamic
 
 # === Build Folder and Target Executable ===

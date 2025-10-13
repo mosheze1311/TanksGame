@@ -67,7 +67,7 @@ namespace Algorithm_211388913_322330820
     // === ScaredWolf Tactic === //
     ActionRequest ScaredWolf::getNextTacticAction(const CompetitionTankAlgorithm &algo)
     {
-        return algo.AbstractTankAlgorithm::getBestProbSurvivalAction(algo, 3, ActionRequest::GetBattleInfo).first;
+        return CompetitionTankAlgorithm::getBestProbSurvivalAction(algo, 3, ActionRequest::GetBattleInfo).first;
     };
 
     // === Attaker Tactic === //

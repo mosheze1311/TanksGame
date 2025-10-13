@@ -16,7 +16,6 @@ void clearConsole()
 int main(int argc, const char *argv[])
 {
     clearConsole();
-    // TODO: the following spacing between parameters and eqaul sign not working: attr_name ="value"
     auto ptr = ConsoleArgumentsParser(argc, argv).getParsedArguments();
     if (ptr == nullptr){
         return 0;
@@ -26,12 +25,7 @@ int main(int argc, const char *argv[])
     simulator.run();
     return 0;
 
-    /*
-    General TODO:    
-    - In competition mode - confirm the relation between K and N.
-    - Keep track on linux/mac make flags. 
-    - Improve algo
-    */ 
+    
 }
 
 

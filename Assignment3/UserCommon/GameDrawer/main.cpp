@@ -1,4 +1,4 @@
-#include "InputOutputDrawer.h"
+#include "InputOutputSimulator.h"
 
 int main(int argc, char **argv)
 {
@@ -11,5 +11,5 @@ int main(int argc, char **argv)
 
     DrawingType dt  = DrawingTypes::fromInt(std::stoi(argv[3]));
 
-    InputOutputDrawer(input_file, output_file, dt);
+    InputOutputSimulator(input_file, output_file, dt);
 }

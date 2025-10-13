@@ -37,8 +37,6 @@ namespace Algorithm_211388913_322330820
         CompetitionTankAlgorithm(CompetitionTankAlgorithm &&other) = delete;
         CompetitionTankAlgorithm& operator=(CompetitionTankAlgorithm &&other) = delete;
 
-        bool isShellApproaching() const;
-
         // === Setters === //
         void setTactic(std::unique_ptr<Tactic> new_tactic);
         void setFormation(Formation new_formation);

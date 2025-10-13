@@ -57,42 +57,7 @@ namespace Algorithm_211388913_322330820
             res = getBestProbSurvivalAction(*this, 3, default_action).first;
         }
         return res;
-    }
-
-    // TODO: maybe this should be in abstract
-    bool CompetitionTankAlgorithm::isShellApproaching() const
-    {
-        int step_dist = 5;
-        step_dist = std::min(std::min(getBoardHeight(), getBoardWidth()), step_dist); // for small fields.
-        int proximitiy = step_dist * ConfigReader::getConfig().getShellsSpeed();
-
-        int left = this->assumed_location.getX() - proximitiy;
-        int right = this->assumed_location.getX() + proximitiy;
-        int up = this->assumed_location.getY() - proximitiy;
-        int down = this->assumed_location.getY() + proximitiy;
-
-        for (int x = left; x <= right; ++x)
-        {
-            for (int y = up; y <= down; ++y)
-            {
-                BoardCell cell = sat_view.createAdjustedBoardCell(BoardCell(x, y));
-                if (this->sat_view.getObjectsTypesOnCell(cell).contains(GameObjectType::SHELL))
-                {
-                    AssumedDirection shell_direction = *(sat_view.getDirectionOfObjectAt(GameObjectType::SHELL, cell));
-                    
-                    if (shell_direction == AssumedDirection::UNKNOWN)
-                        return true;
-                    
-                    int distance = sat_view.distance(cell, this->assumed_location);
-                    BoardCell next_shell_location = sat_view.createAdjustedBoardCell(cell + static_cast<Direction>(shell_direction));
-                    int next_distance = sat_view.distance(next_shell_location, this->assumed_location);
-                    if (distance > next_distance)
-                        return true;
-                }
-            }
-        }
-        return false;
-    }
+    }    
 
     std::unique_ptr<AbstractTankAlgorithm> CompetitionTankAlgorithm::clone() const
     {
@@ -137,25 +102,13 @@ namespace Algorithm_211388913_322330820
     
     std::unique_ptr<Tactic> CompetitionTankAlgorithm::decideBestTactic() const
     {
-        if (/*this->formation.size() == 1 && */this->getRemainingShells() == 0)
+        if (this->getRemainingShells() == 0)
         {
             return std::make_unique<ScaredWolf>();
-        } // if tank has no shells and alone in formation, scared wolf
-
-        BoardCell enemy_location = getBestEnemyLocation();
-        // int diffense_min_diff = -3;
-        // if (this->sat_view.getTankDifference() <= diffense_min_diff)
-        // { // player has much less tanks than opponent, scared wolf/camper
-        //     if (this->getRemainingShells() == 0)
-        //     {
-        //         std::cout << "ScaredWolf tactic" << std::endl;
-        //         return std::make_unique<ScaredWolf>();
-        //     }
-        //     std::cout << "Camper tactic" << std::endl;
-        //     return std::make_unique<Camper>(this->formation.getFormationCenter(), enemy_location);
-        // }
+        }
 
         // default - attack
+        BoardCell enemy_location = getBestEnemyLocation();
         return std::make_unique<Attacker>(enemy_location);
     }
 }

@@ -107,6 +107,18 @@ namespace UserCommon_211388913_322330820
         return dy;
     }
 
+
+    std::tuple<int, int, int, int> AbstractGameBoardView::proximityBoundaries(const BoardCell &center,
+        int proximity) const
+    {
+        int right = center.getX() + proximity;
+        int left = center.getX() - proximity;
+        int up = center.getY() + proximity;
+        int down = center.getY() - proximity;
+        return {left, right, up, down};
+    }
+
+
     // === Line, Direction and Neighbors Logic === //
     bool AbstractGameBoardView::isStraightLine(const BoardCell &from, const BoardCell &to) const
     {

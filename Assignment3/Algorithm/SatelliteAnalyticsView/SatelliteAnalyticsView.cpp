@@ -83,8 +83,7 @@ namespace Algorithm_211388913_322330820
     {
         /*
             advance all shells 1 cell in their assumed direction.
-
-            shells without known direction are assumed to be going down - TODO: change to something smarter (e.g. assume in my direction)
+            Note: shells without known direction are assumed to be going down 
 
             collisions of shells with other objects are handled in the following way:
                 if shell collides with shell, both shells are removed
@@ -126,7 +125,6 @@ namespace Algorithm_211388913_322330820
         }
 
         // handle end of step collisions with walls.
-        // TODO: also handle collisions with shells
         for (BoardCell new_shell_location : this->getShellsLocations())
         {
             auto types_on_cell = this->getObjectsTypesOnCell(new_shell_location);
@@ -174,7 +172,6 @@ namespace Algorithm_211388913_322330820
 
     bool SatelliteAnalyticsView::isDirectionMatchShell(const BoardCell &old_location, const BoardCell &new_location, AssumedDirection assumed_dir, size_t steps_gap) const
     {
-        // TODO: also check if not possible because would have collided with another shell
 
         // check if new location contains a shell
         std::unordered_set<GameObjectType> objects_types_on_cell = this->getObjectsTypesOnCell(new_location);

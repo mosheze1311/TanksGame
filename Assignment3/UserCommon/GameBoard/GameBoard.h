@@ -108,11 +108,11 @@ namespace UserCommon_211388913_322330820
 
         // === Modify Board Functions === //
         // moves an object on the board from its current cell to new position. ignores if object not on board
-        // TODO: this is used by moving objects to handle their movements - keep public or allow acces to moving objects only?
+        // this is used by moving objects to handle their movements - keep public to allow access to moving objects
         void moveGameObject(GameObject *obj, const BoardCell &new_position);
 
         // remove the object from the board
-        // TODO: used by all objects in death - choose access specifiers
+        // used by all objects in death
         void removeObject(GameObject *obj);
 
         void addTankShell(std::unique_ptr<Shell> shell, const BoardCell &shell_initial_cell);

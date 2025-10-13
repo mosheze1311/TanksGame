@@ -18,7 +18,6 @@ namespace Algorithm_211388913_322330820
     using namespace UserCommon_211388913_322330820;
     class AbstractTankAlgorithm : public TankAlgorithm
     {
-        friend class ScaredWolf; // TODO: this should not be here. fix the static member - getBestProbSurvivalAction, maybe move to ScaredWolf.
     protected:
         // === Attributes === //
         int tank_idx;
@@ -98,15 +97,19 @@ namespace Algorithm_211388913_322330820
         bool canMoveToCell(const BoardCell &cell) const;
 
         // === Manage Shooting Range === //
-        bool isShellChasingTank(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const;
+        bool isShellInTankDirection(const BoardCell &shell_loc, AssumedDirection shell_assumed_dir) const;
         bool inShootRange(const BoardCell &to) const;
 
         // === Survival Tactic === //
         static std::pair<ActionRequest, float> getBestProbSurvivalAction(const AbstractTankAlgorithm &algo, int steps_to_calculate, ActionRequest default_action);
         static float bestScoreFor(const AbstractTankAlgorithm &algo, ActionRequest action, int steps_to_calculate);
+        bool isShellApproaching() const;
+
 
         // === Aggresive Algorithm === //
         ActionRequest getTankAggressiveAction() const;
+
+
 
     public:
         // === Constructor === //
