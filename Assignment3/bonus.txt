@@ -1,0 +1,39 @@
+Bonus 1: Relaxed '=' Spacing Handling
+Bonus 2: Game Playback Drawer
+
+=== Relaxed '=' Spacing Handling ===
+Although the assignment explicitly states that the '=' sign should appear *without* spaces around it, our implementation allows optional whitespace on both sides of the '=' character when parsing the configuration file.
+
+Details:
+- This decision was made to improve usability and robustness.
+- Users may now write both `key=value` and `key = value` formats without triggering parsing errors.
+- This flexibility was achieved by trimming whitespace around keys and values during the parsing process in the `ConfigReader`.
+
+Improvement:
+- More user-friendly and forgiving format for editing the config.txt file.
+- Avoids potential bugs caused by accidental spaces around '='.
+
+Relevant Files:
+- Simulator/ConsoleArgumentParser.h
+
+=== Game Playback Drawer ===
+We implemented a visualization tool that takes the input map and the output log file from a game session and **draws the game as it was played**, round by round.
+
+Details:
+- The tool reads the final state and game events to reconstruct the match visually.
+- It displays tank movements, shots, and explosions using symbols.
+- Designed as a standalone module that can be reused for both comparative and competitive modes.
+-Note: we used the output parser form simulator in order to parse the output file for drawing it.
+
+Improvement:
+- Allows easier debugging and replaying of matches.
+- Greatly improves user understanding of game flow.
+- Helps visualize complex game behavior that is hard to track from text logs alone.
+
+Relevant Files:
+- UserCommon/GameDrawer/DrawableObject.h
+- UserCommon/GameDrawer/DrwaingTypes.h
+- UserCommon/GameDrawer/InputOutputSimulatoer.h
+- UserCommon/GameDrawer/GameDrawer.h
+- UserCommon/GameDrawer/MakeFile
+- UserCommon/GameDrawer/main.cpp
